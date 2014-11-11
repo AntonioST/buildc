@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="$project" default="all"
+         xmlns:ivy="antlib:org.apache.ivy.ant">
+
+    <property file="build.properties"/>
+    <target name="all" depends="init,clean,build,jar"/>
+
+    <!--
+    initial section
+    -->
+    <target name="-pre-init"/>
+    <target name="-do-init">
+    </target>
+    <target name="-post-init"/>
+    <target name="-check-git">
+        <available property="exist.git" file=".git" type="dir"/>
+    </target>
+    <target name="-check-project-git-version" depends="-check-git" if="exist.git" unless="project.version">
+        <tempfile property="git.version.file" deleteonexit="true"/>
+        <exec command="git" output="${git.version.file}" failonerror="true">
+            <arg value="describe"/>
+            <arg value="--tags"/>
+        </exec>
+        <loadfile property="project.version" srcfile="${git.version.file}"/>
+        <delete file="${git.version.file}"/>
+    </target>
+    <target name="-check-project-snapshot-version" unless="project.version">
+        <tstamp>
+            <format property="stamp" pattern="yyyymmddHHMMSS"/>
+        </tstamp>
+        <property name="project.version" value="snapshot-${stamp}"/>
+    </target>
+    <target name="-check-project-version" depends="-check-project-git-version,-check-project-snapshot-version">
+        <echo message="project.version=${project.version}"/>
+    </target>
+    <target name="-check-jar-file" depends="-check-project-version" unless="jar.file">
+        <property name="jar.file" value="${project.name}-${project.version}.jar"/>
+    </target>
+    <target name="-check-dir">
+        <fail unless="src.dir">Must set src.dir</fail>
+        <fail unless="test.dir">Must set test.dir</fail>
+        <fail unless="build.dir">Must set build.dir</fail>
+        <fail unless="build.classes.dir">Must set build.classes.dir</fail>
+        <fail unless="build.test.dir">Must set build.test.dir</fail>
+        <fail unless="build.javadoc.dir">Must set build.javadoc.dir</fail>
+        <fail unless="build.jar.dir">Must set build.jar.dir</fail>
+    </target>
+
+    <target name="-init-check" depends="-check-jar-file,-check-dir"/>
+    <target name="init" depends="-pre-init,-do-init,-post-init,-init-check"/>
+    <!--
+    dependencies section
+    -->
+    <target name="-check-lib">
+        <available file="${lib.dir}" property="exist.lib.dir"/>
+    </target>
+    <target name="-try-retrieve" depends="-check-lib" unless="exist.lib.dir">
+        <ivy:retrieve/>
+    </target>
+    <target name="retrieve">
+        <ivy:retrieve/>
+    </target>
+    <!--
+    build section
+    -->
+    <target name="-pre-build"/>
+    <target name="-do-build">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.classes.dir}"/>
+        <javac classpath="${compile.classpath}"
+               srcdir="${src.dir}"
+               destdir="${build.classes.dir}"
+               source="${javac.source}"
+               target="${javac.target}"
+               includeantruntime="no"
+               debug="on"
+               verbose="on">
+            <compilerarg value="${javac.jvmargs}"/>
+        </javac>
+    </target>
+    <target name="-do-resource" if="res.dir">
+        <mkdir dir="${build.classes.dir}/${res.dir}"/>
+        <copy todir="${build.classes.dir}/${res.dir}">
+            <fileset dir="${res.dir}"/>
+        </copy>
+    </target>
+    <target name="-post-build"/>
+    <target name="build" depends="init,-try-retrieve,-pre-build,-do-build,-do-resource,-post-build"/>
+    <!--
+    jar section
+    -->
+    <target name="-pre-jar"/>
+    <target name="-pre-manifest">
+        <mkdir dir="${build.classes.dir}/META-INF"/>
+        <property name="jar.manifest.file" value="${build.classes.dir}/META-INF/MANIFEST.MF"/>
+    </target>
+    <target name="-check-manifest" depends="-pre-manifest" if="manifest.file">
+        <available property="exist.manifest.file" file="${manifest.file}"/>
+    </target>
+    <target name="-create-manifest" depends="-check-manifest" unless="exist.manifest.file">
+        <touch file="${jar.manifest.file}"/>
+    </target>
+    <target name="-copy-manifest" depends="-check-manifest" if="exist.manifest.file">
+        <copy file="manifest.file" tofile="${jar.manifest.file}"/>
+    </target>
+    <target name="-init-manifest" depends="-create-manifest,-copy-manifest"/>
+    <target name="-do-manifest-main-class" depends="-init-manifest" if="main.class">
+        <manifest file="${jar.manifest.file}" mode="update">
+            <attribute name="Main-Class" value="${main.class}"/>
+        </manifest>
+    </target>
+    <target name="-do-manifest-classpath" depends="-init-manifest" if="copy.lib">
+        <manifest file="${jar.manifest.file}" mode="update">
+            <attribute name="Main-Class" value="${main.class}"/>
+        </manifest>
+    </target>
+    <target name="-do-manifest-splash" depends="-init-manifest" if="splash.image">
+        <basename file="${splash.image}" property="splash.image.basename"/>
+        <mkdir dir="${build.classes.dir}/META-INF"/>
+        <copy failonerror="false" file="${splash.image}" todir="${build.classes.dir}/META-INF"/>
+        <manifest file="${jar.manifest.file}" mode="update">
+            <attribute name="SplashScreen-Image" value="META-INF/${splash.image.basename}"/>
+        </manifest>
+    </target>
+    <target name="-do-manifest" depends="-do-manifest-main-class,-do-manifest-classpath,-do-manifest-splash"/>
+    <target name="-do-jar">
+        <echo message="manifest=${jar.manifest.file}"/>
+        <echo message="jar=${jar.file}"/>
+        <jar destfile="${build.jar.dir}/${jar.file}">
+            <fileset dir="${build.classes.dir}"/>
+        </jar>
+    </target>
+    <target name="-copy-lib" if="copy.lib">
+        <mkdir dir="${build.jar.dir}/${lib.dir}"/>
+        <for list="${runtime.classpath}" param="cp" delimiter=":">
+            <sequential>
+                <copy file="${cp}" todir="${build.jar.dir}/${lib.dir}"/>
+            </sequential>
+        </for>
+    </target>
+    <target name="-post-jar"/>
+    <target name="jar" depends="init,build,-pre-jar,-do-manifest,-do-jar,-copy-lib,-post-jar"/>
+    <!--
+    javadoc section
+   -->
+    <target name="javadoc" depends="init">
+
+    </target>
+
+    <!--
+    run section
+    -->
+    <target name="run" depends="init,build">
+        <fail unless="main.class">Must set main.class</fail>
+        <java classpath="${runtime.classpath}:${build.classes.dir}"
+              classname="${main.class}">
+            <jvmarg value="${java.jvmargs}"/>
+        </java>
+
+    </target>
+    <target name="run-jar" depends="init,build,jar">
+        <java classpath="${runtime.classpath}:${build.classes.dir}"
+              jar="${jar.file}">
+            <jvmarg value="${java.jvmargs}"/>
+        </java>
+    </target>
+    <!--
+    test section
+    -->
+    <target name="-build-test">
+        <mkdir dir="${build.test.dir}"/>
+        <javac classpath="${compile.test.classpath}"
+               srcdir="${test.dir}"
+               destdir="${build.test.dir}"
+               source="${javac.source}"
+               target="${javac.target}"/>
+    </target>
+    <target name="-do-test">
+
+    </target>
+    <target name="test" depends="init,build,-build-test,-do-test"/>
+    <!--
+    clean section
+    -->
+    <target name="-do-clean">
+        <delete dir="${build.dir}"/>
+    </target>
+    <target name="-post-clean"/>
+    <target name="clean" depends="init,-do-clean,-post-clean"/>
+    <target name="clean-all" depends="init, clean">
+        <delete dir="${lib.dir}"/>
+    </target>
+</project>
