@@ -4,6 +4,8 @@
          xmlns:contrib="antlib:net.sf.antcontrib">
 
     <target name="build" depends="init,clean,compile,jar"/>
+    <property name="TRUE" value="true"/>
+    <property name="FALSE" value="false"/>
 
     <!--
     initial section
@@ -15,7 +17,6 @@
         <property file="build.properties"/>
     </target>
     <target name="-do-init" depends="-pre-init,-init-properties">
-        <echo message="javac.source=${javac.source}"/>
         <condition property="exist.manifest.file">
             <and>
                 <isset property="manifest.file"/>
@@ -50,18 +51,19 @@
     chesking section
     -->
     <target name="-check-project-git-version" depends="-do-init" if="exist.git" unless="project.version">
-        <tempfile property="git.version.file" deleteonexit="true"/>
-        <exec executable="git" output="${git.version.file}" failonerror="true">
+        <exec executable="git"
+              outputproperty="git.version.output"
+              resultproperty="git.version.result"
+              failonerror="false">
             <arg value="describe"/>
             <arg value="--tags"/>
         </exec>
-        <loadfile property="project.version" srcfile="${git.version.file}">
-            <!--remove newline character-->
-            <filterchain>
-                <striplinebreaks/>
-            </filterchain>
-        </loadfile>
-        <delete file="${git.version.file}"/>
+        <contrib:if>
+            <equals arg1="${git.version.result}" arg2="0"/>
+            <contrib:then>
+                <property name="project.version" value="${git.version.output}"/>
+            </contrib:then>
+        </contrib:if>
     </target>
     <target name="-check-project-snapshot-version" unless="project.version">
         <tstamp>
@@ -87,9 +89,6 @@
     </target>
     <target name="-check-single-file">
         <fail unless="single.file">Must set single.file</fail>
-    </target>
-    <target name="-check-junit" depends="init">
-
     </target>
     <target name="-init-check" depends="-check-jar-file,-check-dir"/>
     <!--
