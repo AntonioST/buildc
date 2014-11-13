@@ -278,7 +278,7 @@
     <target name="-do-resource" if="exist.res">
         <mkdir dir="${build.classes.dir}/${res.dir}"/>
         <copy todir="${build.classes.dir}/${res.dir}">
-            <fileset dir="${res.dir}"/>
+            <fileset dir="${res.dir}" excludes="META-INF/"/>
         </copy>
     </target>
 
@@ -291,10 +291,12 @@
     <!--
     jar section
     -->
-
+    <target name="-init-jar">
+        <mkdir dir="${build.jar.dir}"/>
+        <property name="build.meta.dir" value="${build.dir}/META-INF"/>
+    </target>
     <target name="-pre-manifest">
-        <mkdir dir="${build.classes.dir}/META-INF"/>
-        <property name="jar.manifest.file" value="${build.classes.dir}/META-INF/MANIFEST.MF"/>
+        <property name="jar.manifest.file" value="${build.dir}/MANIFEST.MF"/>
     </target>
     <target name="-create-manifest" depends="-do-init,-pre-manifest" unless="exist.manifest.file">
         <touch file="${jar.manifest.file}"/>
@@ -309,40 +311,47 @@
         </manifest>
     </target>
     <target name="-do-manifest-classpath" depends="-init-manifest" if="copy.lib">
+        <mkdir dir="${build.jar.dir}/${lib.dir}"/>
         <contrib:for list="${runtime.classpath}" param="cp" delimiter=":">
             <sequential>
                 <manifest file="${jar.manifest.file}" mode="update">
                     <attribute name="Class-Path" value="@{cp}"/>
                 </manifest>
+                <copy file="@{cp}" todir="${build.jar.dir}/${lib.dir}"/>
             </sequential>
         </contrib:for>
     </target>
-    <target name="-do-manifest-splash" depends="-do-init,-init-manifest" if="exist.splash.image">
+    <target name="-do-manifest-splash" depends="-do-init,-init-jar,-init-manifest" if="exist.splash.image">
         <basename file="${splash.image}" property="splash.image.basename"/>
-        <mkdir dir="${build.classes.dir}/META-INF"/>
-        <copy failonerror="false" file="${splash.image}" todir="${build.classes.dir}/META-INF"/>
+        <mkdir dir="${build.meta.dir}"/>
+        <copy failonerror="false" file="${splash.image}" todir="${build.meta.dir}"/>
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="SplashScreen-Image" value="META-INF/${splash.image.basename}"/>
         </manifest>
     </target>
     <target name="-do-manifest" depends="-do-manifest-main-class,-do-manifest-classpath,-do-manifest-splash"/>
-    <target name="-do-jar">
-        <echo message="manifest=${jar.manifest.file}"/>
-        <echo message="jar=${jar.file}"/>
-        <jar destfile="${build.jar.dir}/${jar.file}">
+    <target name="-do-meta" depends="-init-jar">
+        <available property="exist.meta" file="${res.dir}/META-INF" type="dir"/>
+        <contrib:if>
+            <not>
+                <equals arg1="${exist.meta}" arg2="" trim="true"/>
+            </not>
+            <contrib:then>
+                <mkdir dir="${build.meta.dir}"/>
+                <copy todir="${build.meta.dir}">
+                    <fileset dir="${res.dir}/META-INF"/>
+                </copy>
+            </contrib:then>
+        </contrib:if>
+    </target>
+    <target name="-do-jar" depends="-do-manifest,-do-meta">
+        <jar destfile="${build.jar.dir}/${jar.file}"
+             manifest="${jar.manifest.file}">
+            <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
         </jar>
     </target>
-    <target name="-copy-lib" if="copy.lib">
-        <mkdir dir="${build.jar.dir}/${lib.dir}"/>
-        <contrib:for list="${runtime.classpath}" param="cp" delimiter=":">
-            <sequential>
-                <copy file="@{cp}" todir="${build.jar.dir}/${lib.dir}"/>
-            </sequential>
-        </contrib:for>
-    </target>
-
-    <target name="jar" depends="init,compile,-pre-jar,-do-manifest,-do-jar,-copy-lib,-post-jar"/>
+    <target name="jar" depends="init,compile,-pre-jar,-init-jar,-do-jar,-post-jar"/>
     <!--
     javadoc section
    -->
