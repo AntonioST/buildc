@@ -43,6 +43,7 @@
         </condition>
         <available property="exist.git" file=".git" type="dir"/>
         <available property="exist.lib" file="${lib.dir}" type="dir"/>
+        <available property="exist.res" file="${res.dir}" type="dir"/>
         <property name="test.result.dir" value="${build.dir}/result"/>
     </target>
     <!--
@@ -223,10 +224,13 @@
     <!--
     dependencies section
     -->
-    <target name="-try-retrieve" depends="-do-init" unless="exist.lib">
+    <target name="-check-ivy">
+        <available property="exist.ivy" file="ivy.xml" type="file"/>
+    </target>
+    <target name="-try-retrieve" depends="-do-init,-check-ivy" if="exist.ivy" unless="exist.lib">
         <ivy:retrieve/>
     </target>
-    <target name="retrieve">
+    <target name="retrieve" depends="-check-ivy" if="exist.ivy">
         <ivy:retrieve/>
     </target>
     <!--
@@ -242,7 +246,7 @@
     <target name="-do-compile" depends="-do-compile-dir">
         <javac-macro/>
     </target>
-    <target name="-do-resource" if="res.dir">
+    <target name="-do-resource" if="exist.res">
         <mkdir dir="${build.classes.dir}/${res.dir}"/>
         <copy todir="${build.classes.dir}/${res.dir}">
             <fileset dir="${res.dir}"/>
