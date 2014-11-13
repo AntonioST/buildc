@@ -4,8 +4,6 @@
          xmlns:contrib="antlib:net.sf.antcontrib">
 
     <target name="build" depends="init,clean,compile,jar"/>
-    <property name="TRUE" value="true"/>
-    <property name="FALSE" value="false"/>
 
     <!--
     initial section
@@ -48,7 +46,7 @@
         <property name="test.result.dir" value="${build.dir}/result"/>
     </target>
     <!--
-    chesking section
+    checking section
     -->
     <target name="-check-project-git-version" depends="-do-init" if="exist.git" unless="project.version">
         <exec executable="git"
@@ -210,7 +208,7 @@
                         <test name="@{class}"
                               methods="@{method}"
                               todir="${test.result.dir}"
-                              outfile="@{class}.result"/>
+                              outfile="@{class}.@{method}.result"/>
                     </testcase>
                 </test-marco>
             </sequential>
@@ -324,27 +322,46 @@
     <target name="javadoc" depends="init">
         <javadoc-macro/>
     </target>
-
     <!--
     run section
     -->
-    <target name="run" depends="init,compile">
+    <target name="-run-config" if="run.config">
+        <available property="exist.run.config" file="${run.config}" type="file"/>
+        <contrib:if>
+            <not>
+                <equals arg1="${exist.run.config}" arg2="" trim="true"/>
+            </not>
+            <contrib:then>
+                <property file="${run.config}"/>
+            </contrib:then>
+        </contrib:if>
+    </target>
+    <target name="run" depends="-run-config,init,compile">
+        <fail unless="main.class">Must set main.class</fail>
+        <property name="classpath" value=""/>
+        <property name="program.args" value=""/>
+        <java classpath="${runtime.classpath}:${build.classes.dir}:${classpath}"
+              classname="${main.class}"
+              failonerror="true">
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
+    <target name="run-jar" depends="-run-config,init,compile,jar">
+        <property name="classpath" value=""/>
+        <property name="program.args" value=""/>
+        <java classpath="${classpath}"
+              jar="${build.jar.dir}/${jar.file}"
+              failonerror="true">
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
+    <target name="run-single" depends="init,compile">
         <fail unless="main.class">Must set main.class</fail>
         <java classpath="${runtime.classpath}:${build.classes.dir}"
-              classname="${main.class}">
-            <jvmarg line="${java.jvmargs}"/>
-        </java>
-
-    </target>
-    <target name="run-jar" depends="init,compile,jar">
-        <java classpath="${runtime.classpath}:${build.classes.dir}"
-              jar="${build.jar.dir}/${jar.file}">
-            <jvmarg line="${java.jvmargs}"/>
-        </java>
-    </target>
-    <target name="run-single" depends="init,compile,-check-single-file">
-        <java classpath="${runtime.classpath}:${build.classes.dir}"
-              classname="${single.file}">
+              classname="${main.class}"
+              failonerror="true">
             <jvmarg line="${java.jvmargs}"/>
         </java>
     </target>
