@@ -100,7 +100,7 @@
     </target>
     <target name="-check-project-snapshot-version" unless="project.version">
         <tstamp>
-            <format property="stamp" pattern="yyyymmddHHMMSS"/>
+            <format property="stamp" pattern="yyyymmdd"/>
         </tstamp>
         <property name="project.version" value="snapshot-${stamp}"/>
     </target>
