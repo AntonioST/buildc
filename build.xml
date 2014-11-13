@@ -75,6 +75,7 @@
             </and>
         </condition>
         <available property="exist.git" file=".git" type="dir"/>
+        <available property="exist.test" file="${test.dir}" type="dir"/>
         <available property="exist.lib" file="${lib.dir}" type="dir"/>
         <available property="exist.res" file="${res.dir}" type="dir"/>
         <property name="test.result.dir" value="${build.dir}/result"/>
@@ -331,11 +332,8 @@
     </target>
     <target name="-do-manifest" depends="-do-manifest-main-class,-do-manifest-classpath,-do-manifest-splash"/>
     <target name="-do-meta" depends="-init-jar">
-        <available property="exist.meta" file="${res.dir}/META-INF" type="dir"/>
         <contrib:if>
-            <not>
-                <equals arg1="${exist.meta}" arg2="" trim="true"/>
-            </not>
+            <available file="${res.dir}/META-INF" type="dir"/>
             <contrib:then>
                 <mkdir dir="${build.meta.dir}"/>
                 <copy todir="${build.meta.dir}">
@@ -345,11 +343,22 @@
         </contrib:if>
     </target>
     <target name="-do-jar" depends="-do-manifest,-do-meta">
-        <jar destfile="${build.jar.dir}/${jar.file}"
-             manifest="${jar.manifest.file}">
-            <metainf dir="${build.meta.dir}"/>
-            <fileset dir="${build.classes.dir}"/>
-        </jar>
+        <contrib:if>
+            <available file="${build.meta.dir}" type="dir"/>
+            <contrib:then>
+                <jar destfile="${build.jar.dir}/${jar.file}"
+                     manifest="${jar.manifest.file}">
+                    <metainf dir="${build.meta.dir}"/>
+                    <fileset dir="${build.classes.dir}"/>
+                </jar>
+            </contrib:then>
+            <contrib:else>
+                <jar destfile="${build.jar.dir}/${jar.file}"
+                     manifest="${jar.manifest.file}">
+                    <fileset dir="${build.classes.dir}"/>
+                </jar>
+            </contrib:else>
+        </contrib:if>
     </target>
     <target name="jar" depends="init,compile,-pre-jar,-init-jar,-do-jar,-post-jar"/>
     <!--
@@ -404,14 +413,14 @@
     <!--
     test section
     -->
-    <target name="-build-test">
+    <target name="-build-test" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
         <javac-macro classpath="${build.classes.dir}:${compile.test.classpath}"
                      srcdir="${test.dir}"
                      destdir="${build.test.dir}"/>
     </target>
 
-    <target name="-do-test">
+    <target name="-do-test" if="exist.test">
         <test-all-marco/>
     </target>
     <target name="-do-test-get-class-name" depends="-check-single-file">
@@ -426,9 +435,11 @@
                                override="true"/>
     </target>
     <target name="-do-test-single-class" depends="-do-test-get-class-name">
+        <fail unless="exist.test">Test file does not exist</fail>
         <test-single-class-marco class="${test.class.name}"/>
     </target>
     <target name="-do-test-single-method" depends="-do-test-get-class-name">
+        <fail unless="exist.test">Test file does not exist</fail>
         <fail unless="single.method">Must set single.method</fail>
         <test-single-method-marco class="${test.class.name}"
                                   method="${single.method}"/>
@@ -450,22 +461,33 @@
         </zip>
     </target>
     <target name="-do-release-src" if="release.src">
-        <zip destfile="${release.dir}/${project.name}-${project.version}-src.zip">
-            <fileset dir="${src.dir}"/>
-            <fileset dir="${res.dir}"/>
-        </zip>
+        <contrib:if>
+            <available file="${res.dir}" type="dir"/>
+            <contrib:then>
+                <zip destfile="${release.dir}/${project.name}-${project.version}-src.zip">
+                    <fileset dir="${src.dir}"/>
+                    <fileset dir="${res.dir}"/>
+                </zip>
+            </contrib:then>
+            <contrib:else>
+                <zip destfile="${release.dir}/${project.name}-${project.version}-src.zip">
+                    <fileset dir="${src.dir}"/>
+                </zip>
+            </contrib:else>
+        </contrib:if>
     </target>
     <target name="-do-release-javadoc" if="release.javadoc">
         <zip destfile="${release.dir}/${project.name}-${project.version}-javadoc.zip">
             <fileset dir="${build.javadoc.dir}"/>
         </zip>
     </target>
-
-    <target name="release-bin" depends="init,compile,test,-pre-release,-init-release,-do-release-bin,-post-release"/>
-    <target name="release-src" depends="init,-pre-release,-init-release,-do-release-src,-post-release"/>
-    <target name="release-javadoc" depends="init,javadoc,-pre-release,-init-release,-do-release-javadoc,-post-release"/>
+    <target name="release-bin"
+            depends="init,compile,test,jar,-pre-release,-init-release,-do-release-bin,-post-release"/>
+    <target name="release-src" depends="init,compile,test,-pre-release,-init-release,-do-release-src,-post-release"/>
+    <target name="release-javadoc"
+            depends="init,compile,test,javadoc,-pre-release,-init-release,-do-release-javadoc,-post-release"/>
     <target name="release"
-            depends="init,compile,test,-pre-release,-init-release,-do-release-bin,-do-release-src,-do-release-javadoc,-post-release"/>
+            depends="init,compile,test,jar,javadoc,-pre-release,-init-release,-do-release-bin,-do-release-src,-do-release-javadoc,-post-release"/>
     <!--
     clean section
     -->
