@@ -45,9 +45,29 @@
     initial section
     -->
     <target name="-init-properties" depends="-pre-init">
-        <property file="build.properties"/>
+        <contrib:if>
+            <available file="build.properties"/>
+            <contrib:then>
+                <property file="build.properties"/>
+            </contrib:then>
+        </contrib:if>
     </target>
     <target name="-do-init" depends="-pre-init,-init-properties">
+        <property name="project.name" value="${ant.project.name}"/>
+        <!--default directory-->
+        <property name="src.dir" value="src"/>
+        <property name="test.dir" value="test"/>
+        <property name="build.dir" value="build"/>
+        <property name="lib.dir" value="lib"/>
+        <property name="res.dir" value="res"/>
+        <property name="release.dir" value="release"/>
+        <property name="build.classes.dir" value="${build.dir}/classes"/>
+        <property name="build.test.dir" value="${build.dir}/test/classes"/>
+        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
+        <property name="build.jar.dir" value="${build.dir}/jar"/>
+        <property name="build.meta.dir" value="${build.dir}/META-INF"/>
+        <property name="test.result.dir" value="${build.dir}/result"/>
+        <!--exist property-->
         <condition property="exist.manifest.file">
             <and>
                 <isset property="manifest.file"/>
@@ -78,7 +98,20 @@
         <available property="exist.test" file="${test.dir}" type="dir"/>
         <available property="exist.lib" file="${lib.dir}" type="dir"/>
         <available property="exist.res" file="${res.dir}" type="dir"/>
-        <property name="test.result.dir" value="${build.dir}/result"/>
+        <!--default value-->
+        <property name="javac.source" value="1.8"/>
+        <property name="javac.target" value="1.8"/>
+        <property name="javac.debug" value="false"/>
+        <property name="javac.jvmargs" value=""/>
+        <property name="src.include" value="**"/>
+        <property name="src.exclude" value=""/>
+        <property name="release.src" value="false"/>
+        <property name="release.javadoc" value="false"/>
+        <!--default classpath-->
+        <property name="compile.classpath" value=""/>
+        <property name="runtime.classpath" value="${compile.classpath}"/>
+        <property name="compile.test.classpath" value="${compile.classpath}"/>
+        <property name="runtime.test.classpath" value="${compile.test.classpath}:${runtime.classpath}"/>
     </target>
     <!--
     checking section
@@ -111,20 +144,10 @@
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <echo message="jar.file=${jar.file}"/>
     </target>
-    <target name="-check-dir">
-        <fail unless="src.dir">Must set src.dir</fail>
-        <fail unless="test.dir">Must set test.dir</fail>
-        <fail unless="build.dir">Must set build.dir</fail>
-        <property name="build.classes.dir" value="${build.dir}/classes"/>
-        <property name="build.test.dir" value="${build.dir}/test/classes"/>
-        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
-        <property name="build.jar.dir" value="${build.dir}/jar"/>
-        <property name="build.meta.dir" value="${build.dir}/META-INF"/>
-    </target>
     <target name="-check-single-file">
         <fail unless="single.file">Must set single.file</fail>
     </target>
-    <target name="-init-check" depends="-check-jar-file,-check-dir"/>
+    <target name="-init-check" depends="-check-jar-file"/>
     <!--
     initial macro section
     -->
@@ -366,6 +389,7 @@
     <target name="run" depends="-run-config,init,compile">
         <fail unless="main.class">Must set main.class</fail>
         <property name="classpath" value=""/>
+        <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
         <java classpath="${runtime.classpath}:${build.classes.dir}:${classpath}"
               classname="${main.class}"
@@ -376,6 +400,7 @@
     </target>
     <target name="run-jar" depends="-run-config,init,compile,jar">
         <property name="classpath" value=""/>
+        <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
         <java classpath="${classpath}"
               jar="${build.jar.dir}/${jar.file}"
@@ -403,6 +428,7 @@
     </target>
 
     <target name="-do-test" if="exist.test">
+        <property name="test.jvmargs" value=""/>
         <test-all-marco/>
     </target>
     <target name="-do-test-get-class-name" depends="-check-single-file">
@@ -418,11 +444,13 @@
     </target>
     <target name="-do-test-single-class" depends="-do-test-get-class-name">
         <fail unless="exist.test">Test file does not exist</fail>
+        <property name="test.jvmargs" value=""/>
         <test-single-class-marco class="${test.class.name}"/>
     </target>
     <target name="-do-test-single-method" depends="-do-test-get-class-name">
         <fail unless="exist.test">Test file does not exist</fail>
         <fail unless="single.method">Must set single.method</fail>
+        <property name="test.jvmargs" value=""/>
         <test-single-method-marco class="${test.class.name}"
                                   method="${single.method}"/>
     </target>
