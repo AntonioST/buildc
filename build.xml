@@ -115,10 +115,11 @@
         <fail unless="src.dir">Must set src.dir</fail>
         <fail unless="test.dir">Must set test.dir</fail>
         <fail unless="build.dir">Must set build.dir</fail>
-        <fail unless="build.classes.dir">Must set build.classes.dir</fail>
-        <fail unless="build.test.dir">Must set build.test.dir</fail>
-        <fail unless="build.javadoc.dir">Must set build.javadoc.dir</fail>
-        <fail unless="build.jar.dir">Must set build.jar.dir</fail>
+        <property name="build.classes.dir" value="${build.dir}/classes"/>
+        <property name="build.test.dir" value="${build.dir}/test/classes"/>
+        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
+        <property name="build.jar.dir" value="${build.dir}/jar"/>
+        <property name="build.meta.dir" value="${build.dir}/META-INF"/>
     </target>
     <target name="-check-single-file">
         <fail unless="single.file">Must set single.file</fail>
@@ -152,37 +153,6 @@
                     <compilerarg line="${javac.jvmargs}"/>
                     <customize/>
                 </javac>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-init-macro-javadoc">
-        <macrodef name="javadoc-macro">
-            <attribute name="destdir" default="${build.javadoc.dir}"/>
-            <attribute name="author" default=""/>
-            <attribute name="version" default=""/>
-            <attribute name="charset" default="UTF-8"/>
-            <attribute name="noindex" default="false"/>
-            <attribute name="nonavbar" default="false"/>
-            <attribute name="notree" default="false"/>
-            <attribute name="private" default="false"/>
-            <attribute name="splitindex" default="false"/>
-            <attribute name="windowtitle" default="${project.name} API"/>
-            <sequential>
-                <mkdir dir="@{destdir}"/>
-                <javadoc classpath="${compile.classpath}"
-                         destdir="@{destdir}"
-                         author="@{author}"
-                         version="@{version}"
-                         charset="@{charset}"
-                         noindex="@{noindex}"
-                         nonavbar="@{nonavbar}"
-                         notree="@{notree}"
-                         private="@{private}"
-                         splitindex="@{splitindex}"
-                         windowtitle="@{windowtitle}"
-                         failonerror="true">
-                    <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
-                </javadoc>
             </sequential>
         </macrodef>
     </target>
@@ -249,9 +219,9 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-init-macro"
-            depends="-init-macro-javac,-init-macro-javadoc,-init-macro-test-all,-init-macro-test-single-class,-init-macro-test-single-method"/>
-
+    <target name="-init-macro-tests"
+            depends="-init-macro-test,-init-macro-test-all,-init-macro-test-single-class,-init-macro-test-single-method"/>
+    <target name="-init-macro" depends="-init-macro-javac,-init-macro-tests"/>
     <target name="init" depends="-pre-init,-do-init,-init-check,-init-macro,-post-init"/>
     <!--
     dependencies section
@@ -282,7 +252,6 @@
             <fileset dir="${res.dir}" excludes="META-INF/"/>
         </copy>
     </target>
-
     <target name="-do-compile-single" depends="-check-single-file,-do-compile-dir">
         <javac-macro includes="${single.file}"/>
     </target>
@@ -294,7 +263,6 @@
     -->
     <target name="-init-jar">
         <mkdir dir="${build.jar.dir}"/>
-        <property name="build.meta.dir" value="${build.dir}/META-INF"/>
     </target>
     <target name="-pre-manifest">
         <property name="jar.manifest.file" value="${build.dir}/MANIFEST.MF"/>
@@ -365,7 +333,21 @@
     javadoc section
    -->
     <target name="javadoc" depends="init">
-        <javadoc-macro/>
+        <mkdir dir="${build.javadoc.dir}"/>
+        <javadoc classpath="${compile.classpath}"
+                 destdir="${build.javadoc.dir}"
+                 author="author"
+                 version="version"
+                 charset="UTF-8"
+                 noindex="false"
+                 nonavbar="false"
+                 notree="false"
+                 private="false"
+                 splitindex="false"
+                 windowtitle="${project.name} API"
+                 failonerror="true">
+            <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
+        </javadoc>
     </target>
     <!--
     run section
