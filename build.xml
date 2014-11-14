@@ -144,9 +144,6 @@
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <echo message="jar.file=${jar.file}"/>
     </target>
-    <target name="-check-single-file">
-        <fail unless="single.file">Must set single.file</fail>
-    </target>
     <target name="-init-check" depends="-check-jar-file"/>
     <!--
     initial macro section
@@ -185,14 +182,14 @@
             <sequential>
                 <mkdir dir="${test.result.dir}"/>
                 <junit tempdir="${test.result.dir}"
-                       printsummary="on"
+                       printsummary="withOutAndErr"
                        haltonfailure="false"
                        haltonerror="false"
                        fork="true">
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
                     <classpath path="${runtime.test.classpath}"/>
-                    <formatter type="plain"/>
+                    <formatter type="brief"/>
                     <jvmarg line="${test.jvmargs}"/>
                     <testcase/>
                 </junit>
@@ -202,6 +199,7 @@
     <target name="-init-macro-test-all" depends="-init-macro-test">
         <macrodef name="test-all-marco">
             <sequential>
+                <delete dir="${test.result.dir}" failonerror="false"/>
                 <test-marco>
                     <testcase>
                         <batchtest todir="${test.result.dir}">
@@ -275,7 +273,8 @@
             <fileset dir="${res.dir}" excludes="META-INF/"/>
         </copy>
     </target>
-    <target name="-do-compile-single" depends="-check-single-file,-do-compile-dir">
+    <target name="-do-compile-single" depends="-do-compile-dir">
+        <fail unless="single.file">Must set single.file</fail>
         <javac-macro includes="${single.file}"/>
     </target>
 
@@ -376,14 +375,14 @@
     run section
     -->
     <target name="-run-config" if="run.config">
-        <available property="exist.run.config" file="${run.config}" type="file"/>
         <contrib:if>
-            <not>
-                <equals arg1="${exist.run.config}" arg2="" trim="true"/>
-            </not>
+            <available file="${run.config}" type="file"/>
             <contrib:then>
                 <property file="${run.config}"/>
             </contrib:then>
+            <contrib:else>
+                <fail>cannot find file ${run.config}</fail>
+            </contrib:else>
         </contrib:if>
     </target>
     <target name="run" depends="-run-config,init,compile">
@@ -431,28 +430,39 @@
         <property name="test.jvmargs" value=""/>
         <test-all-marco/>
     </target>
-    <target name="-do-test-get-class-name" depends="-check-single-file">
-        <contrib:propertyregex property="test.class.name"
-                               input="${single.file}"
-                               regexp="${test.dir}/(.+)\.java"
-                               select="\1"/>
-        <contrib:propertyregex property="test.class.name"
-                               input="${test.class.name}"
-                               regexp="/"
-                               replace="."
-                               override="true"/>
+    <target name="-do-test-check-class">
+        <contrib:if>
+            <isset property="test.class"/>
+            <contrib:elseif>
+                <isset id="single.file"/>
+                <contrib:then>
+                    <contrib:propertyregex property="test.class"
+                                           input="${single.file}"
+                                           regexp="${test.dir}/(.+)\.java"
+                                           select="\1"/>
+                    <contrib:propertyregex property="test.class"
+                                           input="${test.class}"
+                                           regexp="/"
+                                           replace="."
+                                           override="true"/>
+                </contrib:then>
+            </contrib:elseif>
+            <contrib:else>
+                <fail>Must set test.class.name or single.file</fail>
+            </contrib:else>
+        </contrib:if>
     </target>
-    <target name="-do-test-single-class" depends="-do-test-get-class-name">
+    <target name="-do-test-single-class" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
         <property name="test.jvmargs" value=""/>
-        <test-single-class-marco class="${test.class.name}"/>
+        <test-single-class-marco class="${test.class}"/>
     </target>
-    <target name="-do-test-single-method" depends="-do-test-get-class-name">
+    <target name="-do-test-single-method" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
-        <fail unless="single.method">Must set single.method</fail>
+        <fail unless="test.method">Must set single.method</fail>
         <property name="test.jvmargs" value=""/>
-        <test-single-method-marco class="${test.class.name}"
-                                  method="${single.method}"/>
+        <test-single-method-marco class="${test.class}"
+                                  method="${test.method}"/>
     </target>
 
     <target name="test" depends="init,compile,-build-test,-pre-test,-do-test,-post-test"/>
