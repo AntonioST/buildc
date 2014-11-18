@@ -6,3 +6,4 @@
 /release/
 /.idea/
 /*.config
+!/res/copyright/

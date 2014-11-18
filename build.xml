@@ -44,7 +44,15 @@
     <!--
     initial section
     -->
-    <target name="-init-properties" depends="-pre-init">
+    <target name="-init-private" depends="-pre-init">
+        <!--default directory-->
+        <property name="src.dir" value="src"/>
+        <property name="test.dir" value="test"/>
+        <property name="build.dir" value="build"/>
+        <property name="lib.dir" value="lib"/>
+        <property name="res.dir" value="res"/>
+    </target>
+    <target name="-init-properties" depends="-pre-init,-init-private">
         <contrib:if>
             <available file="build.properties"/>
             <contrib:then>
@@ -52,14 +60,9 @@
             </contrib:then>
         </contrib:if>
     </target>
-    <target name="-do-init" depends="-pre-init,-init-properties">
+    <target name="-do-init" depends="-pre-init,-init-private,-init-properties">
         <property name="project.name" value="${ant.project.name}"/>
         <!--default directory-->
-        <property name="src.dir" value="src"/>
-        <property name="test.dir" value="test"/>
-        <property name="build.dir" value="build"/>
-        <property name="lib.dir" value="lib"/>
-        <property name="res.dir" value="res"/>
         <property name="release.dir" value="release"/>
         <property name="build.classes.dir" value="${build.dir}/classes"/>
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
@@ -155,7 +158,6 @@
             <attribute name="classpath" default="${compile.classpath}"/>
             <attribute name="includes" default="${src.include}"/>
             <attribute name="excludes" default="${src.exclude}"/>
-            <attribute name="debug" default="${javac.debug}"/>
             <element name="customize" optional="true"/>
             <sequential>
                 <javac classpath="@{classpath}"
@@ -168,7 +170,7 @@
                        target="${javac.target}"
                        includeantruntime="no"
                        includejavaruntime="no"
-                       debug="@{debug}"
+                       debug="${javac.debug}"
                        listfiles="true">
                     <compilerarg line="${javac.jvmargs}"/>
                     <customize/>
@@ -425,7 +427,6 @@
                      srcdir="${test.dir}"
                      destdir="${build.test.dir}"/>
     </target>
-
     <target name="-do-test" if="exist.test">
         <property name="test.jvmargs" value=""/>
         <test-all-marco/>
@@ -448,7 +449,7 @@
                 </contrib:then>
             </contrib:elseif>
             <contrib:else>
-                <fail>Must set test.class.name or single.file</fail>
+                <fail>Must set test.class or single.file</fail>
             </contrib:else>
         </contrib:if>
     </target>
@@ -464,14 +465,12 @@
         <test-single-method-marco class="${test.class}"
                                   method="${test.method}"/>
     </target>
-
     <target name="test" depends="init,compile,-build-test,-pre-test,-do-test,-post-test"/>
     <target name="test-single-class" depends="init,compile,-build-test,-pre-test,-do-test-single-class,-post-test"/>
     <target name="test-single-method" depends="init,compile,-build-test,-pre-test,-do-test-single-method,-post-test"/>
     <!--
     release section
     -->
-
     <target name="-init-release">
         <mkdir dir="${release.dir}"/>
     </target>
@@ -514,7 +513,6 @@
     <target name="-do-clean">
         <delete dir="${build.dir}"/>
     </target>
-
     <target name="clean" depends="init,-do-clean,-post-clean"/>
     <target name="clean-all" depends="init, clean">
         <delete dir="${lib.dir}"/>
