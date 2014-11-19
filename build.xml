@@ -171,6 +171,7 @@
                        includeantruntime="no"
                        includejavaruntime="no"
                        debug="${javac.debug}"
+                       fork="true"
                        listfiles="true">
                     <compilerarg line="${javac.jvmargs}"/>
                     <customize/>
@@ -394,6 +395,7 @@
         <property name="program.args" value=""/>
         <java classpath="${runtime.classpath}:${build.classes.dir}:${classpath}"
               classname="${main.class}"
+              fork="true"
               failonerror="true">
             <jvmarg line="${java.jvmargs}"/>
             <arg line="${program.args}"/>
@@ -405,6 +407,7 @@
         <property name="program.args" value=""/>
         <java classpath="${classpath}"
               jar="${build.jar.dir}/${jar.file}"
+              fork="true"
               failonerror="true">
             <jvmarg line="${java.jvmargs}"/>
             <arg line="${program.args}"/>
@@ -414,6 +417,7 @@
         <fail unless="main.class">Must set main.class</fail>
         <java classpath="${runtime.classpath}:${build.classes.dir}"
               classname="${main.class}"
+              fork="true"
               failonerror="true">
             <jvmarg line="${java.jvmargs}"/>
         </java>
