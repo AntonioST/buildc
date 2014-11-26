@@ -425,7 +425,7 @@
     <!--
     test section
     -->
-    <target name="-build-test" if="exist.test">
+    <target name="-do-compile-test" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
         <javac-macro classpath="${build.classes.dir}:${compile.test.classpath}"
                      srcdir="${test.dir}"
@@ -469,9 +469,10 @@
         <test-single-method-marco class="${test.class}"
                                   method="${test.method}"/>
     </target>
-    <target name="test" depends="init,compile,-build-test,-pre-test,-do-test,-post-test"/>
-    <target name="test-single-class" depends="init,compile,-build-test,-pre-test,-do-test-single-class,-post-test"/>
-    <target name="test-single-method" depends="init,compile,-build-test,-pre-test,-do-test-single-method,-post-test"/>
+    <target name="compile-test" depends="init,compile,-do-compile-test"/>
+    <target name="test" depends="init,compile,-do-compile-test,-pre-test,-do-test,-post-test"/>
+    <target name="test-single-class" depends="init,compile,-do-compile-test,-pre-test,-do-test-single-class,-post-test"/>
+    <target name="test-single-method" depends="init,compile,-do-compile-test,-pre-test,-do-test-single-method,-post-test"/>
     <!--
     release section
     -->
