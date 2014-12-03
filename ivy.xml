@@ -6,6 +6,9 @@
 		<description >
 		</description>
 	</info>
+	<publications>
+		<artifact name="antbuild" ext="xml"/>
+	</publications>
 	<dependencies>
 		<dependency org="junit" name="junit" rev="4.11"/>
 	</dependencies>

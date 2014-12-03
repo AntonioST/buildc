@@ -471,8 +471,10 @@
     </target>
     <target name="compile-test" depends="init,compile,-do-compile-test"/>
     <target name="test" depends="init,compile,-do-compile-test,-pre-test,-do-test,-post-test"/>
-    <target name="test-single-class" depends="init,compile,-do-compile-test,-pre-test,-do-test-single-class,-post-test"/>
-    <target name="test-single-method" depends="init,compile,-do-compile-test,-pre-test,-do-test-single-method,-post-test"/>
+    <target name="test-single-class"
+            depends="init,compile,-do-compile-test,-pre-test,-do-test-single-class,-post-test"/>
+    <target name="test-single-method"
+            depends="init,compile,-do-compile-test,-pre-test,-do-test-single-method,-post-test"/>
     <!--
     release section
     -->
@@ -512,6 +514,21 @@
             depends="init,compile,test,javadoc,-pre-release,-init-release,-do-release-javadoc,-post-release"/>
     <target name="release"
             depends="init,compile,test,jar,javadoc,-pre-release,-init-release,-do-release-bin,-do-release-src,-do-release-javadoc,-post-release"/>
+    <!--
+    publish section
+    -->
+    <target name="publish" depends="clean,jar">
+        <ivy:resolve/>
+        <copy file="${build.jar.dir}/${jar.file}" tofile="${build.jar.dir}/${project.name}.jar"/>
+        <ivy:publish artifactspattern="${build.jar.dir}/[artifact].[ext]"
+                     resolver="local"
+                     pubrevision="${project.version}"
+                     status="release"
+                     overwrite="true"
+                     update="true"
+                     forcedeliver="true"/>
+        <echo message="project ${ant.project.name} released with version ${project.version}"/>
+    </target>
     <!--
     clean section
     -->
