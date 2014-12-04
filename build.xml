@@ -521,6 +521,7 @@
         <ivy:resolve/>
         <copy file="${build.jar.dir}/${jar.file}" tofile="${build.jar.dir}/${project.name}.jar"/>
         <ivy:publish artifactspattern="${build.jar.dir}/[artifact].[ext]"
+                     conf="core"
                      resolver="local"
                      pubrevision="${project.version}"
                      status="release"

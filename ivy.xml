@@ -6,10 +6,14 @@
 		<description >
 		</description>
 	</info>
+	<configurations>
+		<conf name="core"/>
+		<conf name="test" extends="core"/>
+	</configurations>
 	<publications>
 		<artifact name="antbuild" ext="xml"/>
 	</publications>
 	<dependencies>
-		<dependency org="junit" name="junit" rev="4.11"/>
+		<dependency org="junit" name="junit" rev="4.11" conf="test"/>
 	</dependencies>
 </ivy-module>
