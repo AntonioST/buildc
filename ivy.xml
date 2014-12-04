@@ -8,12 +8,14 @@
 	</info>
 	<configurations>
 		<conf name="core"/>
-		<conf name="test" extends="core"/>
+		<conf name="compile" extends="core"/>
+		<conf name="runtime" extends="compile"/>
+		<conf name="test" extends="runtime"/>
 	</configurations>
 	<publications>
-		<artifact name="antbuild" ext="xml"/>
+		<artifact name="antbuild" ext="xml" conf="core"/>
 	</publications>
 	<dependencies>
-		<dependency org="junit" name="junit" rev="4.11" conf="test"/>
+		<dependency org="junit" name="junit" rev="4.11" conf="test->default"/>
 	</dependencies>
 </ivy-module>
