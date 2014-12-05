@@ -220,8 +220,7 @@
                 <test-marco>
                     <testcase>
                         <test name="@{class}"
-                              todir="${test.result.dir}"
-                              outfile="@{class}.result"/>
+                              todir="${test.result.dir}"/>
                     </testcase>
                 </test-marco>
             </sequential>
@@ -236,8 +235,7 @@
                     <testcase>
                         <test name="@{class}"
                               methods="@{method}"
-                              todir="${test.result.dir}"
-                              outfile="@{class}.@{method}.result"/>
+                              todir="${test.result.dir}"/>
                     </testcase>
                 </test-marco>
             </sequential>
