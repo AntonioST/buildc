@@ -7,6 +7,7 @@
 		</description>
 	</info>
 	<configurations>
+		<conf name="build"/>
 		<conf name="core"/>
 		<conf name="compile" extends="core"/>
 		<conf name="runtime" extends="compile"/>
@@ -17,5 +18,7 @@
 	</publications>
 	<dependencies>
 		<dependency org="junit" name="junit" rev="4.11" conf="test->default"/>
+		<dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" conf="build->default"/>
+		<dependency org="org.jacoco" name="org.jacoco.ant" rev="0.7.2.201409121644"  conf="build->default"/>
 	</dependencies>
 </ivy-module>

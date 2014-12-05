@@ -2,7 +2,8 @@
 <project name="project"
          default="build"
          xmlns:ivy="antlib:org.apache.ivy.ant"
-         xmlns:contrib="antlib:net.sf.antcontrib">
+         xmlns:contrib="antlib:net.sf.antcontrib"
+         xmlns:jacoco="antlib:org.jacoco.ant">
     <description></description>
     <target name="build" depends="init,clean,compile,jar"/>
     <!--
@@ -70,6 +71,8 @@
         <property name="build.jar.dir" value="${build.dir}/jar"/>
         <property name="build.meta.dir" value="${build.dir}/META-INF"/>
         <property name="test.result.dir" value="${build.dir}/result"/>
+        <property name="coverage.result.dir" value="${build.dir}/jacoco"/>
+        <property name="coverage.report.dir" value="${coverage.result.dir}/report"/>
         <!--exist property-->
         <condition property="exist.manifest.file">
             <and>
@@ -213,8 +216,8 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-init-macro-test-single-class" depends="-init-macro-test">
-        <macrodef name="test-single-class-marco">
+    <target name="-init-macro-test-class" depends="-init-macro-test">
+        <macrodef name="test-class-marco">
             <attribute name="class"/>
             <sequential>
                 <test-marco>
@@ -226,8 +229,8 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-init-macro-test-single-method" depends="-init-macro-test">
-        <macrodef name="test-single-method-marco">
+    <target name="-init-macro-test-method" depends="-init-macro-test">
+        <macrodef name="test-method-marco">
             <attribute name="class"/>
             <attribute name="method"/>
             <sequential>
@@ -242,7 +245,7 @@
         </macrodef>
     </target>
     <target name="-init-macro-tests"
-            depends="-init-macro-test,-init-macro-test-all,-init-macro-test-single-class,-init-macro-test-single-method"/>
+            depends="-init-macro-test,-init-macro-test-all,-init-macro-test-class,-init-macro-test-method"/>
     <target name="-init-macro" depends="-init-macro-javac,-init-macro-tests"/>
     <target name="init" depends="-pre-init,-do-init,-init-check,-init-macro,-post-init"/>
     <!--
@@ -260,7 +263,6 @@
     <!--
     compile section
     -->
-
     <target name="-do-compile-dir">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.classes.dir}"/>
@@ -455,24 +457,66 @@
             </contrib:else>
         </contrib:if>
     </target>
-    <target name="-do-test-single-class" depends="-do-test-check-class">
+    <target name="-do-test-class" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
         <property name="test.jvmargs" value=""/>
-        <test-single-class-marco class="${test.class}"/>
+        <test-class-marco class="${test.class}"/>
     </target>
-    <target name="-do-test-single-method" depends="-do-test-check-class">
+    <target name="-do-test-method" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
         <fail unless="test.method">Must set single.method</fail>
         <property name="test.jvmargs" value=""/>
-        <test-single-method-marco class="${test.class}"
-                                  method="${test.method}"/>
+        <test-method-marco class="${test.class}"
+                           method="${test.method}"/>
     </target>
     <target name="compile-test" depends="init,compile,-do-compile-test"/>
     <target name="test" depends="init,compile,-do-compile-test,-pre-test,-do-test,-post-test"/>
-    <target name="test-single-class"
-            depends="init,compile,-do-compile-test,-pre-test,-do-test-single-class,-post-test"/>
-    <target name="test-single-method"
-            depends="init,compile,-do-compile-test,-pre-test,-do-test-single-method,-post-test"/>
+    <target name="test-class"
+            depends="init,compile,-do-compile-test,-pre-test,-do-test-class,-post-test"/>
+    <target name="test-method"
+            depends="init,compile,-do-compile-test,-pre-test,-do-test-method,-post-test"/>
+    <!--
+    code coverage test section
+    -->
+    <target name="-do-coverage">
+        <fail unless="main.class">Must set main.class</fail>
+        <jacoco:coverage>
+            <java classpath="${runtime.classpath}:${build.classes.dir}"
+                  classname="${main.class}"
+                  fork="true">
+            </java>
+        </jacoco:coverage>
+    </target>
+    <target name="-do-coverage-test" depends="-do-test-check-class">
+        <mkdir dir="${coverage.result.dir}"/>
+        <jacoco:coverage destfile="${coverage.result.dir}/jacoco.exec">
+            <junit fork="true"
+                   forkmode="once">
+                <test name="${test.class}"/>
+                <classpath path="${runtime.test.classpath}:${build.classes.dir}:${build.test.dir}"/>
+            </junit>
+        </jacoco:coverage>
+    </target>
+    <target name="-do-coverage-report">
+        <mkdir dir="${coverage.report.dir}"/>
+        <jacoco:report>
+            <executiondata>
+                <file file="${coverage.result.dir}/jacoco.exec"/>
+            </executiondata>
+            <structure name="Project">
+                <classfiles>
+                    <fileset dir="${build.classes.dir}"/>
+                </classfiles>
+                <sourcefiles encoding="UTF-8">
+                    <fileset dir="${src.dir}"/>
+                </sourcefiles>
+            </structure>
+            <html destdir="${coverage.report.dir}"/>
+        </jacoco:report>
+    </target>
+    <target name="run-coverage" depends="init,compile,-do-coverage"/>
+    <target name="test-coverage"
+            depends="init,compile,-do-compile-test,-pre-test,-do-coverage-test,-post-test,-do-coverage-report"/>
     <!--
     release section
     -->
