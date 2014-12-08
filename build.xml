@@ -217,6 +217,7 @@
             <equals arg1="${git.version.result}" arg2="0"/>
             <contrib:then>
                 <property name="project.version" value="${git.version.output}"/>
+                <echo message="git version=${git.version.output}"/>
             </contrib:then>
         </contrib:if>
     </target>
@@ -225,15 +226,17 @@
             <format property="stamp" pattern="yyyyMMdd"/>
         </tstamp>
         <property name="project.version" value="snapshot-${stamp}"/>
+        <echo message="time stamp version=${project.version}"/>
     </target>
     <target name="-check-project-version" depends="-check-project-git-version,-check-project-snapshot-version">
         <echo message="project.version=${project.version}"/>
     </target>
     <target name="-check-jar-file" depends="-check-project-version" unless="jar.file">
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
+    </target>
+    <target name="-init-check" depends="-check-jar-file">
         <echo message="jar.file=${jar.file}"/>
     </target>
-    <target name="-init-check" depends="-check-jar-file"/>
     <!--
     initial macro section
     -->
