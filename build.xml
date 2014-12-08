@@ -630,6 +630,9 @@
                 <include name="**/*.jar"/>
                 <include name="${jar.lib.dir}/**/*.jar"/>
             </fileset>
+            <fileset dir=".">
+                <include name="${readme.file}"/>
+            </fileset>
         </zip>
     </target>
     <target name="-do-release-src" depends="-init-release" if="release.src">
