@@ -10,8 +10,8 @@
 		<conf name="build"/>
 		<conf name="core"/>
 		<conf name="compile" extends="core"/>
-		<conf name="runtime" extends="compile"/>
-		<conf name="test" extends="runtime"/>
+		<conf name="runtime" extends="core"/>
+		<conf name="test" extends="core"/>
 		<conf name="source"/>
 		<conf name="javadoc"/>
 	</configurations>
@@ -20,7 +20,8 @@
 		<artifact name="antbuild-source" ext="zip" conf="source"/>
 		<artifact name="antbuild-javadoc" ext="zip" conf="javadoc"/>
 	</publications>
-	<dependencies>
+	<dependencies defaultconf="core->default">
+		<dependency org="log4j" name="log4j" rev="1.2.17"/>
 		<dependency org="junit" name="junit" rev="4.11" conf="test->default"/>
 		<dependency org="ant-contrib" name="ant-contrib" rev="1.0b3" conf="build->default"/>
 		<dependency org="org.jacoco" name="org.jacoco.ant" rev="0.7.2.201409121644"  conf="build->default"/>

@@ -39,8 +39,26 @@
     <target name="-post-release">
         <!--empty-->
     </target>
+    <target name="-pre-publish">
+        <!--empty-->
+    </target>
+    <target name="-post-publish">
+        <!--empty-->
+    </target>
     <target name="-post-clean">
         <!--empty-->
+    </target>
+    <!--
+    dependencies section
+    -->
+    <target name="-check-ivy">
+        <available property="exist.ivy" file="ivy.xml" type="file"/>
+    </target>
+    <target name="-try-retrieve" depends="-init-private,-check-ivy" if="exist.ivy" unless="exist.lib">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+    <target name="retrieve" depends="-init-private,-check-ivy" if="exist.ivy">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
     <!--
     initial section
@@ -50,8 +68,13 @@
         <property name="src.dir" value="src"/>
         <property name="test.dir" value="test"/>
         <property name="build.dir" value="build"/>
-        <property name="lib.dir" value="lib"/>
         <property name="res.dir" value="res"/>
+        <property name="lib.dir" value="lib"/>
+        <property name="lib.core.dir" value="${lib.dir}/core"/>
+        <property name="lib.compile.dir" value="${lib.dir}/compile"/>
+        <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
+        <property name="lib.test.dir" value="${lib.dir}/test"/>
+        <available property="exist.lib" file="${lib.dir}" type="dir"/>
     </target>
     <target name="-init-properties" depends="-pre-init,-init-private">
         <contrib:if>
@@ -61,10 +84,9 @@
             </contrib:then>
         </contrib:if>
     </target>
-    <target name="-do-init" depends="-pre-init,-init-private,-init-properties">
+    <target name="-do-init" depends="-pre-init,-init-private,-init-properties,-try-retrieve">
         <property name="project.name" value="${ant.project.name}"/>
         <!--default directory-->
-        <property name="release.dir" value="release"/>
         <property name="build.classes.dir" value="${build.dir}/classes"/>
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
@@ -73,6 +95,8 @@
         <property name="test.result.dir" value="${build.dir}/result"/>
         <property name="coverage.result.dir" value="${build.dir}/jacoco"/>
         <property name="coverage.report.dir" value="${coverage.result.dir}/report"/>
+        <property name="jar.lib.dir" value="lib"/>
+        <property name="release.dir" value="release"/>
         <!--exist property-->
         <condition property="exist.manifest.file">
             <and>
@@ -92,6 +116,15 @@
                 <available file="${splash.image}"/>
             </and>
         </condition>
+        <condition property="exist.readme.file">
+            <and>
+                <isset property="readme.file"/>
+                <not>
+                    <equals arg1="${readme.file}" arg2="" trim="true"/>
+                </not>
+                <available file="${readme.file}"/>
+            </and>
+        </condition>
         <condition property="exist.main.class">
             <and>
                 <isset property="main.class"/>
@@ -102,7 +135,6 @@
         </condition>
         <available property="exist.git" file=".git" type="dir"/>
         <available property="exist.test" file="${test.dir}" type="dir"/>
-        <available property="exist.lib" file="${lib.dir}" type="dir"/>
         <available property="exist.res" file="${res.dir}" type="dir"/>
         <!--default value-->
         <property name="javac.source" value="1.8"/>
@@ -114,10 +146,61 @@
         <property name="release.src" value="false"/>
         <property name="release.javadoc" value="false"/>
         <!--default classpath-->
+        <property name="core.classpath" value=""/>
         <property name="compile.classpath" value=""/>
-        <property name="runtime.classpath" value="${compile.classpath}"/>
-        <property name="compile.test.classpath" value="${compile.classpath}"/>
-        <property name="runtime.test.classpath" value="${compile.test.classpath}:${runtime.classpath}"/>
+        <property name="runtime.classpath" value=""/>
+        <property name="test.classpath" value=""/>
+        <contrib:if>
+            <available file="${lib.compile.dir}" type="dir"/>
+            <contrib:then>
+                <fileset id="lib.compile.set" dir="${lib.compile.dir}">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <pathconvert property="default.compile.classpath" pathsep=":" refid="lib.compile.set">
+                    <map from="${user.dir}/" to=""/>
+                </pathconvert>
+                <property name="real.compile.classpath"
+                          value="${compile.classpath}:${default.compile.classpath}:${core.classpath}"/>
+            </contrib:then>
+            <contrib:else>
+                <property name="real.compile.classpath" value="${compile.classpath}:${core.classpath}"/>
+            </contrib:else>
+        </contrib:if>
+        <contrib:if>
+            <available file="${lib.runtime.dir}" type="dir"/>
+            <contrib:then>
+                <fileset id="lib.runtime.set" dir="${lib.runtime.dir}">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <pathconvert property="default.runtime.classpath" pathsep=":" refid="lib.runtime.set">
+                    <map from="${user.dir}/" to=""/>
+                </pathconvert>
+                <property name="real.runtime.classpath"
+                          value="${runtime.classpath}:${default.runtime.classpath}:${core.classpath}"/>
+            </contrib:then>
+            <contrib:else>
+                <property name="real.runtime.classpath" value="${runtime.classpath}:${core.classpath}"/>
+            </contrib:else>
+        </contrib:if>
+        <contrib:if>
+            <available file="${lib.test.dir}" type="dir"/>
+            <contrib:then>
+                <fileset id="lib.test.set" dir="${lib.test.dir}">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <pathconvert property="default.test.classpath" pathsep=":" refid="lib.test.set">
+                    <map from="${user.dir}/" to=""/>
+                </pathconvert>
+                <property name="real.test.classpath"
+                          value="${test.classpath}:${default.test.classpath}:${core.classpath}"/>
+            </contrib:then>
+            <contrib:else>
+                <property name="real.test.classpath" value="${test.classpath}:${core.classpath}"/>
+            </contrib:else>
+        </contrib:if>
+        <echo message="compile.classpath=${real.compile.classpath}"/>
+        <echo message="runtime.classpath=${real.runtime.classpath}"/>
+        <echo message="test.classpath=${real.test.classpath}"/>
     </target>
     <!--
     checking section
@@ -158,7 +241,7 @@
         <macrodef name="javac-macro">
             <attribute name="srcdir" default="${src.dir}"/>
             <attribute name="destdir" default="${build.classes.dir}"/>
-            <attribute name="classpath" default="${compile.classpath}"/>
+            <attribute name="classpath" default="${real.test.classpath}"/>
             <attribute name="includes" default="${src.include}"/>
             <attribute name="excludes" default="${src.exclude}"/>
             <element name="customize" optional="true"/>
@@ -194,7 +277,7 @@
                        fork="true">
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
-                    <classpath path="${runtime.test.classpath}"/>
+                    <classpath path="${real.test.classpath}"/>
                     <formatter type="brief"/>
                     <jvmarg line="${test.jvmargs}"/>
                     <testcase/>
@@ -248,18 +331,7 @@
             depends="-init-macro-test,-init-macro-test-all,-init-macro-test-class,-init-macro-test-method"/>
     <target name="-init-macro" depends="-init-macro-javac,-init-macro-tests"/>
     <target name="init" depends="-pre-init,-do-init,-init-check,-init-macro,-post-init"/>
-    <!--
-    dependencies section
-    -->
-    <target name="-check-ivy">
-        <available property="exist.ivy" file="ivy.xml" type="file"/>
-    </target>
-    <target name="-try-retrieve" depends="-do-init,-check-ivy" if="exist.ivy" unless="exist.lib">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
-    <target name="retrieve" depends="-init-private,-check-ivy" if="exist.ivy">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
+
     <!--
     compile section
     -->
@@ -281,8 +353,8 @@
         <javac-macro includes="${single.file}"/>
     </target>
 
-    <target name="compile" depends="init,-try-retrieve,-pre-compile,-do-compile,-do-resource,-post-compile"/>
-    <target name="compile-single" depends="init,-try-retrieve,-pre-compile,-do-compile-single,-post-compile"/>
+    <target name="compile" depends="init,-pre-compile,-do-compile,-do-resource,-post-compile"/>
+    <target name="compile-single" depends="init,-pre-compile,-do-compile-single,-post-compile"/>
     <!--
     jar section
     -->
@@ -304,16 +376,39 @@
             <attribute name="Main-Class" value="${main.class}"/>
         </manifest>
     </target>
-    <target name="-do-manifest-classpath" depends="-init-manifest" if="copy.lib">
-        <mkdir dir="${build.jar.dir}/${lib.dir}"/>
-        <contrib:for list="${runtime.classpath}" param="cp" delimiter=":">
-            <sequential>
-                <manifest file="${jar.manifest.file}" mode="update">
-                    <attribute name="Class-Path" value="@{cp}"/>
-                </manifest>
-                <copy file="@{cp}" todir="${build.jar.dir}/${lib.dir}"/>
-            </sequential>
-        </contrib:for>
+    <target name="-do-manifest-classpath" depends="-init-manifest" if="jar.lib.copy">
+        <contrib:if>
+            <equals arg1="${jar.lib.jar}" arg2=""/>
+            <contrib:then>
+                <contrib:for list="${real.runtime.classpath}" param="cp" delimiter=":">
+                    <sequential>
+                        <copy file="@{cp}" todir="${build.jar.dir}"/>
+                        <contrib:propertyregex property="cplib"
+                                               input="${cp}"
+                                               regexp="${lib.dir}/.+/(.+)"
+                                               select="\1"/>
+                        <manifest file="${jar.manifest.file}" mode="update">
+                            <attribute name="Class-Path" value="${cplib}"/>
+                        </manifest>
+                    </sequential>
+                </contrib:for>
+            </contrib:then>
+            <contrib:else>
+                <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
+                <contrib:for list="${real.runtime.classpath}" param="cp" delimiter=":">
+                    <sequential>
+                        <copy file="@{cp}" todir="${build.jar.dir}/${jar.lib.dir}"/>
+                        <contrib:propertyregex property="cplib"
+                                               input="@{cp}"
+                                               regexp=".+/([^/]+)"
+                                               select="\1"/>
+                        <manifest file="${jar.manifest.file}" mode="update">
+                            <attribute name="Class-Path" value="${jar.lib.dir}/${cplib}"/>
+                        </manifest>
+                    </sequential>
+                </contrib:for>
+            </contrib:else>
+        </contrib:if>
     </target>
     <target name="-do-manifest-splash" depends="-do-init,-init-jar,-init-manifest" if="exist.splash.image">
         <basename file="${splash.image}" property="splash.image.basename"/>
@@ -334,6 +429,9 @@
                 </copy>
             </contrib:then>
         </contrib:if>
+    </target>
+    <target name="-do-readme" if="exist.readme.file">
+        <copy file="${readme.file}" todir="${build.jar.dir}"/>
     </target>
     <target name="-do-jar" depends="-do-manifest,-do-meta">
         <contrib:if>
@@ -359,7 +457,7 @@
    -->
     <target name="javadoc" depends="init">
         <mkdir dir="${build.javadoc.dir}"/>
-        <javadoc classpath="${compile.classpath}"
+        <javadoc classpath="${real.compile.classpath}"
                  destdir="${build.javadoc.dir}"
                  author="author"
                  version="version"
@@ -393,7 +491,7 @@
         <property name="classpath" value=""/>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
-        <java classpath="${runtime.classpath}:${build.classes.dir}:${classpath}"
+        <java classpath="${real.runtime.classpath}:${build.classes.dir}:${classpath}"
               classname="${main.class}"
               fork="true"
               failonerror="true">
@@ -415,7 +513,7 @@
     </target>
     <target name="run-single" depends="init,compile">
         <fail unless="main.class">Must set main.class</fail>
-        <java classpath="${runtime.classpath}:${build.classes.dir}"
+        <java classpath="${real.runtime.classpath}:${build.classes.dir}"
               classname="${main.class}"
               fork="true"
               failonerror="true">
@@ -427,7 +525,7 @@
     -->
     <target name="-do-compile-test" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
-        <javac-macro classpath="${build.classes.dir}:${compile.test.classpath}"
+        <javac-macro classpath="${build.classes.dir}:${real.test.classpath}"
                      srcdir="${test.dir}"
                      destdir="${build.test.dir}"/>
     </target>
@@ -481,7 +579,7 @@
     <target name="-do-coverage">
         <fail unless="main.class">Must set main.class</fail>
         <jacoco:coverage>
-            <java classpath="${runtime.classpath}:${build.classes.dir}"
+            <java classpath="${real.runtime.classpath}:${build.classes.dir}"
                   classname="${main.class}"
                   fork="true">
             </java>
@@ -493,7 +591,7 @@
             <junit fork="true"
                    forkmode="once">
                 <test name="${test.class}"/>
-                <classpath path="${runtime.test.classpath}:${build.classes.dir}:${build.test.dir}"/>
+                <classpath path="${real.test.classpath}:${build.classes.dir}:${build.test.dir}"/>
             </junit>
         </jacoco:coverage>
     </target>
@@ -520,49 +618,44 @@
     <!--
     release section
     -->
-    <target name="-init-release">
+    <target name="-init-release" depends="init,compile,test,jar,-pre-release">
         <mkdir dir="${release.dir}"/>
     </target>
-    <target name="-do-release-bin">
-        <zip destfile="${release.dir}/${project.name}-${project.version}-bin.zip">
+    <target name="-do-release-bin" depends="-init-release">
+        <zip destfile="${release.dir}/${project.name}-bin.zip">
             <fileset dir="${build.jar.dir}"/>
         </zip>
     </target>
-    <target name="-do-release-src" if="release.src">
-        <contrib:if>
-            <available file="${res.dir}" type="dir"/>
-            <contrib:then>
-                <zip destfile="${release.dir}/${project.name}-${project.version}-src.zip">
-                    <fileset dir="${src.dir}"/>
-                    <fileset dir="${res.dir}"/>
-                </zip>
-            </contrib:then>
-            <contrib:else>
-                <zip destfile="${release.dir}/${project.name}-${project.version}-src.zip">
-                    <fileset dir="${src.dir}"/>
-                </zip>
-            </contrib:else>
-        </contrib:if>
+    <target name="-do-release-src" depends="-init-release" if="release.src">
+        <zip destfile="${release.dir}/${project.name}-source.zip">
+            <fileset dir=".">
+                <include name="${src.dir}/**/*"/>
+                <include name="${res.dir}/**/*"/>
+                <include name="${readme.file}"/>
+                <include name="build.xml"/>
+                <include name="build.properties"/>
+                <include name="ivy.xml"/>
+            </fileset>
+        </zip>
     </target>
-    <target name="-do-release-javadoc" if="release.javadoc">
-        <zip destfile="${release.dir}/${project.name}-${project.version}-javadoc.zip">
+    <target name="-do-release-javadoc" depends="-init-release,javadoc" if="release.javadoc">
+        <zip destfile="${release.dir}/${project.name}-javadoc.zip">
             <fileset dir="${build.javadoc.dir}"/>
         </zip>
     </target>
-    <target name="release-bin"
-            depends="init,compile,test,jar,-pre-release,-init-release,-do-release-bin,-post-release"/>
-    <target name="release-src" depends="init,compile,test,-pre-release,-init-release,-do-release-src,-post-release"/>
-    <target name="release-javadoc"
-            depends="init,compile,test,javadoc,-pre-release,-init-release,-do-release-javadoc,-post-release"/>
-    <target name="release"
-            depends="init,compile,test,jar,javadoc,-pre-release,-init-release,-do-release-bin,-do-release-src,-do-release-javadoc,-post-release"/>
+    <target name="release-bin" depends="-init-release,-do-release-bin,-post-release"/>
+    <target name="release-src" depends="-init-release,-do-release-src,-post-release"/>
+    <target name="release-javadoc" depends="-init-release,-do-release-javadoc,-post-release"/>
+    <target name="release" depends="-init-release,-do-release-bin,-do-release-src,-do-release-javadoc,-post-release"/>
     <!--
     publish section
     -->
-    <target name="publish" depends="clean,jar">
+    <target name="-init-publish" depends="init,clean,compile,test,jar">
         <ivy:resolve/>
-        <copy file="${build.jar.dir}/${jar.file}" tofile="${build.jar.dir}/${project.name}.jar"/>
-        <ivy:publish artifactspattern="${build.jar.dir}/[artifact].[ext]"
+    </target>
+    <target name="-do-publish-jar">
+        <copy file="${build.jar.dir}/${jar.file}" tofile="${release.dir}/${project.name}.jar"/>
+        <ivy:publish artifactspattern="${release.dir}/[artifact].[ext]"
                      conf="core"
                      resolver="local"
                      pubrevision="${project.version}"
@@ -572,6 +665,34 @@
                      forcedeliver="true"/>
         <echo message="project ${ant.project.name} released with version ${project.version}"/>
     </target>
+    <target name="-do-publish-source" if="release.src">
+        <ivy:publish artifactspattern="${release.dir}/[artifact]-[conf].[ext]"
+                     conf="source"
+                     resolver="local"
+                     pubrevision="${project.version}"
+                     status="release"
+                     overwrite="true"
+                     update="true"
+                     forcedeliver="true"/>
+        <echo message="project ${ant.project.name} released with version ${project.version}"/>
+    </target>
+    <target name="-do-publish-javadoc" if="release.javadoc">
+        <ivy:publish artifactspattern="${release.dir}/[artifact]-[conf].[ext]"
+                     conf="javadoc"
+                     resolver="local"
+                     pubrevision="${project.version}"
+                     status="release"
+                     overwrite="true"
+                     update="true"
+                     forcedeliver="true"/>
+        <echo message="project ${ant.project.name} released with version ${project.version}"/>
+    </target>
+    <target name="publish-jar" depends="-init-publish,release-bin,-pre-publish,-do-publish-jar,-post-publish"/>
+    <target name="publish-source" depends="-init-publish,release-src,-pre-publish,-do-publish-source,-post-publish"/>
+    <target name="publish-javadoc"
+            depends="-init-publish,release-javadoc,-pre-publish,-do-publish-javadoc,-post-publish"/>
+    <target name="publish"
+            depends="-init-publish,release,-pre-publish,-do-publish-jar,-do-publish-source,-do-publish-javadoc,-post-publish"/>
     <!--
     clean section
     -->
@@ -581,5 +702,6 @@
     <target name="clean" depends="init,-do-clean,-post-clean"/>
     <target name="clean-all" depends="init, clean">
         <delete dir="${lib.dir}"/>
+        <delete dir="${release.dir}"/>
     </target>
 </project>
