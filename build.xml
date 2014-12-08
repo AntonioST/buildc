@@ -621,12 +621,15 @@
     <!--
     release section
     -->
-    <target name="-init-release" depends="init,compile,test,jar,-pre-release">
+    <target name="-init-release" depends="init,clean,compile,test,jar,-pre-release">
         <mkdir dir="${release.dir}"/>
     </target>
     <target name="-do-release-bin" depends="-init-release">
         <zip destfile="${release.dir}/${project.name}-bin.zip">
-            <fileset dir="${build.jar.dir}"/>
+            <fileset dir="${build.jar.dir}">
+                <include name="**/*.jar"/>
+                <include name="${jar.lib.dir}/**/*.jar"/>
+            </fileset>
         </zip>
     </target>
     <target name="-do-release-src" depends="-init-release" if="release.src">
