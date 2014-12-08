@@ -15,10 +15,10 @@
 		<conf name="source"/>
 		<conf name="javadoc"/>
 	</configurations>
-	<publications>
-		<artifact name="antbuild" ext="xml" conf="core"/>
-		<artifact name="antbuild-source" ext="zip" conf="source"/>
-		<artifact name="antbuild-javadoc" ext="zip" conf="javadoc"/>
+	<publications defaultconf="core">
+		<artifact name="antbuild" ext="jar"/>
+		<artifact name="antbuild-source" type="source" ext="zip"/>
+		<artifact name="antbuild-javadoc" type="javadoc" ext="zip"/>
 	</publications>
 	<dependencies defaultconf="core->default">
 		<dependency org="log4j" name="log4j" rev="1.2.17"/>

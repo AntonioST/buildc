@@ -222,7 +222,7 @@
     </target>
     <target name="-check-project-snapshot-version" unless="project.version">
         <tstamp>
-            <format property="stamp" pattern="yyyymmdd"/>
+            <format property="stamp" pattern="yyyyMMdd"/>
         </tstamp>
         <property name="project.version" value="snapshot-${stamp}"/>
     </target>
@@ -653,46 +653,22 @@
     <target name="-init-publish" depends="init,clean,compile,test,jar">
         <ivy:resolve/>
     </target>
-    <target name="-do-publish-jar">
+    <target name="-do-publish">
         <copy file="${build.jar.dir}/${jar.file}" tofile="${release.dir}/${project.name}.jar"/>
-        <ivy:publish artifactspattern="${release.dir}/[artifact].[ext]"
-                     conf="core"
+        <ivy:publish conf="core"
                      resolver="local"
                      pubrevision="${project.version}"
                      status="release"
                      overwrite="true"
                      update="true"
-                     forcedeliver="true"/>
+                     forcedeliver="true">
+            <ivy:artifacts pattern="${release.dir}/[artifact].[ext]"/>
+            <ivy:artifacts pattern="${release.dir}/[artifact]-[type].[ext]"/>
+        </ivy:publish>
         <echo message="project ${ant.project.name} released with version ${project.version}"/>
     </target>
-    <target name="-do-publish-source" if="release.src">
-        <ivy:publish artifactspattern="${release.dir}/[artifact]-[conf].[ext]"
-                     conf="source"
-                     resolver="local"
-                     pubrevision="${project.version}"
-                     status="release"
-                     overwrite="true"
-                     update="true"
-                     forcedeliver="true"/>
-        <echo message="project ${ant.project.name} released with version ${project.version}"/>
-    </target>
-    <target name="-do-publish-javadoc" if="release.javadoc">
-        <ivy:publish artifactspattern="${release.dir}/[artifact]-[conf].[ext]"
-                     conf="javadoc"
-                     resolver="local"
-                     pubrevision="${project.version}"
-                     status="release"
-                     overwrite="true"
-                     update="true"
-                     forcedeliver="true"/>
-        <echo message="project ${ant.project.name} released with version ${project.version}"/>
-    </target>
-    <target name="publish-jar" depends="-init-publish,release-bin,-pre-publish,-do-publish-jar,-post-publish"/>
-    <target name="publish-source" depends="-init-publish,release-src,-pre-publish,-do-publish-source,-post-publish"/>
-    <target name="publish-javadoc"
-            depends="-init-publish,release-javadoc,-pre-publish,-do-publish-javadoc,-post-publish"/>
     <target name="publish"
-            depends="-init-publish,release,-pre-publish,-do-publish-jar,-do-publish-source,-do-publish-javadoc,-post-publish"/>
+            depends="-init-publish,release,-pre-publish,-do-publish,-post-publish"/>
     <!--
     clean section
     -->
