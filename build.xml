@@ -255,10 +255,10 @@
         <available property="exist.ivy" file="ivy.xml" type="file"/>
     </target>
     <target name="-try-retrieve" depends="-do-init,-check-ivy" if="exist.ivy" unless="exist.lib">
-        <ivy:retrieve/>
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
-    <target name="retrieve" depends="-check-ivy" if="exist.ivy">
-        <ivy:retrieve/>
+    <target name="retrieve" depends="-init-private,-check-ivy" if="exist.ivy">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
     <!--
     compile section
