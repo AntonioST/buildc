@@ -2,7 +2,7 @@
 <project name="project"
          default="build"
          xmlns:ivy="antlib:org.apache.ivy.ant"
-         xmlns:contrib="antlib:net.sf.antcontrib"
+         xmlns:cc="antlib:net.sf.antcontrib"
          xmlns:jacoco="antlib:org.jacoco.ant">
     <description></description>
     <target name="build" depends="init,clean,compile,jar"/>
@@ -89,24 +89,29 @@
     <target name="-def-cp-join">
         <macrodef name="cp-join">
             <attribute name="classpath"/>
-            <attribute name="cp1"/>
-            <attribute name="cp2"/>
+            <attribute name="append"/>
             <sequential>
-                <contrib:if>
-                    <equals arg1="@{cp2}" arg2="" trim="true"/>
-                    <contrib:then>
-                        <property name="@{classpath}" value="@{cp1}"/>
-                    </contrib:then>
-                    <contrib:elseif>
-                        <equals arg1="@{cp1}" arg2="" trim="true"/>
-                        <contrib:then>
-                            <property name="@{classpath}" value=""/>
-                        </contrib:then>
-                    </contrib:elseif>
-                    <contrib:else>
-                        <property name="@{classpath}" value="@{cp1}:@{cp2}"/>
-                    </contrib:else>
-                </contrib:if>
+                <cc:if>
+                    <not>
+                        <isset property="@{classpath}"/>
+                    </not>
+                    <cc:then>
+                        <property name="@{classpath}" value=""/>
+                    </cc:then>
+                </cc:if>
+                <cc:if>
+                    <not>
+                        <equals arg1="@{append}" arg2="" trim="true"/>
+                    </not>
+                    <cc:then>
+                        <cc:propertycopy property="tmp.classpath" from="@{classpath}" override="true"/>
+                        <cc:propertyregex property="@{classpath}"
+                                          input="${tmp.classpath}:@{append}"
+                                          regexp=".*"
+                                          select="\0"
+                                          override="true"/>
+                    </cc:then>
+                </cc:if>
             </sequential>
         </macrodef>
     </target>
@@ -114,43 +119,27 @@
         <macrodef name="path-to-cp">
             <attribute name="property"/>
             <attribute name="dir"/>
-            <attribute name="extend" default=""/>
             <sequential>
-                <contrib:propertyregex property="pdir"
-                                       input="@{dir}"
-                                       regexp="/"
-                                       replace="."
-                                       override="true"/>
-                <contrib:if>
+                <cc:propertyregex property="pdir"
+                                  input="@{dir}"
+                                  regexp="/"
+                                  replace="."
+                                  override="true"/>
+                <cc:if>
                     <available file="@{dir}" type="dir"/>
-                    <contrib:then>
+                    <cc:then>
                         <pathconvert property="classpath.${pdir}" pathsep=":">
                             <fileset dir="@{dir}">
                                 <include name="**/*.jar"/>
                             </fileset>
                             <map from="${user.dir}/" to=""/>
                         </pathconvert>
-                        <contrib:propertycopy property="tmp.classpath" from="classpath.${pdir}" override="true"/>
-                        <contrib:if>
-                            <equals arg1="@{extend}" arg2="" trim="true"/>
-                            <contrib:then>
-                                <property name="@{property}" value="${tmp.classpath}"/>
-                            </contrib:then>
-                            <contrib:else>
-                                <cp-join classpath="@{property}" cp1="${tmp.classpath}" cp2="@{extend}"/>
-                            </contrib:else>
-                        </contrib:if>
-                    </contrib:then>
-                    <contrib:elseif>
-                        <equals arg1="@{extend}" arg2="" trim="true"/>
-                        <contrib:then>
-                            <property name="@{property}" value=""/>
-                        </contrib:then>
-                    </contrib:elseif>
-                    <contrib:else>
-                        <property name="@{property}" value="@{extend}"/>
-                    </contrib:else>
-                </contrib:if>
+                        <cc:propertycopy property="@{property}" from="classpath.${pdir}"/>
+                    </cc:then>
+                    <cc:else>
+                        <property name="@{property}" value=""/>
+                    </cc:else>
+                </cc:if>
             </sequential>
         </macrodef>
     </target>
@@ -165,19 +154,19 @@
         <property name="build.dir" value="build"/>
         <property name="res.dir" value="res"/>
         <property name="lib.dir" value="lib"/>
-        <property name="lib.core.dir" value="${lib.dir}/core"/>
+        <property name="lib.master.dir" value="${lib.dir}/master"/>
         <property name="lib.compile.dir" value="${lib.dir}/compile"/>
         <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
         <property name="lib.test.dir" value="${lib.dir}/test"/>
         <available property="exist.lib" file="${lib.dir}" type="dir"/>
     </target>
     <target name="-init-properties" depends="-pre-init,-init-private">
-        <contrib:if>
+        <cc:if>
             <available file="build.properties"/>
-            <contrib:then>
+            <cc:then>
                 <property file="build.properties"/>
-            </contrib:then>
-        </contrib:if>
+            </cc:then>
+        </cc:if>
     </target>
     <target name="-do-init" depends="-def-util-macro,-pre-init,-init-private,-init-properties,-try-retrieve">
         <property name="project.name" value="${ant.project.name}"/>
@@ -210,22 +199,22 @@
         <property name="release.src" value="false"/>
         <property name="release.javadoc" value="false"/>
         <!--default classpath-->
-        <property name="core.classpath" value=""/>
+        <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
         <property name="runtime.classpath" value=""/>
         <property name="test.classpath" value=""/>
-        <cp-join classpath="compile.classpaths" cp1="${core.classpath}" cp2="${compile.classpath}"/>
-        <cp-join classpath="runtime.classpaths" cp1="${core.classpath}" cp2="${runtime.classpath}"/>
-        <cp-join classpath="test.classpaths" cp1="${core.classpath}" cp2="${test.classpath}"/>
-        <path-to-cp property="real.compile.classpath"
-                    dir="${lib.compile.dir}"
-                    extend="${compile.classpaths}"/>
-        <path-to-cp property="real.runtime.classpath"
-                    dir="${lib.runtime.dir}"
-                    extend="${runtime.classpaths}"/>
-        <path-to-cp property="real.test.classpath"
-                    dir="${lib.test.dir}"
-                    extend="${test.classpaths}"/>
+        <path-to-cp property="lib.compile.classpath" dir="${lib.compile.dir}"/>
+        <path-to-cp property="lib.runtime.classpath" dir="${lib.runtime.dir}"/>
+        <path-to-cp property="lib.test.classpath" dir="${lib.test.dir}"/>
+        <cp-join classpath="real.compile.classpath" append="${master.classpath}"/>
+        <cp-join classpath="real.compile.classpath" append="${compile.classpath}"/>
+        <cp-join classpath="real.compile.classpath" append="${lib.compile.classpath}"/>
+        <cp-join classpath="real.runtime.classpath" append="${master.classpath}"/>
+        <cp-join classpath="real.runtime.classpath" append="${runtime.classpath}"/>
+        <cp-join classpath="real.runtime.classpath" append="${lib.runtime.classpath}"/>
+        <cp-join classpath="real.test.classpath" append="${master.classpath}"/>
+        <cp-join classpath="real.test.classpath" append="${test.classpath}"/>
+        <cp-join classpath="real.test.classpath" append="${lib.test.classpath}"/>
         <echo message="compile.classpath=${real.compile.classpath}"/>
         <echo message="runtime.classpath=${real.runtime.classpath}"/>
         <echo message="test.classpath=${real.test.classpath}"/>
@@ -241,13 +230,13 @@
             <arg value="describe"/>
             <arg value="--tags"/>
         </exec>
-        <contrib:if>
+        <cc:if>
             <equals arg1="${git.version.result}" arg2="0"/>
-            <contrib:then>
+            <cc:then>
                 <property name="project.version" value="${git.version.output}"/>
                 <echo message="git version=${git.version.output}"/>
-            </contrib:then>
-        </contrib:if>
+            </cc:then>
+        </cc:if>
     </target>
     <target name="-check-project-snapshot-version" unless="project.version">
         <tstamp>
@@ -364,38 +353,38 @@
         </manifest>
     </target>
     <target name="-do-manifest-classpath" depends="-init-manifest" if="jar.lib.copy">
-        <contrib:if>
+        <cc:if>
             <equals arg1="${jar.lib.jar}" arg2=""/>
-            <contrib:then>
-                <contrib:for list="${real.runtime.classpath}" param="cp" delimiter=":">
+            <cc:then>
+                <cc:for list="${real.runtime.classpath}" param="cp" delimiter=":">
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}"/>
-                        <contrib:propertyregex property="cplib"
-                                               input="${cp}"
-                                               regexp="${lib.dir}/.+/(.+)"
-                                               select="\1"/>
+                        <cc:propertyregex property="cplib"
+                                          input="${cp}"
+                                          regexp="${lib.dir}/.+/(.+)"
+                                          select="\1"/>
                         <manifest file="${jar.manifest.file}" mode="update">
                             <attribute name="Class-Path" value="${cplib}"/>
                         </manifest>
                     </sequential>
-                </contrib:for>
-            </contrib:then>
-            <contrib:else>
+                </cc:for>
+            </cc:then>
+            <cc:else>
                 <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
-                <contrib:for list="${real.runtime.classpath}" param="cp" delimiter=":">
+                <cc:for list="${real.runtime.classpath}" param="cp" delimiter=":">
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}/${jar.lib.dir}"/>
-                        <contrib:propertyregex property="cplib"
-                                               input="@{cp}"
-                                               regexp=".+/([^/]+)"
-                                               select="\1"/>
+                        <cc:propertyregex property="cplib"
+                                          input="@{cp}"
+                                          regexp=".+/([^/]+)"
+                                          select="\1"/>
                         <manifest file="${jar.manifest.file}" mode="update">
                             <attribute name="Class-Path" value="${jar.lib.dir}/${cplib}"/>
                         </manifest>
                     </sequential>
-                </contrib:for>
-            </contrib:else>
-        </contrib:if>
+                </cc:for>
+            </cc:else>
+        </cc:if>
     </target>
     <target name="-do-manifest-splash" depends="-do-init,-init-jar,-init-manifest" if="exist.splash.image">
         <basename file="${splash.image}" property="splash.image.basename"/>
@@ -407,36 +396,36 @@
     </target>
     <target name="-do-manifest" depends="-do-manifest-main-class,-do-manifest-classpath,-do-manifest-splash"/>
     <target name="-do-meta" depends="-init-jar">
-        <contrib:if>
+        <cc:if>
             <available file="${res.dir}/META-INF" type="dir"/>
-            <contrib:then>
+            <cc:then>
                 <mkdir dir="${build.meta.dir}"/>
                 <copy todir="${build.meta.dir}">
                     <fileset dir="${res.dir}/META-INF"/>
                 </copy>
-            </contrib:then>
-        </contrib:if>
+            </cc:then>
+        </cc:if>
     </target>
     <target name="-do-readme" if="exist.readme.file">
         <copy file="${readme.file}" todir="${build.jar.dir}"/>
     </target>
     <target name="-do-jar" depends="-do-manifest,-do-meta">
-        <contrib:if>
+        <cc:if>
             <available file="${build.meta.dir}" type="dir"/>
-            <contrib:then>
+            <cc:then>
                 <jar destfile="${build.jar.dir}/${jar.file}"
                      manifest="${jar.manifest.file}">
                     <metainf dir="${build.meta.dir}"/>
                     <fileset dir="${build.classes.dir}"/>
                 </jar>
-            </contrib:then>
-            <contrib:else>
+            </cc:then>
+            <cc:else>
                 <jar destfile="${build.jar.dir}/${jar.file}"
                      manifest="${jar.manifest.file}">
                     <fileset dir="${build.classes.dir}"/>
                 </jar>
-            </contrib:else>
-        </contrib:if>
+            </cc:else>
+        </cc:if>
     </target>
     <target name="jar" depends="init,compile,-pre-jar,-init-jar,-do-jar,-post-jar"/>
     <!--
@@ -532,26 +521,26 @@
         </test-marco>
     </target>
     <target name="-do-test-check-class">
-        <contrib:if>
+        <cc:if>
             <isset property="test.class"/>
-            <contrib:elseif>
+            <cc:elseif>
                 <isset id="single.file"/>
-                <contrib:then>
-                    <contrib:propertyregex property="test.class"
-                                           input="${single.file}"
-                                           regexp="${test.dir}/(.+)\.java"
-                                           select="\1"/>
-                    <contrib:propertyregex property="test.class"
-                                           input="${test.class}"
-                                           regexp="/"
-                                           replace="."
-                                           override="true"/>
-                </contrib:then>
-            </contrib:elseif>
-            <contrib:else>
+                <cc:then>
+                    <cc:propertyregex property="test.class"
+                                      input="${single.file}"
+                                      regexp="${test.dir}/(.+)\.java"
+                                      select="\1"/>
+                    <cc:propertyregex property="test.class"
+                                      input="${test.class}"
+                                      regexp="/"
+                                      replace="."
+                                      override="true"/>
+                </cc:then>
+            </cc:elseif>
+            <cc:else>
                 <fail>Must set test.class or single.file</fail>
-            </contrib:else>
-        </contrib:if>
+            </cc:else>
+        </cc:if>
     </target>
     <target name="-do-test-class" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
