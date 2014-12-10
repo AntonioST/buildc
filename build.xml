@@ -61,6 +61,101 @@
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
     <!--
+    utility task
+    -->
+    <target name="-def-exist">
+        <macrodef name="exist-macro">
+            <attribute name="property"/>
+            <attribute name="path"/>
+            <attribute name="type" default=""/>
+            <sequential>
+                <condition property="@{property}">
+                    <and>
+                        <not>
+                            <contains string="@{path}" substring="$"/>
+                        </not>
+                        <not>
+                            <equals arg1="@{path}" arg2="" trim="true"/>
+                        </not>
+                        <or>
+                            <equals arg1="@{type}" arg2="" trim="true"/>
+                            <available file="@{path}"/>
+                        </or>
+                    </and>
+                </condition>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-def-cp-join">
+        <macrodef name="cp-join">
+            <attribute name="classpath"/>
+            <attribute name="cp1"/>
+            <attribute name="cp2"/>
+            <sequential>
+                <contrib:if>
+                    <equals arg1="@{cp2}" arg2="" trim="true"/>
+                    <contrib:then>
+                        <property name="@{classpath}" value="@{cp1}"/>
+                    </contrib:then>
+                    <contrib:elseif>
+                        <equals arg1="@{cp1}" arg2="" trim="true"/>
+                        <contrib:then>
+                            <property name="@{classpath}" value=""/>
+                        </contrib:then>
+                    </contrib:elseif>
+                    <contrib:else>
+                        <property name="@{classpath}" value="@{cp1}:@{cp2}"/>
+                    </contrib:else>
+                </contrib:if>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-def-path-2-cp" depends="-def-cp-join">
+        <macrodef name="path-to-cp">
+            <attribute name="property"/>
+            <attribute name="dir"/>
+            <attribute name="extend" default=""/>
+            <sequential>
+                <contrib:propertyregex property="pdir"
+                                       input="@{dir}"
+                                       regexp="/"
+                                       replace="."
+                                       override="true"/>
+                <contrib:if>
+                    <available file="@{dir}" type="dir"/>
+                    <contrib:then>
+                        <pathconvert property="classpath.${pdir}" pathsep=":">
+                            <fileset dir="@{dir}">
+                                <include name="**/*.jar"/>
+                            </fileset>
+                            <map from="${user.dir}/" to=""/>
+                        </pathconvert>
+                        <contrib:propertycopy property="tmp.classpath" from="classpath.${pdir}" override="true"/>
+                        <contrib:if>
+                            <equals arg1="@{extend}" arg2="" trim="true"/>
+                            <contrib:then>
+                                <property name="@{property}" value="${tmp.classpath}"/>
+                            </contrib:then>
+                            <contrib:else>
+                                <cp-join classpath="@{property}" cp1="${tmp.classpath}" cp2="@{extend}"/>
+                            </contrib:else>
+                        </contrib:if>
+                    </contrib:then>
+                    <contrib:elseif>
+                        <equals arg1="@{extend}" arg2="" trim="true"/>
+                        <contrib:then>
+                            <property name="@{property}" value=""/>
+                        </contrib:then>
+                    </contrib:elseif>
+                    <contrib:else>
+                        <property name="@{property}" value="@{extend}"/>
+                    </contrib:else>
+                </contrib:if>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-def-util-macro" depends="-def-exist,-def-cp-join,-def-path-2-cp"/>
+    <!--
     initial section
     -->
     <target name="-init-private" depends="-pre-init">
@@ -84,7 +179,7 @@
             </contrib:then>
         </contrib:if>
     </target>
-    <target name="-do-init" depends="-pre-init,-init-private,-init-properties,-try-retrieve">
+    <target name="-do-init" depends="-def-util-macro,-pre-init,-init-private,-init-properties,-try-retrieve">
         <property name="project.name" value="${ant.project.name}"/>
         <!--default directory-->
         <property name="build.classes.dir" value="${build.dir}/classes"/>
@@ -98,41 +193,10 @@
         <property name="jar.lib.dir" value="lib"/>
         <property name="release.dir" value="release"/>
         <!--exist property-->
-        <condition property="exist.manifest.file">
-            <and>
-                <isset property="manifest.file"/>
-                <not>
-                    <equals arg1="${manifest.file}" arg2="" trim="true"/>
-                </not>
-                <available file="${manifest.file}"/>
-            </and>
-        </condition>
-        <condition property="exist.splash.image">
-            <and>
-                <isset property="splash.image"/>
-                <not>
-                    <equals arg1="${splash.image}" arg2="" trim="true"/>
-                </not>
-                <available file="${splash.image}"/>
-            </and>
-        </condition>
-        <condition property="exist.readme.file">
-            <and>
-                <isset property="readme.file"/>
-                <not>
-                    <equals arg1="${readme.file}" arg2="" trim="true"/>
-                </not>
-                <available file="${readme.file}"/>
-            </and>
-        </condition>
-        <condition property="exist.main.class">
-            <and>
-                <isset property="main.class"/>
-                <not>
-                    <equals arg1="${main.class}" arg2="" trim="true"/>
-                </not>
-            </and>
-        </condition>
+        <exist-macro property="exist.manifest.file" path="${manifest.file}" type="file"/>
+        <exist-macro property="exist.splash.file" path="${splash.image}" type="file"/>
+        <exist-macro property="exist.readme.file" path="${readme.file}" type="file"/>
+        <exist-macro property="exist.main.class" path="${main.class}"/>
         <available property="exist.git" file=".git" type="dir"/>
         <available property="exist.test" file="${test.dir}" type="dir"/>
         <available property="exist.res" file="${res.dir}" type="dir"/>
@@ -150,54 +214,18 @@
         <property name="compile.classpath" value=""/>
         <property name="runtime.classpath" value=""/>
         <property name="test.classpath" value=""/>
-        <contrib:if>
-            <available file="${lib.compile.dir}" type="dir"/>
-            <contrib:then>
-                <fileset id="lib.compile.set" dir="${lib.compile.dir}">
-                    <include name="**/*.jar"/>
-                </fileset>
-                <pathconvert property="default.compile.classpath" pathsep=":" refid="lib.compile.set">
-                    <map from="${user.dir}/" to=""/>
-                </pathconvert>
-                <property name="real.compile.classpath"
-                          value="${compile.classpath}:${default.compile.classpath}:${core.classpath}"/>
-            </contrib:then>
-            <contrib:else>
-                <property name="real.compile.classpath" value="${compile.classpath}:${core.classpath}"/>
-            </contrib:else>
-        </contrib:if>
-        <contrib:if>
-            <available file="${lib.runtime.dir}" type="dir"/>
-            <contrib:then>
-                <fileset id="lib.runtime.set" dir="${lib.runtime.dir}">
-                    <include name="**/*.jar"/>
-                </fileset>
-                <pathconvert property="default.runtime.classpath" pathsep=":" refid="lib.runtime.set">
-                    <map from="${user.dir}/" to=""/>
-                </pathconvert>
-                <property name="real.runtime.classpath"
-                          value="${runtime.classpath}:${default.runtime.classpath}:${core.classpath}"/>
-            </contrib:then>
-            <contrib:else>
-                <property name="real.runtime.classpath" value="${runtime.classpath}:${core.classpath}"/>
-            </contrib:else>
-        </contrib:if>
-        <contrib:if>
-            <available file="${lib.test.dir}" type="dir"/>
-            <contrib:then>
-                <fileset id="lib.test.set" dir="${lib.test.dir}">
-                    <include name="**/*.jar"/>
-                </fileset>
-                <pathconvert property="default.test.classpath" pathsep=":" refid="lib.test.set">
-                    <map from="${user.dir}/" to=""/>
-                </pathconvert>
-                <property name="real.test.classpath"
-                          value="${test.classpath}:${default.test.classpath}:${core.classpath}"/>
-            </contrib:then>
-            <contrib:else>
-                <property name="real.test.classpath" value="${test.classpath}:${core.classpath}"/>
-            </contrib:else>
-        </contrib:if>
+        <cp-join classpath="compile.classpaths" cp1="${core.classpath}" cp2="${compile.classpath}"/>
+        <cp-join classpath="runtime.classpaths" cp1="${core.classpath}" cp2="${runtime.classpath}"/>
+        <cp-join classpath="test.classpaths" cp1="${core.classpath}" cp2="${test.classpath}"/>
+        <path-to-cp property="real.compile.classpath"
+                    dir="${lib.compile.dir}"
+                    extend="${compile.classpaths}"/>
+        <path-to-cp property="real.runtime.classpath"
+                    dir="${lib.runtime.dir}"
+                    extend="${runtime.classpaths}"/>
+        <path-to-cp property="real.test.classpath"
+                    dir="${lib.test.dir}"
+                    extend="${test.classpaths}"/>
         <echo message="compile.classpath=${real.compile.classpath}"/>
         <echo message="runtime.classpath=${real.runtime.classpath}"/>
         <echo message="test.classpath=${real.test.classpath}"/>
@@ -240,7 +268,7 @@
     <!--
     initial macro section
     -->
-    <target name="-init-macro-javac">
+    <target name="-def-macro-javac" depends="-do-init">
         <macrodef name="javac-macro">
             <attribute name="srcdir" default="${src.dir}"/>
             <attribute name="destdir" default="${build.classes.dir}"/>
@@ -268,7 +296,7 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-init-macro-test">
+    <target name="-def-macro-test" depends="-do-init">
         <macrodef name="test-marco">
             <element name="testcase"/>
             <sequential>
@@ -288,52 +316,8 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-init-macro-test-all" depends="-init-macro-test">
-        <macrodef name="test-all-marco">
-            <sequential>
-                <delete dir="${test.result.dir}" failonerror="false"/>
-                <test-marco>
-                    <testcase>
-                        <batchtest todir="${test.result.dir}">
-                            <fileset dir="${test.dir}"/>
-                        </batchtest>
-                    </testcase>
-                </test-marco>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-init-macro-test-class" depends="-init-macro-test">
-        <macrodef name="test-class-marco">
-            <attribute name="class"/>
-            <sequential>
-                <test-marco>
-                    <testcase>
-                        <test name="@{class}"
-                              todir="${test.result.dir}"/>
-                    </testcase>
-                </test-marco>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-init-macro-test-method" depends="-init-macro-test">
-        <macrodef name="test-method-marco">
-            <attribute name="class"/>
-            <attribute name="method"/>
-            <sequential>
-                <test-marco>
-                    <testcase>
-                        <test name="@{class}"
-                              methods="@{method}"
-                              todir="${test.result.dir}"/>
-                    </testcase>
-                </test-marco>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-init-macro-tests"
-            depends="-init-macro-test,-init-macro-test-all,-init-macro-test-class,-init-macro-test-method"/>
-    <target name="-init-macro" depends="-init-macro-javac,-init-macro-tests"/>
-    <target name="init" depends="-pre-init,-do-init,-init-check,-init-macro,-post-init"/>
+    <target name="-def-macro" depends="-def-macro-javac,-def-macro-test"/>
+    <target name="init" depends="-pre-init,-do-init,-init-check,-def-macro,-post-init"/>
 
     <!--
     compile section
@@ -478,16 +462,20 @@
     <!--
     run section
     -->
-    <target name="-run-config" if="run.config">
-        <contrib:if>
-            <available file="${run.config}" type="file"/>
-            <contrib:then>
-                <property file="${run.config}"/>
-            </contrib:then>
-            <contrib:else>
-                <fail>cannot find file ${run.config}</fail>
-            </contrib:else>
-        </contrib:if>
+    <target name="-check-run-config">
+        <condition property="exist.run.config">
+            <and>
+                <isset property="run.config"/>
+                <not>
+                    <equals arg1="run.config" arg2="" trim="true"/>
+                </not>
+                <available file="${run.config}" type="file"/>
+            </and>
+        </condition>
+    </target>
+    <target name="-run-config" depends="-check-run-config" if="run.config">
+        <fail unless="exist.run.config">run.config not found or not set</fail>
+        <property file="${run.config}"/>
     </target>
     <target name="run" depends="-run-config,init,compile">
         <fail unless="main.class">Must set main.class</fail>
@@ -534,7 +522,14 @@
     </target>
     <target name="-do-test" if="exist.test">
         <property name="test.jvmargs" value=""/>
-        <test-all-marco/>
+        <delete dir="${test.result.dir}" failonerror="false"/>
+        <test-marco>
+            <testcase>
+                <batchtest todir="${test.result.dir}">
+                    <fileset dir="${test.dir}"/>
+                </batchtest>
+            </testcase>
+        </test-marco>
     </target>
     <target name="-do-test-check-class">
         <contrib:if>
@@ -561,14 +556,24 @@
     <target name="-do-test-class" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
         <property name="test.jvmargs" value=""/>
-        <test-class-marco class="${test.class}"/>
+        <test-marco>
+            <testcase>
+                <test name="${test.class}"
+                      todir="${test.result.dir}"/>
+            </testcase>
+        </test-marco>
     </target>
     <target name="-do-test-method" depends="-do-test-check-class">
         <fail unless="exist.test">Test file does not exist</fail>
         <fail unless="test.method">Must set single.method</fail>
         <property name="test.jvmargs" value=""/>
-        <test-method-marco class="${test.class}"
-                           method="${test.method}"/>
+        <test-marco>
+            <testcase>
+                <test name="${test.class}"
+                      methods="${test.method}"
+                      todir="${test.result.dir}"/>
+            </testcase>
+        </test-marco>
     </target>
     <target name="compile-test" depends="init,compile,-do-compile-test"/>
     <target name="test" depends="init,compile,-do-compile-test,-pre-test,-do-test,-post-test"/>
@@ -664,8 +669,7 @@
     </target>
     <target name="-do-publish">
         <copy file="${build.jar.dir}/${jar.file}" tofile="${release.dir}/${project.name}.jar"/>
-        <ivy:publish conf="core"
-                     resolver="local"
+        <ivy:publish resolver="local"
                      pubrevision="${project.version}"
                      status="release"
                      overwrite="true"
