@@ -154,7 +154,6 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-def-util-macro" depends="-def-exist,-def-cp-join,-def-path-2-cp"/>
     <!--
     initial section
     -->
@@ -179,7 +178,7 @@
             </cc:then>
         </cc:if>
     </target>
-    <target name="-do-init" depends="-def-util-macro,-pre-init,-init-private,-init-properties,-try-retrieve">
+    <target name="-do-init" depends="-def-exist,-pre-init,-init-private,-init-properties">
         <property name="project.name" value="${ant.project.name}"/>
         <!--default directory-->
         <property name="build.classes.dir" value="${build.dir}/classes"/>
@@ -208,7 +207,7 @@
         <property name="release.src" value="false"/>
         <property name="release.javadoc" value="false"/>
     </target>
-    <target name="-init-classpath" depends="-do-init">
+    <target name="-init-classpath" depends="-def-cp-join,-def-path-2-cp,-do-init,-try-retrieve">
         <!--default classpath-->
         <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
