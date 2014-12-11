@@ -206,6 +206,7 @@
         <property name="src.exclude" value=""/>
         <property name="release.src" value="false"/>
         <property name="release.javadoc" value="false"/>
+        <property name="jar.lib.copy" value="true"/>
     </target>
     <target name="-init-classpath" depends="-def-cp-join,-def-path-2-cp,-do-init,-try-retrieve">
         <!--default classpath-->
@@ -339,32 +340,35 @@
         </manifest>
     </target>
     <target name="-do-manifest-classpath" depends="-init-classpath,-init-manifest" if="jar.lib.copy">
+        <cc:propertyregex property="jar.classpath" input="" regexp=".*" replace="\0" override="true"/>
         <cc:if>
-            <equals arg1="${jar.lib.jar}" arg2=""/>
+            <equals arg1="${jar.lib.dir}" arg2=""/>
             <cc:then>
                 <cc:for list="${real.runtime.classpath}" param="cp" delimiter=":">
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}"/>
-                        <cc:propertyregex property="cplib" input="${cp}"
-                                          regexp="${lib.dir}/.+/(.+)" select="\1"/>
-                        <manifest file="${jar.manifest.file}" mode="update">
-                            <attribute name="Class-Path" value="${cplib}"/>
-                        </manifest>
+                        <cc:propertyregex property="tmp.classpath" input="@{cp}"
+                                          regexp=".*/([^/]*)" replace="\1.jar" override="true"/>
+                        <cp-join classpath="jar.classpath" append="lib/${tmp.classpath}"/>
                     </sequential>
                 </cc:for>
+                <manifest file="${jar.manifest.file}" mode="update">
+                    <attribute name="Class-Path" value="${jar.classpath}"/>
+                </manifest>
             </cc:then>
             <cc:else>
                 <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
                 <cc:for list="${real.runtime.classpath}" param="cp" delimiter=":">
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}/${jar.lib.dir}"/>
-                        <cc:propertyregex property="cplib" input="@{cp}"
-                                          regexp=".+/([^/]+)" select="\1"/>
-                        <manifest file="${jar.manifest.file}" mode="update">
-                            <attribute name="Class-Path" value="${jar.lib.dir}/${cplib}"/>
-                        </manifest>
+                        <cc:propertyregex property="tmp.classpath" input="@{cp}"
+                                          regexp=".*/([^/]*)" replace="\1.jar" override="true"/>
+                        <cp-join classpath="jar.classpath" append="lib/${tmp.classpath}"/>
                     </sequential>
                 </cc:for>
+                <manifest file="${jar.manifest.file}" mode="update">
+                    <attribute name="Class-Path" value="${jar.classpath}"/>
+                </manifest>
             </cc:else>
         </cc:if>
     </target>
