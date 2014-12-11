@@ -99,18 +99,32 @@
                         <property name="@{classpath}" value=""/>
                     </cc:then>
                 </cc:if>
+                <cc:propertycopy property="tmp.classpath" from="@{classpath}" override="true"/>
                 <cc:if>
-                    <not>
-                        <equals arg1="@{append}" arg2="" trim="true"/>
-                    </not>
+                    <and>
+                        <not>
+                            <equals arg1="${tmp.classpath}" arg2="" trim="true"/>
+                        </not>
+                        <not>
+                            <equals arg1="@{append}" arg2="" trim="true"/>
+                        </not>
+                    </and>
                     <cc:then>
-                        <cc:propertycopy property="tmp.classpath" from="@{classpath}" override="true"/>
-                        <cc:propertyregex property="@{classpath}"
-                                          input="${tmp.classpath}:@{append}"
-                                          regexp=".*"
-                                          select="\0"
-                                          override="true"/>
+                        <cc:propertyregex property="@{classpath}" input="${tmp.classpath}:@{append}"
+                                          regexp=".*" select="\0" override="true"/>
                     </cc:then>
+                    <cc:elseif>
+                        <and>
+                            <equals arg1="${tmp.classpath}" arg2="" trim="true"/>
+                            <not>
+                                <equals arg1="@{append}" arg2="" trim="true"/>
+                            </not>
+                        </and>
+                        <cc:then>
+                            <cc:propertyregex property="@{classpath}" input="@{append}"
+                                              regexp=".*" select="\0" override="true"/>
+                        </cc:then>
+                    </cc:elseif>
                 </cc:if>
             </sequential>
         </macrodef>
@@ -120,11 +134,8 @@
             <attribute name="property"/>
             <attribute name="dir"/>
             <sequential>
-                <cc:propertyregex property="pdir"
-                                  input="@{dir}"
-                                  regexp="/"
-                                  replace="."
-                                  override="true"/>
+                <cc:propertyregex property="pdir" input="@{dir}"
+                                  regexp="/" replace="." override="true"/>
                 <cc:if>
                     <available file="@{dir}" type="dir"/>
                     <cc:then>
@@ -182,8 +193,7 @@
         <property name="jar.lib.dir" value="lib"/>
         <property name="release.dir" value="release"/>
         <!--exist property-->
-        <exist-macro property="exist.manifest.file" path="${manifest.file}" type="file"/>
-        <exist-macro property="exist.splash.file" path="${splash.image}" type="file"/>
+
         <exist-macro property="exist.readme.file" path="${readme.file}" type="file"/>
         <exist-macro property="exist.main.class" path="${main.class}"/>
         <available property="exist.git" file=".git" type="dir"/>
@@ -254,10 +264,12 @@
     <target name="-init-check" depends="-check-jar-file">
         <echo message="jar.file=${jar.file}"/>
     </target>
+    <target name="init" depends="-pre-init,-do-init,-init-check,-post-init"/>
+
     <!--
-    initial macro section
+    compile section
     -->
-    <target name="-def-macro-javac" depends="-do-init">
+    <target name="-def-macro-javac" depends="init">
         <macrodef name="javac-macro">
             <attribute name="srcdir" default="${src.dir}"/>
             <attribute name="destdir" default="${build.classes.dir}"/>
@@ -285,37 +297,11 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-def-macro-test" depends="-do-init">
-        <macrodef name="test-marco">
-            <element name="testcase"/>
-            <sequential>
-                <mkdir dir="${test.result.dir}"/>
-                <junit tempdir="${test.result.dir}"
-                       printsummary="withOutAndErr"
-                       haltonfailure="false"
-                       haltonerror="false"
-                       fork="true">
-                    <classpath path="${build.classes.dir}"/>
-                    <classpath path="${build.test.dir}"/>
-                    <classpath path="${real.test.classpath}"/>
-                    <formatter type="brief"/>
-                    <jvmarg line="${test.jvmargs}"/>
-                    <testcase/>
-                </junit>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-def-macro" depends="-def-macro-javac,-def-macro-test"/>
-    <target name="init" depends="-pre-init,-do-init,-init-check,-def-macro,-post-init"/>
-
-    <!--
-    compile section
-    -->
-    <target name="-do-compile-dir">
+    <target name="-init-compile">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.classes.dir}"/>
     </target>
-    <target name="-do-compile" depends="-do-compile-dir">
+    <target name="-do-compile" depends="-def-macro-javac,-init-compile">
         <javac-macro/>
     </target>
     <target name="-do-resource" if="exist.res">
@@ -324,7 +310,7 @@
             <fileset dir="${res.dir}" excludes="META-INF/"/>
         </copy>
     </target>
-    <target name="-do-compile-single" depends="-do-compile-dir">
+    <target name="-do-compile-single" depends="-def-macro-javac,-init-compile">
         <fail unless="single.file">Must set single.file</fail>
         <javac-macro includes="${single.file}"/>
     </target>
@@ -334,19 +320,19 @@
     <!--
     jar section
     -->
-    <target name="-init-jar">
+    <target name="-init-jar" depends="init,-def-exist">
         <mkdir dir="${build.jar.dir}"/>
-    </target>
-    <target name="-pre-manifest">
+        <exist-macro property="exist.manifest.file" path="${manifest.file}" type="file"/>
+        <exist-macro property="exist.splash.file" path="${splash.image}" type="file"/>
         <property name="jar.manifest.file" value="${build.dir}/MANIFEST.MF"/>
     </target>
-    <target name="-create-manifest" depends="-do-init,-pre-manifest" unless="exist.manifest.file">
+    <target name="-create-manifest" depends="init,-init-jar" unless="exist.manifest.file">
         <touch file="${jar.manifest.file}"/>
     </target>
-    <target name="-copy-manifest" depends="-do-init,-pre-manifest" if="exist.manifest.file">
+    <target name="-copy-manifest" depends="init,-init-jar" if="exist.manifest.file">
         <copy file="manifest.file" tofile="${jar.manifest.file}"/>
     </target>
-    <target name="-init-manifest" depends="-do-init,-create-manifest,-copy-manifest"/>
+    <target name="-init-manifest" depends="init,-create-manifest,-copy-manifest"/>
     <target name="-do-manifest-main-class" depends="-init-manifest" if="main.class">
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="Main-Class" value="${main.class}"/>
@@ -359,10 +345,8 @@
                 <cc:for list="${real.runtime.classpath}" param="cp" delimiter=":">
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}"/>
-                        <cc:propertyregex property="cplib"
-                                          input="${cp}"
-                                          regexp="${lib.dir}/.+/(.+)"
-                                          select="\1"/>
+                        <cc:propertyregex property="cplib" input="${cp}"
+                                          regexp="${lib.dir}/.+/(.+)" select="\1"/>
                         <manifest file="${jar.manifest.file}" mode="update">
                             <attribute name="Class-Path" value="${cplib}"/>
                         </manifest>
@@ -374,10 +358,8 @@
                 <cc:for list="${real.runtime.classpath}" param="cp" delimiter=":">
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}/${jar.lib.dir}"/>
-                        <cc:propertyregex property="cplib"
-                                          input="@{cp}"
-                                          regexp=".+/([^/]+)"
-                                          select="\1"/>
+                        <cc:propertyregex property="cplib" input="@{cp}"
+                                          regexp=".+/([^/]+)" select="\1"/>
                         <manifest file="${jar.manifest.file}" mode="update">
                             <attribute name="Class-Path" value="${jar.lib.dir}/${cplib}"/>
                         </manifest>
@@ -386,7 +368,7 @@
             </cc:else>
         </cc:if>
     </target>
-    <target name="-do-manifest-splash" depends="-do-init,-init-jar,-init-manifest" if="exist.splash.image">
+    <target name="-do-manifest-splash" depends="init,-init-jar,-init-manifest" if="exist.splash.image">
         <basename file="${splash.image}" property="splash.image.basename"/>
         <mkdir dir="${build.meta.dir}"/>
         <copy failonerror="false" file="${splash.image}" todir="${build.meta.dir}"/>
@@ -433,8 +415,7 @@
    -->
     <target name="javadoc" depends="init">
         <mkdir dir="${build.javadoc.dir}"/>
-        <javadoc classpath="${real.compile.classpath}"
-                 destdir="${build.javadoc.dir}"
+        <javadoc destdir="${build.javadoc.dir}"
                  author="author"
                  version="version"
                  charset="UTF-8"
@@ -445,22 +426,15 @@
                  splitindex="false"
                  windowtitle="${project.name} API"
                  failonerror="true">
+            <classpath path="${real.compile.classpath}"/>
             <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
         </javadoc>
     </target>
     <!--
     run section
     -->
-    <target name="-check-run-config">
-        <condition property="exist.run.config">
-            <and>
-                <isset property="run.config"/>
-                <not>
-                    <equals arg1="run.config" arg2="" trim="true"/>
-                </not>
-                <available file="${run.config}" type="file"/>
-            </and>
-        </condition>
+    <target name="-check-run-config" depends="-def-exist">
+        <exist-macro property="exist.run.config" path="${run.config}" type="file"/>
     </target>
     <target name="-run-config" depends="-check-run-config" if="run.config">
         <fail unless="exist.run.config">run.config not found or not set</fail>
@@ -471,10 +445,10 @@
         <property name="classpath" value=""/>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
-        <java classpath="${real.runtime.classpath}:${build.classes.dir}:${classpath}"
-              classname="${main.class}"
-              fork="true"
-              failonerror="true">
+        <java classname="${main.class}" fork="true" failonerror="true">
+            <classpath path="${real.runtime.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${classpath}"/>
             <jvmarg line="${java.jvmargs}"/>
             <arg line="${program.args}"/>
         </java>
@@ -483,33 +457,50 @@
         <property name="classpath" value=""/>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
-        <java classpath="${classpath}"
-              jar="${build.jar.dir}/${jar.file}"
-              fork="true"
-              failonerror="true">
+        <java jar="${build.jar.dir}/${jar.file}" fork="true" failonerror="true">
+            <classpath path="${classpath}"/>
             <jvmarg line="${java.jvmargs}"/>
             <arg line="${program.args}"/>
         </java>
     </target>
     <target name="run-single" depends="init,compile">
         <fail unless="main.class">Must set main.class</fail>
-        <java classpath="${real.runtime.classpath}:${build.classes.dir}"
-              classname="${main.class}"
-              fork="true"
-              failonerror="true">
+        <java classname="${main.class}" fork="true" failonerror="true">
+            <classpath path="${real.runtime.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
             <jvmarg line="${java.jvmargs}"/>
         </java>
     </target>
     <!--
     test section
     -->
-    <target name="-do-compile-test" if="exist.test">
+    <target name="-def-macro-test" depends="init">
+        <macrodef name="test-marco">
+            <element name="testcase"/>
+            <sequential>
+                <mkdir dir="${test.result.dir}"/>
+                <junit tempdir="${test.result.dir}"
+                       printsummary="withOutAndErr"
+                       haltonfailure="false"
+                       haltonerror="false"
+                       fork="true">
+                    <classpath path="${build.classes.dir}"/>
+                    <classpath path="${build.test.dir}"/>
+                    <classpath path="${real.test.classpath}"/>
+                    <formatter type="brief"/>
+                    <jvmarg line="${test.jvmargs}"/>
+                    <testcase/>
+                </junit>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-do-compile-test" depends="-def-macro-javac" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
         <javac-macro classpath="${build.classes.dir}:${real.test.classpath}"
                      srcdir="${test.dir}"
                      destdir="${build.test.dir}"/>
     </target>
-    <target name="-do-test" if="exist.test">
+    <target name="-do-test" depends="-def-macro-test" if="exist.test">
         <property name="test.jvmargs" value=""/>
         <delete dir="${test.result.dir}" failonerror="false"/>
         <test-marco>
@@ -526,15 +517,10 @@
             <cc:elseif>
                 <isset id="single.file"/>
                 <cc:then>
-                    <cc:propertyregex property="test.class"
-                                      input="${single.file}"
-                                      regexp="${test.dir}/(.+)\.java"
-                                      select="\1"/>
-                    <cc:propertyregex property="test.class"
-                                      input="${test.class}"
-                                      regexp="/"
-                                      replace="."
-                                      override="true"/>
+                    <cc:propertyregex property="test.class" input="${single.file}"
+                                      regexp="${test.dir}/(.+)\.java" select="\1"/>
+                    <cc:propertyregex property="test.class" input="${test.class}"
+                                      regexp="/" replace="." override="true"/>
                 </cc:then>
             </cc:elseif>
             <cc:else>
@@ -542,7 +528,7 @@
             </cc:else>
         </cc:if>
     </target>
-    <target name="-do-test-class" depends="-do-test-check-class">
+    <target name="-do-test-class" depends="-do-test-check-class,-def-macro-test">
         <fail unless="exist.test">Test file does not exist</fail>
         <property name="test.jvmargs" value=""/>
         <test-marco>
@@ -552,7 +538,7 @@
             </testcase>
         </test-marco>
     </target>
-    <target name="-do-test-method" depends="-do-test-check-class">
+    <target name="-do-test-method" depends="-do-test-check-class,-def-macro-test">
         <fail unless="exist.test">Test file does not exist</fail>
         <fail unless="test.method">Must set single.method</fail>
         <property name="test.jvmargs" value=""/>
@@ -669,8 +655,7 @@
         </ivy:publish>
         <echo message="project ${ant.project.name} released with version ${project.version}"/>
     </target>
-    <target name="publish"
-            depends="-init-publish,release,-pre-publish,-do-publish,-post-publish"/>
+    <target name="publish" depends="-init-publish,release,-pre-publish,-do-publish,-post-publish"/>
     <!--
     clean section
     -->
