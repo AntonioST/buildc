@@ -90,6 +90,7 @@
         <macrodef name="cp-join">
             <attribute name="classpath"/>
             <attribute name="append"/>
+            <attribute name="split" default=":"/>
             <sequential>
                 <cc:if>
                     <not>
@@ -110,7 +111,7 @@
                         </not>
                     </and>
                     <cc:then>
-                        <cc:propertyregex property="@{classpath}" input="${tmp.classpath}:@{append}"
+                        <cc:propertyregex property="@{classpath}" input="${tmp.classpath}@{split}@{append}"
                                           regexp=".*" select="\0" override="true"/>
                     </cc:then>
                     <cc:elseif>
@@ -348,8 +349,8 @@
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}"/>
                         <cc:propertyregex property="tmp.classpath" input="@{cp}"
-                                          regexp=".*/([^/]*)" replace="\1.jar" override="true"/>
-                        <cp-join classpath="jar.classpath" append="lib/${tmp.classpath}"/>
+                                          regexp=".*/([^/]*)" replace="\1" override="true"/>
+                        <cp-join classpath="jar.classpath" append="lib/${tmp.classpath}" split=" "/>
                     </sequential>
                 </cc:for>
                 <manifest file="${jar.manifest.file}" mode="update">
@@ -362,8 +363,8 @@
                     <sequential>
                         <copy file="@{cp}" todir="${build.jar.dir}/${jar.lib.dir}"/>
                         <cc:propertyregex property="tmp.classpath" input="@{cp}"
-                                          regexp=".*/([^/]*)" replace="\1.jar" override="true"/>
-                        <cp-join classpath="jar.classpath" append="lib/${tmp.classpath}"/>
+                                          regexp=".*/([^/]*)" replace="\1" override="true"/>
+                        <cp-join classpath="jar.classpath" append="lib/${tmp.classpath}" split=" "/>
                     </sequential>
                 </cc:for>
                 <manifest file="${jar.manifest.file}" mode="update">
