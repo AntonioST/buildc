@@ -4,6 +4,6 @@
 /build/
 /lib/
 /release/
-/.idea/
+/.idea/workspace.xml
 /*.config
 !/res/copyright/
