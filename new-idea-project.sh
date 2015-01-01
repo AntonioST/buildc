@@ -64,26 +64,31 @@ echo "create project $PROJECT_NAME at $PROJECT_BASE"
 mkdir -p ${PROJECT_BASE}
 
 # template file
-cp ${DIR}/gitignore.template ${PROJECT_BASE}/.gitignore
-cat ${DIR}/build.xml.template\
+TEMP_DIR=${DIR}/res/template
+cp ${TEMP_DIR}/gitignore.template ${PROJECT_BASE}/.gitignore
+cat ${TEMP_DIR}/build.xml.template\
     | sed s/__PROJECT__/${PROJECT_NAME}/g\
     | sed s/__DESCRIPTION__/${PROJECT_DESP}/g\
     > ${PROJECT_BASE}/build.xml
-cat ${DIR}/ivy.xml.template\
+cat ${TEMP_DIR}/build.properties.template\
+    | sed s/__PROJECT__/${PROJECT_NAME}/g\
+    > ${PROJECT_BASE}/build.properties
+cat ${TEMP_DIR}/ivy.xml.template\
     | sed s/__PROJECT__/${PROJECT_NAME}/g\
     | sed s/__DESCRIPTION__/${PROJECT_DESP}/g\
     > ${PROJECT_BASE}/ivy.xml
 
 # idea setting
+TEMP_DIR=${DIR}/res/idea.template
 mkdir ${PROJECT_BASE}/.idea
 echo ${PROJECT_NAME} > ${PROJECT_BASE}/.idea/.name
-cp ${DIR}/idea.template/project.iml ${PROJECT_BASE}/.idea/${PROJECT_NAME}.iml
-cat ${DIR}/idea.template/modules.xml.template\
+cp ${TEMP_DIR}/project.iml ${PROJECT_BASE}/.idea/${PROJECT_NAME}.iml
+cat ${TEMP_DIR}/modules.xml.template\
     | sed s/__PROJECT__/${PROJECT_NAME}/g\
     > ${PROJECT_BASE}/.idea/modules.xml
-cp -r ${DIR}/idea.template/copyright ${PROJECT_BASE}/.idea
-cp -r ${DIR}/idea.template/scopes ${PROJECT_BASE}/.idea
-cp ${DIR}/idea.template/*.xml ${PROJECT_BASE}/.idea
+cp -r ${TEMP_DIR}/copyright ${PROJECT_BASE}/.idea
+cp -r ${TEMP_DIR}/scopes ${PROJECT_BASE}/.idea
+cp ${TEMP_DIR}/*.xml ${PROJECT_BASE}/.idea
 
 # default directory
 mkdir ${PROJECT_BASE}/src
