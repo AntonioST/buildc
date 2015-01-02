@@ -458,6 +458,20 @@
             <arg line="${program.args}"/>
         </java>
     </target>
+    <target name="run-test" depends="-run-config,init,-init-classpath,compile,compile-test">
+        <fail unless="main.class">Must set main.class</fail>
+        <property name="classpath" value=""/>
+        <property name="java.jvmargs" value=""/>
+        <property name="program.args" value=""/>
+        <java classname="${main.class}" fork="true" failonerror="true">
+            <classpath path="${real.test.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${build.test.dir}"/>
+            <classpath path="${classpath}"/>
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
     <target name="run-jar" depends="-run-config,init,compile,jar">
         <property name="classpath" value=""/>
         <property name="java.jvmargs" value=""/>
