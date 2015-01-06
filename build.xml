@@ -532,20 +532,20 @@
     </target>
     <target name="-do-test-check-class">
         <cc:if>
-            <isset property="test.class"/>
-            <cc:elseif>
-                <isset id="single.file"/>
-                <cc:then>
-                    <cc:propertyregex property="test.class" input="${single.file}"
-                                      regexp="${test.dir}/(.+)\.java" select="\1"/>
-                    <cc:propertyregex property="test.class" input="${test.class}"
-                                      regexp="/" replace="." override="true"/>
-                </cc:then>
-            </cc:elseif>
-            <cc:else>
-                <fail>Must set test.class or single.file</fail>
-            </cc:else>
+            <and>
+                <not>
+                    <isset property="test.class"/>
+                </not>
+                <isset property="single.file"/>
+            </and>
+            <cc:then>
+                <cc:propertyregex property="test.class" input="${single.file}"
+                                  regexp="${test.dir}/(.+)\.java" select="\1"/>
+                <cc:propertyregex property="test.class" input="${test.class}"
+                                  regexp="/" replace="." override="true"/>
+            </cc:then>
         </cc:if>
+        <fail unless="test.class">Must set test.class or single.file</fail>
     </target>
     <target name="-do-test-class" depends="-do-test-check-class,-def-macro-test">
         <fail unless="exist.test">Test file does not exist</fail>
