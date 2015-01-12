@@ -227,6 +227,8 @@
         <cp-join classpath="real.test.classpath" append="${master.classpath}"/>
         <cp-join classpath="real.test.classpath" append="${test.classpath}"/>
         <cp-join classpath="real.test.classpath" append="${lib.test.classpath}"/>
+    </target>
+    <target name="show-classpath" depends="-init-classpath">
         <echo message="compile.classpath=${real.compile.classpath}"/>
         <echo message="runtime.classpath=${real.runtime.classpath}"/>
         <echo message="test.classpath=${real.test.classpath}"/>
@@ -246,7 +248,6 @@
             <equals arg1="${git.version.result}" arg2="0"/>
             <cc:then>
                 <property name="project.version" value="${git.version.output}"/>
-                <echo message="git version=${git.version.output}"/>
             </cc:then>
         </cc:if>
     </target>
@@ -255,19 +256,30 @@
             <format property="stamp" pattern="yyyyMMdd"/>
         </tstamp>
         <property name="project.version" value="snapshot-${stamp}"/>
-        <echo message="time stamp version=${project.version}"/>
     </target>
-    <target name="-check-project-version" depends="-check-project-git-version,-check-project-snapshot-version">
-        <echo message="project.version=${project.version}"/>
-    </target>
+    <target name="-check-project-version" depends="-check-project-git-version,-check-project-snapshot-version"/>
     <target name="-check-jar-file" depends="-check-project-version" unless="jar.file">
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
     </target>
-    <target name="-init-check" depends="-check-jar-file">
+    <target name="-init-check" depends="-check-jar-file"/>
+    <target name="init" depends="-pre-init,-do-init,-init-check,-post-init"/>
+    <target name="show-git-version" depends="-check-project-git-version">
+        <cc:if>
+            <equals arg1="${git.version.result}" arg2="0"/>
+            <cc:then>
+                <echo message="git.version=${git.version.output}"/>
+            </cc:then>
+            <cc:else>
+                <echo message="no git setup"/>
+            </cc:else>
+        </cc:if>
+    </target>
+    <target name="show-version" depends="-check-project-version">
+        <echo message="project.version=${project.version}"/>
+    </target>
+    <target name="show-jar-name" depends="-check-jar-file">
         <echo message="jar.file=${jar.file}"/>
     </target>
-    <target name="init" depends="-pre-init,-do-init,-init-check,-post-init"/>
-
     <!--
     compile section
     -->
