@@ -187,7 +187,7 @@
         <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
         <property name="build.jar.dir" value="${build.dir}/jar"/>
         <property name="build.meta.dir" value="${build.dir}/META-INF"/>
-        <property name="test.result.dir" value="${build.dir}/result"/>
+        <property name="test.result.dir" value="${build.dir}/test/result"/>
         <property name="coverage.result.dir" value="${build.dir}/jacoco"/>
         <property name="coverage.report.dir" value="${coverage.result.dir}/report"/>
         <property name="jar.lib.dir" value="lib"/>
