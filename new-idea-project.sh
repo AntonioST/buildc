@@ -65,15 +65,15 @@ mkdir -p ${PROJECT_BASE}
 
 # template file
 TEMP_DIR=${DIR}/res/template
-cp ${TEMP_DIR}/gitignore.template ${PROJECT_BASE}/.gitignore
-cat ${TEMP_DIR}/build.xml.template\
+cp ${TEMP_DIR}/gitignore ${PROJECT_BASE}/.gitignore
+cat ${TEMP_DIR}/build.xml\
     | sed s/__PROJECT__/${PROJECT_NAME}/g\
     | sed s/__DESCRIPTION__/${PROJECT_DESP}/g\
     > ${PROJECT_BASE}/build.xml
-cat ${TEMP_DIR}/build.properties.template\
+cat ${TEMP_DIR}/build.properties\
     | sed s/__PROJECT__/${PROJECT_NAME}/g\
     > ${PROJECT_BASE}/build.properties
-cat ${TEMP_DIR}/ivy.xml.template\
+cat ${TEMP_DIR}/ivy.xml\
     | sed s/__PROJECT__/${PROJECT_NAME}/g\
     | sed s/__DESCRIPTION__/${PROJECT_DESP}/g\
     > ${PROJECT_BASE}/ivy.xml

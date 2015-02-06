@@ -1,9 +1,9 @@
 /src/
 /test/
-/res/
 /build/
 /lib/
 /release/
 /.idea/workspace.xml
+/.idea/ant.xml
 /*.config
-!/res/copyright/
+/test.xml

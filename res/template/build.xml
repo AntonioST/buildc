@@ -5,7 +5,9 @@
          xmlns:cc="antlib:net.sf.antcontrib"
          xmlns:jacoco="antlib:org.jacoco.ant">
     <description></description>
-    <target name="build" depends="init,clean,compile,jar"/>
+    <import file=".ant/ant-ivy.xml"/>
+    <import file=".ant/ant-macro-exist.xml"/>
+    <target name="build" depends="init,clean,compile,test,jar"/>
     <!--
     custom section
     -->
@@ -49,112 +51,9 @@
         <!--empty-->
     </target>
     <!--
-    dependencies section
-    -->
-    <target name="-check-ivy">
-        <available property="exist.ivy" file="ivy.xml" type="file"/>
-    </target>
-    <target name="-try-retrieve" depends="-init-private,-check-ivy" if="exist.ivy" unless="exist.lib">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
-    <target name="retrieve" depends="-init-private,-check-ivy" if="exist.ivy">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
-    <!--
     utility task
     -->
-    <target name="-def-exist">
-        <macrodef name="exist-macro">
-            <attribute name="property"/>
-            <attribute name="path"/>
-            <attribute name="type" default=""/>
-            <sequential>
-                <condition property="@{property}">
-                    <and>
-                        <not>
-                            <contains string="@{path}" substring="$"/>
-                        </not>
-                        <not>
-                            <equals arg1="@{path}" arg2="" trim="true"/>
-                        </not>
-                        <or>
-                            <equals arg1="@{type}" arg2="" trim="true"/>
-                            <available file="@{path}"/>
-                        </or>
-                    </and>
-                </condition>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-def-cp-join">
-        <macrodef name="cp-join">
-            <attribute name="classpath"/>
-            <attribute name="append"/>
-            <attribute name="split" default=":"/>
-            <sequential>
-                <cc:if>
-                    <not>
-                        <isset property="@{classpath}"/>
-                    </not>
-                    <cc:then>
-                        <property name="@{classpath}" value=""/>
-                    </cc:then>
-                </cc:if>
-                <cc:propertycopy property="tmp.classpath" from="@{classpath}" override="true"/>
-                <cc:if>
-                    <and>
-                        <not>
-                            <equals arg1="${tmp.classpath}" arg2="" trim="true"/>
-                        </not>
-                        <not>
-                            <equals arg1="@{append}" arg2="" trim="true"/>
-                        </not>
-                    </and>
-                    <cc:then>
-                        <cc:propertyregex property="@{classpath}" input="${tmp.classpath}@{split}@{append}"
-                                          regexp=".*" select="\0" override="true"/>
-                    </cc:then>
-                    <cc:elseif>
-                        <and>
-                            <equals arg1="${tmp.classpath}" arg2="" trim="true"/>
-                            <not>
-                                <equals arg1="@{append}" arg2="" trim="true"/>
-                            </not>
-                        </and>
-                        <cc:then>
-                            <cc:propertyregex property="@{classpath}" input="@{append}"
-                                              regexp=".*" select="\0" override="true"/>
-                        </cc:then>
-                    </cc:elseif>
-                </cc:if>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-def-path-2-cp" depends="-def-cp-join">
-        <macrodef name="path-to-cp">
-            <attribute name="property"/>
-            <attribute name="dir"/>
-            <sequential>
-                <cc:propertyregex property="pdir" input="@{dir}"
-                                  regexp="/" replace="." override="true"/>
-                <cc:if>
-                    <available file="@{dir}" type="dir"/>
-                    <cc:then>
-                        <pathconvert property="classpath.${pdir}" pathsep=":">
-                            <fileset dir="@{dir}">
-                                <include name="**/*.jar"/>
-                            </fileset>
-                            <map from="${user.dir}/" to=""/>
-                        </pathconvert>
-                        <cc:propertycopy property="@{property}" from="classpath.${pdir}"/>
-                    </cc:then>
-                    <cc:else>
-                        <property name="@{property}" value=""/>
-                    </cc:else>
-                </cc:if>
-            </sequential>
-        </macrodef>
-    </target>
+
     <!--
     initial section
     -->
@@ -507,7 +406,7 @@
     -->
     <target name="-def-macro-test" depends="init,-init-classpath">
         <macrodef name="test-marco">
-            <element name="testcase"/>
+            <element name="testcase" implicit="true"/>
             <sequential>
                 <mkdir dir="${test.result.dir}"/>
                 <junit tempdir="${test.result.dir}"
@@ -535,11 +434,9 @@
         <property name="test.jvmargs" value=""/>
         <delete dir="${test.result.dir}" failonerror="false"/>
         <test-marco>
-            <testcase>
-                <batchtest todir="${test.result.dir}">
-                    <fileset dir="${test.dir}"/>
-                </batchtest>
-            </testcase>
+            <batchtest todir="${test.result.dir}">
+                <fileset dir="${test.dir}"/>
+            </batchtest>
         </test-marco>
     </target>
     <target name="-do-test-check-class">
@@ -563,10 +460,8 @@
         <fail unless="exist.test">Test file does not exist</fail>
         <property name="test.jvmargs" value=""/>
         <test-marco>
-            <testcase>
-                <test name="${test.class}"
-                      todir="${test.result.dir}"/>
-            </testcase>
+            <test name="${test.class}"
+                  todir="${test.result.dir}"/>
         </test-marco>
     </target>
     <target name="-do-test-method" depends="-do-test-check-class,-def-macro-test">
@@ -574,11 +469,9 @@
         <fail unless="test.method">Must set single.method</fail>
         <property name="test.jvmargs" value=""/>
         <test-marco>
-            <testcase>
-                <test name="${test.class}"
-                      methods="${test.method}"
-                      todir="${test.result.dir}"/>
-            </testcase>
+            <test name="${test.class}"
+                  methods="${test.method}"
+                  todir="${test.result.dir}"/>
         </test-marco>
     </target>
     <target name="compile-test" depends="init,compile,-do-compile-test"/>

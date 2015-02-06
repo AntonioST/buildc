@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant">
+    <target name="-pre-ivy">
+        <property name="lib.dir" value="lib"/>
+    </target>
+    <target name="-check-ivy">
+        <available property="exist.ivy" file="ivy.xml" type="file"/>
+        <available property="exist.lib" file="lib" type="dir"/>
+    </target>
+    <target name="-try-retrieve" depends="-pre-ivy,-check-ivy" if="exist.ivy" unless="exist.lib">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+    <target name="retrieve" depends="-pre-ivy,-check-ivy" if="exist.ivy">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+</project>

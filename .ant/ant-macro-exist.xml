@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-def-macro-exist">
+        <macrodef name="macro-exist">
+            <attribute name="property"/>
+            <attribute name="path"/>
+            <attribute name="type" default=""/>
+            <sequential>
+                <script language="javascript"><![CDATA[
+                    var F = java.nio.file.Files;
+                    var P = java.nio.file.Paths;
+                    var test = false;
+                    if ("@{path}".length == 0 || "@{path}".contains("$")) {
+                    } else {
+                        var p = P.get("@{path}");
+                        test = F.exists(p);
+                        if ("@{type}" == '' || !test){
+                        } else if ("@{type}" == 'f' || "@{type}" == 'file') {
+                            test = F.isRegularFile(p);
+                        } else if ("@{type}" == 'd' || "@{type}" == 'dir' || "@{type}" == 'directory') {
+                            test = F.isDirectory(p);
+                        } else if ("@{type}" == 'l' || "@{type}" == 'link') {
+                            test = F.isSymbolicLink(p);
+                        } else {
+                            throw new java.lang.IllegalArgumentException("illegal check exist type : @{type}");
+                        }
+                    }
+
+                    self.getProject().setProperty("@{property}", java.lang.Boolean.toString(test));
+                ]]></script>
+            </sequential>
+        </macrodef>
+    </target>
+</project>

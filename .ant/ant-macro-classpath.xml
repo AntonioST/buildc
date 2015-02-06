@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-def-macro-join-classpath">
+        <macrodef name="macro-join-classpath">
+            <attribute name="classpath"/>
+            <attribute name="append"/>
+            <attribute name="split" default=":"/>
+            <sequential>
+                <script language="javascript"> <![CDATA[
+                    var p = self.getProject();
+                    var cp = p.getProperty("@{classpath}");
+                    if (cp == null || cp.length == 0) {
+                        if ("@{append}".length != 0) {
+                            p.setProperty("@{classpath}", "@{append}");
+                        }
+                    } else if ("@{append}".length != 0) {
+                        p.setProperty("@{classpath}", cp + "@{split}@{append}");
+                    }
+                ]]> </script>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-def-macro-path-to-classpath">
+        <macrodef name="macro-path-to-classpath">
+            <attribute name="classpath"/>
+            <attribute name="dir"/>
+            <attribute name="split" default=":"/>
+            <attribute name="include" default="**/*"/>
+            <sequential>
+                <script language="javascript"><![CDATA[
+                    var root = java.nio.file.Paths.get("@{dir}");
+                    var pm = java.nio.file.FileSystems.getDefault()
+                        .getPathMatcher("glob:@{include}");
+                    var FVR = java.nio.file.FileVisitResult;
+                    var ls = new java.util.ArrayList();
+                    java.nio.file.Files.walkFileTree(root, new java.nio.file.FileVisitor() {
+                        preVisitDirectory: function(file, e) { return FVR.CONTINUE;},
+                        postVisitDirectory: function(file, attrs) { return FVR.CONTINUE;},
+                        visitFile: function(file, attrs) {
+                            if (pm.matches(file)) {
+                                ls.add(file.toString());
+                            }
+                            return FVR.CONTINUE;
+                        },
+                        visitFileFailed: function(file, e) { return FVR.CONTINUE;}
+                    });
+
+                    self.getProject().setProperty("@{classpath}", java.lang.String.join("@{split}", ls));
+
+                ]]> </script>
+            </sequential>
+        </macrodef>
+    </target>
+</project>

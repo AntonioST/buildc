@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:cc="antlib:net.sf.antcontrib">
+    <target name="-def-macro-git">
+        <exec executable="git" failonerror="true">
+            <arg line="--version"/>
+        </exec>
+        <macrodef name="macro-git">
+            <attribute name="outputproperty" default="macro.git.output"/>
+            <attribute name="resultproperty" default="macro.git.result"/>
+            <attribute name="failonerror" default="false"/>
+            <element name="custom" implicit="true"/>
+            <sequential>
+                <exec executable="git"
+                      outputproperty="@{outputproperty}"
+                      resultproperty="@{resultproperty}"
+                      failonerror="@{failonerror}">
+                    <custom/>
+                </exec>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-def-task-git" depends="-def-macro-git">
+        <macrodef name="git-version">
+            <attribute name="property"/>
+            <sequential>
+                <macro-git>
+                    <arg value="describe"/>
+                    <arg value="--tags"/>
+                </macro-git>
+                <cc:if>
+                    <equals arg1="${macro.git.result}" arg2="0"/>
+                    <cc:then>
+                        <property name="@{property}" value="${macro.git.output}"/>
+                    </cc:then>
+                </cc:if>
+            </sequential>
+        </macrodef>
+    </target>
+</project>
