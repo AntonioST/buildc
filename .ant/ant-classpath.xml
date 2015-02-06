@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
     <target name="-def-macro-join-classpath">
-        <macrodef name="macro-join-classpath">
+        <macrodef name="join-classpath">
             <attribute name="classpath"/>
             <attribute name="append"/>
             <attribute name="split" default=":"/>
@@ -21,7 +21,7 @@
         </macrodef>
     </target>
     <target name="-def-macro-path-to-classpath">
-        <macrodef name="macro-path-to-classpath">
+        <macrodef name="path-to-classpath">
             <attribute name="classpath"/>
             <attribute name="dir"/>
             <attribute name="split" default=":"/>
@@ -51,4 +51,5 @@
             </sequential>
         </macrodef>
     </target>
+    <target name="-def-task-classpath" depends="-def-macro-join-classpath,-def-macro-path-to-classpath"/>
 </project>

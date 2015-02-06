@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="default" depends="init,compile,test,jar"/>
+    <!--
+    global property
+    -->
+    <property name="src.dir" value="src"/>
+    <property name="test.dir" value="test"/>
+    <property name="build.dir" value="build"/>
+    <property name="res.dir" value="res"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="lib.master.dir" value="${lib.dir}/master"/>
+    <property name="lib.compile.dir" value="${lib.dir}/compile"/>
+    <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
+    <property name="lib.test.dir" value="${lib.dir}/test"/>
+    <!--
+    import
+    -->
+    <import file="ant-git.xml"/>
+    <import file="ant-ivy.xml"/>
+    <import file="ant-exist.xml"/>
+    <import file="ant-classpath.xml"/>
+    <import file="ant-junit.xml"/>
+    <!--
+    custom section
+    -->
+    <target name="-pre-init"/>
+    <target name="-post-init"/>
+    <target name="-pre-compile"/>
+    <target name="-post-compile"/>
+    <target name="-pre-jar"/>
+    <target name="-post-jar"/>
+    <target name="-pre-test"/>
+    <target name="-post-test"/>
+    <target name="-post-clean"/>
+    <!--
+    initial section
+    -->
+    <target name="-init-properties" depends="-pre-init">
+        <property file="${basedir}/build.properties"/>
+    </target>
+    <target name="-init-version" depends="-def-macro-git-describe" if="exist.git">
+        <git-describe property="project.version"/>
+    </target>
+    <target name="-init" depends="-init-properties,-def-macro-exist,-init-version">
+        <property name="project.name" value="${ant.project.name}"/>
+        <tstamp>
+            <format property="stamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="project.version" value="snapshot-${stamp}"/>
+        <property name="jar.file" value="${project.name}-${project.version}.jar"/>
+        <!--default directory-->
+        <property name="build.classes.dir" value="${build.dir}/classes"/>
+        <property name="build.test.dir" value="${build.dir}/test/classes"/>
+        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
+        <property name="build.jar.dir" value="${build.dir}/jar"/>
+        <property name="build.meta.dir" value="${build.dir}/META-INF"/>
+        <property name="test.result.dir" value="${build.dir}/test/result"/>
+        <property name="jar.lib.dir" value="lib"/>
+        <!--exist property-->
+        <macro-exist property="exist.main.class" path="${main.class}"/>
+        <available property="exist.git" file=".git" type="dir"/>
+        <available property="exist.test" file="${test.dir}" type="dir"/>
+        <available property="exist.res" file="${res.dir}" type="dir"/>
+        <!--default value-->
+        <property name="javac.source" value="1.8"/>
+        <property name="javac.target" value="1.8"/>
+        <property name="javac.debug" value="true"/>
+        <property name="javac.jvmargs" value=""/>
+        <property name="src.include" value="**"/>
+        <property name="src.exclude" value=""/>
+        <property name="release.src" value="false"/>
+        <property name="release.javadoc" value="false"/>
+        <property name="jar.lib.copy" value="true"/>
+    </target>
+    <target name="-init-classpath" depends="-def-task-classpath,-init,-try-retrieve">
+        <!--default classpath-->
+        <property name="master.classpath" value=""/>
+        <property name="compile.classpath" value=""/>
+        <property name="runtime.classpath" value=""/>
+        <property name="test.classpath" value=""/>
+        <path-to-classpath classpath="lib.compile.classpath" dir="${lib.compile.dir}"/>
+        <path-to-classpath classpath="lib.runtime.classpath" dir="${lib.runtime.dir}"/>
+        <path-to-classpath classpath="lib.test.classpath" dir="${lib.test.dir}"/>
+        <join-classpath classpath="real.compile.classpath" append="${master.classpath}"/>
+        <join-classpath classpath="real.compile.classpath" append="${compile.classpath}"/>
+        <join-classpath classpath="real.compile.classpath" append="${lib.compile.classpath}"/>
+        <join-classpath classpath="real.runtime.classpath" append="${master.classpath}"/>
+        <join-classpath classpath="real.runtime.classpath" append="${runtime.classpath}"/>
+        <join-classpath classpath="real.runtime.classpath" append="${lib.runtime.classpath}"/>
+        <join-classpath classpath="real.test.classpath" append="${master.classpath}"/>
+        <join-classpath classpath="real.test.classpath" append="${test.classpath}"/>
+        <join-classpath classpath="real.test.classpath" append="${lib.test.classpath}"/>
+    </target>
+    <target name="init" depends="-pre-init,-init,-post-init"/>
+    <!--
+    compile section
+    -->
+    <target name="-def-macro-javac" depends="init,-init-classpath">
+        <macrodef name="macro-javac">
+            <attribute name="srcdir" default="${src.dir}"/>
+            <attribute name="destdir" default="${build.classes.dir}"/>
+            <attribute name="classpath" default="${real.compile.classpath}"/>
+            <attribute name="includes" default="${src.include}"/>
+            <attribute name="excludes" default="${src.exclude}"/>
+            <element name="customize" optional="true"/>
+            <sequential>
+                <javac classpath="@{classpath}"
+                       srcdir="@{srcdir}"
+                       sourcepath="${basedir}/@{srcdir}"
+                       destdir="@{destdir}"
+                       includes="@{includes}"
+                       excludes="@{excludes}"
+                       source="${javac.source}"
+                       target="${javac.target}"
+                       includeantruntime="no"
+                       includejavaruntime="no"
+                       debug="${javac.debug}"
+                       fork="true"
+                       listfiles="true">
+                    <compilerarg line="${javac.jvmargs}"/>
+                    <customize/>
+                </javac>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-compile-init" depends="init,-def-macro-javac">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.classes.dir}"/>
+    </target>
+    <target name="-compile" depends="-compile-init">
+        <macro-javac/>
+    </target>
+    <target name="-compile-single" depends="-compile-init">
+        <fail unless="class">Must set class</fail>
+        <macro-javac includes="${class}"/>
+    </target>
+    <target name="-compile-test" depends="-compile">
+        <mkdir dir="${build.test.dir}"/>
+        <macro-javac classpath="${build.classes.dir}:${real.test.classpath}"
+                     srcdir="${test.dir}"
+                     destdir="${build.test.dir}"/>
+    </target>
+    <target name="compile" depends="init,-pre-compile,-compile,-post-compile"/>
+    <target name="compile-single" depends="init,-pre-compile,-compile-single,-post-compile"/>
+    <target name="compile-test" depends="init,-pre-compile,-compile-test,-post-compile" if="exist.test"/>
+    <!--
+    test section
+    -->
+    <target name="-test-init" depends="-def-macro-test">
+        <property name="test.jvmargs" value=""/>
+    </target>
+    <target name="-test" depends="-test-init">
+        <delete dir="${test.result.dir}" failonerror="false"/>
+        <marco-test>
+            <batchtest todir="${test.result.dir}">
+                <fileset dir="${test.dir}"/>
+            </batchtest>
+        </marco-test>
+    </target>
+    <target name="-test-class" depends="-test-init">
+        <fail unless="class">Must set class</fail>
+        <marco-test>
+            <test name="${class}"
+                  todir="${test.result.dir}"/>
+        </marco-test>
+    </target>
+    <target name="-test-method" depends="-test-init">
+        <fail unless="class">Must set class</fail>
+        <fail unless="method">Must set method</fail>
+        <marco-test>
+            <test name="${class}"
+                  methods="${method}"
+                  todir="${test.result.dir}"/>
+        </marco-test>
+    </target>
+    <target name="test" depends="init,compile,compile-test,-pre-test,-test,-post-test" if="exist.test"/>
+    <target name="test-class" depends="init,compile,compile-test,-pre-test,-test-class,-post-test" if="exist.test"/>
+    <target name="test-method" depends="init,compile,compile-test,-pre-test,-test-method,-post-test" if="exist.test"/>
+    <!--
+    jar section
+    -->
+    <target name="-jar-init" depends="init,-def-macro-exist">
+        <mkdir dir="${build.jar.dir}"/>
+        <mkdir dir="${build.meta.dir}"/>
+        <macro-exist property="exist.manifest.file" path="${manifest.file}" type="file"/>
+        <macro-exist property="exist.splash.file" path="${splash.image}" type="file"/>
+        <macro-exist property="exist.readme.file" path="${readme.file}" type="file"/>
+        <macro-exist property="exist.meta.dir" path="${res.dir}/META-INF" type="dir"/>
+        <property name="jar.manifest.file" value="${build.dir}/MANIFEST.MF"/>
+    </target>
+    <target name="-manifest-create" depends="-jar-init" unless="exist.manifest.file">
+        <touch file="${jar.manifest.file}"/>
+    </target>
+    <target name="-manifest-copy" depends="-jar-init" if="exist.manifest.file">
+        <copy file="manifest.file" tofile="${jar.manifest.file}"/>
+    </target>
+    <target name="-manifest-init" depends="-manifest-copy,-manifest-create"/>
+    <target name="-manifest-main-class" depends="-jar-init,-manifest-init" if="main.class">
+        <manifest file="${jar.manifest.file}" mode="update">
+            <attribute name="Main-Class" value="${main.class}"/>
+        </manifest>
+    </target>
+    <target name="-manifest-classpath" depends="-init-classpath,-manifest-init" if="jar.lib.copy">
+        <script language="javascript"><![CDATA[
+            var p = self.getProject();
+            var F = java.nio.file.Files;
+            var P = java.nio.file.Paths;
+            var ls = new java.util.ArrayList();
+            var rt = P.get(p.getProperty('build.jar.dir'));
+            var to = rt.resolve(P.get(p.getProperty('jar.lib.dir')));
+            for each (var cp in p.getProperty('real.runtime.classpath').split(':')){
+                var f = P.get(cp);
+                var t = to.resolve(f.getFileName());
+                F.move(f, t);
+                ls.add(rt.relative(t).toString());
+            }
+            p.setProperty('jar.classpath', String.join(' ', ls));
+        ]]></script>
+        <manifest file="${jar.manifest.file}" mode="update">
+            <attribute name="Class-Path" value="${jar.classpath}"/>
+        </manifest>
+    </target>
+    <target name="-manifest-splash" depends="-jar-init,-manifest-init" if="exist.splash.image">
+        <basename file="${splash.image}" property="splash.image.basename"/>
+        <mkdir dir="${build.meta.dir}"/>
+        <copy failonerror="false" file="${splash.image}" todir="${build.meta.dir}"/>
+        <manifest file="${jar.manifest.file}" mode="update">
+            <attribute name="SplashScreen-Image" value="META-INF/${splash.image.basename}"/>
+        </manifest>
+    </target>
+    <target name="-manifest" depends="-manifest-init,-manifest-main-class,-manifest-classpath,-manifest-splash"/>
+    <target name="-jar-meta" depends="-jar-init" if="exist.meta.dir">
+        <copy todir="${build.meta.dir}">
+            <fileset dir="${res.dir}/META-INF"/>
+        </copy>
+    </target>
+    <target name="-jar-readme" depends="-jar-init" if="exist.readme.file">
+        <copy file="${readme.file}" todir="${build.jar.dir}"/>
+    </target>
+    <target name="-jar" depends="-manifest,-jar-meta,-jar-readme">
+        <jar destfile="${build.jar.dir}/${jar.file}"
+             manifest="${jar.manifest.file}">
+            <metainf dir="${build.meta.dir}"/>
+            <fileset dir="${build.classes.dir}"/>
+        </jar>
+    </target>
+    <target name="jar" depends="init,compile,-pre-jar,-jar,-post-jar"/>
+    <!--
+    clean section
+    -->
+    <target name="-clean">
+        <delete dir="${build.dir}"/>
+    </target>
+    <target name="clean" depends="init,-clean,-post-clean"/>
+    <target name="clean-all" depends="init, clean">
+        <delete dir="${lib.dir}"/>
+    </target>
+</project>

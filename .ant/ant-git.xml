@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:cc="antlib:net.sf.antcontrib">
-    <target name="-def-macro-git">
-        <exec executable="git" failonerror="true">
+<project>
+    <target name="-pre-git">
+        <available property="exist.git" file=".git" type="dir"/>
+    </target>
+    <target name="-def-macro-git" depends="-pre-git" if="exist.git">
+        <exec executable="git"
+              outputproperty="macro.git.output"
+              resultproperty="macro.git.result"
+              failonerror="true">
             <arg line="--version"/>
         </exec>
         <macrodef name="macro-git">
@@ -19,21 +25,36 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-def-task-git" depends="-def-macro-git">
-        <macrodef name="git-version">
+    <target name="-def-macro-git-describe" depends="-pre-git,-def-macro-git" if="exist.git">
+        <macrodef name="git-describe">
             <attribute name="property"/>
             <sequential>
-                <macro-git>
+                <macro-git outputproperty="@{property}">
                     <arg value="describe"/>
                     <arg value="--tags"/>
                 </macro-git>
-                <cc:if>
-                    <equals arg1="${macro.git.result}" arg2="0"/>
-                    <cc:then>
-                        <property name="@{property}" value="${macro.git.output}"/>
-                    </cc:then>
-                </cc:if>
             </sequential>
         </macrodef>
     </target>
+    <target name="-def-macro-git-current-branch" depends="-pre-git,-def-macro-git" if="exist.git">
+        <macrodef name="git-current-branch">
+            <attribute name="property"/>
+            <sequential>
+                <macro-git>
+                    <arg value="branch"/>
+                </macro-git>
+                <script language="javascript"> <![CDATA[
+                    var p = self.getProject();
+                    if (p.getProperty('macro.git.result') == '0') {
+                        for each (var b in p.getProperty('macro.git.output').split('\n')) {
+                            if (b.startsWith('*')) {
+                                p.setProperty("@{property}", b.substring(1).trim());
+                            }
+                        }
+                    }
+                ]]> </script>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-def-task-git" depends="-def-macro-git-describe,-def-macro-git-current-branch"/>
 </project>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-pre-test">
+        <fail unless="test.result.dir">must set test.result.dir</fail>
+        <fail unless="build.classes.dir">must set build.classes.dir</fail>
+        <fail unless="build.test.dir">must set build.test.dir</fail>
+        <fail unless="real.test.classpath">must set real.test.classpath</fail>
+    </target>
+    <target name="-def-macro-test">
+        <macrodef name="marco-test">
+            <attribute name="output"/>
+            <element name="custom" implicit="true"/>
+            <sequential>
+                <mkdir dir="@{output}"/>
+                <junit tempdir="@{output}"
+                       printsummary="withOutAndErr"
+                       haltonfailure="false"
+                       haltonerror="false"
+                       fork="true">
+                    <formatter type="brief"/>
+                    <custom/>
+                </junit>
+            </sequential>
+        </macrodef>
+    </target>
+</project>

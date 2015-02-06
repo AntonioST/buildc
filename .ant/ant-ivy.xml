@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:ivy="antlib:org.apache.ivy.ant">
-    <target name="-pre-ivy">
+    <target name="-pre-publish"/>
+    <target name="-ivy-init">
         <property name="lib.dir" value="lib"/>
-    </target>
-    <target name="-check-ivy">
         <available property="exist.ivy" file="ivy.xml" type="file"/>
-        <available property="exist.lib" file="lib" type="dir"/>
+        <available property="exist.lib" file="${lib.dir}" type="dir"/>
     </target>
-    <target name="-try-retrieve" depends="-pre-ivy,-check-ivy" if="exist.ivy" unless="exist.lib">
+    <target name="-try-retrieve" depends="-ivy-init" if="exist.ivy" unless="exist.lib">
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
-    <target name="retrieve" depends="-pre-ivy,-check-ivy" if="exist.ivy">
+    <target name="retrieve" depends="-ivy-init" if="exist.ivy">
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+    <target name="publish" depends="-pre-publish">
+        <ivy:resolve/>
+        <ivy:publish resolver="local"
+                     pubrevision="${project.version}"
+                     status="release"
+                     overwrite="true"
+                     update="true"
+                     forcedeliver="true">
+            <ivy:artifacts pattern="${release.dir}/[artifact].[ext]"/>
+            <ivy:artifacts pattern="${release.dir}/[artifact]-[type].[ext]"/>
+        </ivy:publish>
+        <echo message="project ${ant.project.name} released with version ${project.version}"/>
     </target>
 </project>
