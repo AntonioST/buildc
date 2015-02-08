@@ -3,6 +3,7 @@
 /build/
 /lib/
 /release/
+/.ant/lib/
 /.idea/workspace.xml
 /.idea/ant.xml
 /*.config

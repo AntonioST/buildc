@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-def-macro-javac" depends="">
+        <!--default value-->
+        <property name="javac.source" value="1.8"/>
+        <property name="javac.target" value="1.8"/>
+        <property name="javac.debug" value="true"/>
+        <property name="javac.jvmargs" value=""/>
+        <property name="src.include" value="**"/>
+        <property name="src.exclude" value=""/>
+        <macrodef name="macro-javac">
+            <attribute name="srcdir"/>
+            <attribute name="destdir"/>
+            <attribute name="includes" default="${src.include}"/>
+            <attribute name="excludes" default="${src.exclude}"/>
+            <element name="customize" implicit="true"/>
+            <sequential>
+                <javac srcdir="@{srcdir}"
+                       sourcepath="${basedir}/@{srcdir}"
+                       destdir="@{destdir}"
+                       includes="@{includes}"
+                       excludes="@{excludes}"
+                       source="${javac.source}"
+                       target="${javac.target}"
+                       includeantruntime="no"
+                       includejavaruntime="no"
+                       debug="${javac.debug}"
+                       fork="true"
+                       listfiles="true">
+                    <compilerarg line="${javac.jvmargs}"/>
+                    <customize/>
+                </javac>
+            </sequential>
+        </macrodef>
+    </target>
+</project>

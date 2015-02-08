@@ -17,22 +17,24 @@
     import
     -->
     <import file="ant-git.xml"/>
-    <import file="ant-ivy.xml"/>
     <import file="ant-exist.xml"/>
     <import file="ant-classpath.xml"/>
+    <import file="ant-javac.xml"/>
     <import file="ant-junit.xml"/>
     <!--
     custom section
     -->
-    <target name="-pre-init"/>
-    <target name="-post-init"/>
-    <target name="-pre-compile"/>
-    <target name="-post-compile"/>
-    <target name="-pre-jar"/>
-    <target name="-post-jar"/>
-    <target name="-pre-test"/>
-    <target name="-post-test"/>
-    <target name="-post-clean"/>
+    <extension-point name="-pre-init"/>
+    <extension-point name="-post-init"/>
+    <extension-point name="-pre-compile"/>
+    <extension-point name="-post-compile"/>
+    <extension-point name="-pre-jar"/>
+    <extension-point name="-post-jar"/>
+    <extension-point name="-pre-test"/>
+    <extension-point name="-post-test"/>
+    <extension-point name="-pre-run"/>
+    <extension-point name="-post-run"/>
+    <extension-point name="-post-clean"/>
     <!--
     initial section
     -->
@@ -42,7 +44,7 @@
     <target name="-init-version" depends="-def-macro-git-describe" if="exist.git">
         <git-describe property="project.version"/>
     </target>
-    <target name="-init" depends="-init-properties,-def-macro-exist,-init-version">
+    <target name="-init" depends="-pre-init,-init-properties,-init-version,-def-macro-exist">
         <property name="project.name" value="${ant.project.name}"/>
         <tstamp>
             <format property="stamp" pattern="yyyyMMdd"/>
@@ -73,7 +75,7 @@
         <property name="release.javadoc" value="false"/>
         <property name="jar.lib.copy" value="true"/>
     </target>
-    <target name="-init-classpath" depends="-def-task-classpath,-init,-try-retrieve">
+    <target name="-init-classpath" depends="-init,-def-task-classpath">
         <!--default classpath-->
         <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
@@ -92,95 +94,79 @@
         <join-classpath classpath="real.test.classpath" append="${test.classpath}"/>
         <join-classpath classpath="real.test.classpath" append="${lib.test.classpath}"/>
     </target>
-    <target name="init" depends="-pre-init,-init,-post-init"/>
+    <target name="init" depends="-init,-post-init"/>
     <!--
     compile section
     -->
-    <target name="-def-macro-javac" depends="init,-init-classpath">
-        <macrodef name="macro-javac">
-            <attribute name="srcdir" default="${src.dir}"/>
-            <attribute name="destdir" default="${build.classes.dir}"/>
-            <attribute name="classpath" default="${real.compile.classpath}"/>
-            <attribute name="includes" default="${src.include}"/>
-            <attribute name="excludes" default="${src.exclude}"/>
-            <element name="customize" optional="true"/>
-            <sequential>
-                <javac classpath="@{classpath}"
-                       srcdir="@{srcdir}"
-                       sourcepath="${basedir}/@{srcdir}"
-                       destdir="@{destdir}"
-                       includes="@{includes}"
-                       excludes="@{excludes}"
-                       source="${javac.source}"
-                       target="${javac.target}"
-                       includeantruntime="no"
-                       includejavaruntime="no"
-                       debug="${javac.debug}"
-                       fork="true"
-                       listfiles="true">
-                    <compilerarg line="${javac.jvmargs}"/>
-                    <customize/>
-                </javac>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-compile-init" depends="init,-def-macro-javac">
+    <target name="-compile-init" depends="init,-init-classpath">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.classes.dir}"/>
     </target>
-    <target name="-compile" depends="-compile-init">
-        <macro-javac/>
+    <target name="-compile-prepare" depends="init,-compile-init,-pre-compile,-def-macro-javac"/>
+    <target name="-compile" depends="-compile-prepare">
+        <macro-javac srcdir="${src.dir}"
+                     destdir="${build.classes.dir}">
+            <classpath path="${real.compile.classpath}"/>
+        </macro-javac>
     </target>
-    <target name="-compile-single" depends="-compile-init">
+    <target name="-compile-single" depends="-compile-prepare">
         <fail unless="class">Must set class</fail>
-        <macro-javac includes="${class}"/>
+        <macro-javac srcdir="${src.dir}"
+                     destdir="${build.classes.dir}"
+                     includes="${class}">
+            <classpath path="${real.compile.classpath}"/>
+        </macro-javac>
     </target>
     <target name="-compile-test" depends="-compile">
         <mkdir dir="${build.test.dir}"/>
-        <macro-javac classpath="${build.classes.dir}:${real.test.classpath}"
-                     srcdir="${test.dir}"
-                     destdir="${build.test.dir}"/>
+        <macro-javac srcdir="${test.dir}"
+                     destdir="${build.test.dir}"
+                     includes="${class}">
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${real.test.classpath}"/>
+        </macro-javac>
     </target>
-    <target name="compile" depends="init,-pre-compile,-compile,-post-compile"/>
-    <target name="compile-single" depends="init,-pre-compile,-compile-single,-post-compile"/>
-    <target name="compile-test" depends="init,-pre-compile,-compile-test,-post-compile" if="exist.test"/>
+    <target name="compile" depends="-compile,-post-compile"/>
+    <target name="compile-single" depends="-compile-single,-post-compile"/>
+    <target name="compile-test" depends="-compile-test,-post-compile" if="exist.test"/>
     <!--
     test section
     -->
-    <target name="-test-init" depends="-def-macro-test">
+    <target name="-test-init" depends="init,compile,compile-test"/>
+    <target name="-test-parepare" depends="-test-init,-pre-test,-def-macro-test">
         <property name="test.jvmargs" value=""/>
     </target>
-    <target name="-test" depends="-test-init">
+    <target name="-test" depends="-test-parepare">
         <delete dir="${test.result.dir}" failonerror="false"/>
-        <marco-test>
+        <marco-test output="${test.result.dir}">
             <batchtest todir="${test.result.dir}">
                 <fileset dir="${test.dir}"/>
             </batchtest>
         </marco-test>
     </target>
-    <target name="-test-class" depends="-test-init">
+    <target name="-test-class" depends="-test-parepare">
         <fail unless="class">Must set class</fail>
-        <marco-test>
+        <marco-test output="${test.result.dir}">
             <test name="${class}"
                   todir="${test.result.dir}"/>
         </marco-test>
     </target>
-    <target name="-test-method" depends="-test-init">
+    <target name="-test-method" depends="-test-parepare">
         <fail unless="class">Must set class</fail>
         <fail unless="method">Must set method</fail>
-        <marco-test>
+        <marco-test output="${test.result.dir}">
             <test name="${class}"
                   methods="${method}"
                   todir="${test.result.dir}"/>
         </marco-test>
     </target>
-    <target name="test" depends="init,compile,compile-test,-pre-test,-test,-post-test" if="exist.test"/>
-    <target name="test-class" depends="init,compile,compile-test,-pre-test,-test-class,-post-test" if="exist.test"/>
-    <target name="test-method" depends="init,compile,compile-test,-pre-test,-test-method,-post-test" if="exist.test"/>
+    <target name="test" depends="-test,-post-test" if="exist.test"/>
+    <target name="test-class" depends="-test-class,-post-test" if="exist.test"/>
+    <target name="test-method" depends="-test-method,-post-test" if="exist.test"/>
     <!--
     jar section
     -->
-    <target name="-jar-init" depends="init,-def-macro-exist">
+    <target name="-jar-init" depends="init,compile,-def-macro-exist">
         <mkdir dir="${build.jar.dir}"/>
         <mkdir dir="${build.meta.dir}"/>
         <macro-exist property="exist.manifest.file" path="${manifest.file}" type="file"/>
@@ -238,14 +224,80 @@
     <target name="-jar-readme" depends="-jar-init" if="exist.readme.file">
         <copy file="${readme.file}" todir="${build.jar.dir}"/>
     </target>
-    <target name="-jar" depends="-manifest,-jar-meta,-jar-readme">
+    <target name="-jar-prepare" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-pre-jar"/>
+    <target name="-jar" depends="-jar-prepare">
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
         </jar>
     </target>
-    <target name="jar" depends="init,compile,-pre-jar,-jar,-post-jar"/>
+    <target name="jar" depends="-jar,-post-jar"/>
+    <!--
+    run section
+    -->
+    <target name="-run-init" depends="-def-macro-exist">
+        <macro-exist property="exist.config.file" path="${config}" type="file"/>
+    </target>
+    <target name="-run-config" depends="-run-init" if="exist.config.file">
+        <property file="${config}"/>
+    </target>
+    <target name="-run-prepare" depends="-run-config,init,compile,-run-init,-pre-run"/>
+    <target name="-run" depends="-run-prepare">
+        <fail unless="main.class">class not set</fail>
+        <property name="java.jvmargs" value=""/>
+        <property name="program.args" value=""/>
+        <java classname="${main.class}"
+              fork="true"
+              failonerror="true">
+            <classpath path="${real.runtime.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
+    <target name="-run-single" depends="init,compile,-run-init,-pre-run">
+        <fail unless="class">class not set</fail>
+        <property name="java.jvmargs" value=""/>
+        <property name="program.args" value=""/>
+        <java classname="${class}"
+              fork="true"
+              failonerror="true">
+            <classpath path="${real.runtime.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
+    <target name="-run-test" depends="-run-prepare">
+        <fail unless="class">class not set</fail>
+        <property name="java.jvmargs" value=""/>
+        <property name="program.args" value=""/>
+        <java classname="${main.class}"
+              fork="true"
+              failonerror="true">
+            <classpath path="${real.runtime.classpath}"/>
+            <classpath path="${real.test.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${build.test.dir}"/>
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
+    <target name="-run-jar" depends="-run-prepare">
+        <property name="java.jvmargs" value=""/>
+        <property name="program.args" value=""/>
+        <java jar="${build.jar.dir}/${jar.file}"
+              fork="true"
+              failonerror="true">
+            <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
+        </java>
+    </target>
+    <target name="run" depends="-run,-post-run"/>
+    <target name="run-single" depends="-run-single,-post-run"/>
+    <target name="run-test" depends="-run-test,-post-run"/>
+    <target name="run-jar" depends="-run-jar,-post-run"/>
     <!--
     clean section
     -->
