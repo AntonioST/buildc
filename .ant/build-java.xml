@@ -4,6 +4,7 @@
     <!--
     global property
     -->
+    <property name="define.java" value=""/>
     <property name="src.dir" value="src"/>
     <property name="test.dir" value="test"/>
     <property name="build.dir" value="build"/>
@@ -21,7 +22,6 @@
     <import file="ant-classpath.xml"/>
     <import file="ant-javac.xml"/>
     <import file="ant-junit.xml"/>
-    <import file="ant-make.xml"/>
     <!--
     custom section
     -->
@@ -42,10 +42,10 @@
     <target name="-init-properties" depends="-pre-init">
         <property file="${basedir}/build.properties"/>
     </target>
-    <target name="-init-version" depends="-def-macro-git-describe" if="exist.git">
+    <target name="-init-version" depends="-init-properties" if="exist.git" unless="project.version">
         <git-describe property="project.version"/>
     </target>
-    <target name="-init" depends="-pre-init,-init-properties,-init-version,-def-macro-exist">
+    <target name="-init" depends="-pre-init,-init-properties,-init-version">
         <property name="project.name" value="${ant.project.name}"/>
         <tstamp>
             <format property="stamp" pattern="yyyyMMdd"/>
@@ -79,7 +79,7 @@
         <echo message="[javac] source=${javac.source}" level="verbose"/>
         <echo message="[javac] target=${javac.target}" level="verbose"/>
     </target>
-    <target name="-init-classpath" depends="-init,-def-macro-list-path,-def-macro-path-append">
+    <target name="-init-classpath" depends="-init">
         <!--default classpath-->
         <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
@@ -176,7 +176,7 @@
     <!--
     jar section
     -->
-    <target name="-jar-init" depends="init,compile,-def-macro-exist">
+    <target name="-jar-init" depends="init,compile">
         <mkdir dir="${build.jar.dir}"/>
         <mkdir dir="${build.meta.dir}"/>
         <macro-exist property="exist.manifest.file" path="${manifest.file}" type="file"/>
@@ -253,7 +253,7 @@
     <!--
     run section
     -->
-    <target name="-run-init" depends="-def-macro-exist">
+    <target name="-run-init">
         <macro-exist property="exist.config.file" path="${config}" type="file"/>
     </target>
     <target name="-run-config" depends="-run-init" if="exist.config.file">
@@ -318,11 +318,12 @@
     <!--
     clean section
     -->
-    <target name="-clean">
+    <target name="-clean" depends="init">
         <delete dir="${build.dir}"/>
     </target>
-    <target name="clean" depends="init,-clean,-post-clean"/>
-    <target name="clean-all" depends="init, clean">
+    <target name="-clean-all" depends="-clean">
         <delete dir="${lib.dir}"/>
     </target>
+    <target name="clean" depends="-clean,-post-clean"/>
+    <target name="clean-all" depends="-clean-all,-post-clean"/>
 </project>

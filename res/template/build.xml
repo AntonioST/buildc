@@ -3,4 +3,6 @@
          default="default">
     <description></description>
     <import file=".ant/build-java.xml"/>
+    <import file=".ant/java-ivy.xml"/>
+    <import file=".ant/java-publish.xml"/>
 </project>

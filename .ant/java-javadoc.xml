@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <!--
+    check import
+    -->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <!--
+    global define
+    -->
+    <property name="define.javadoc" value=""/>
+    <!--
+    task
+    -->
+    <target name="javadoc" depends="init">
+        <!--check-->
+        <fail unless="build.dir">Must sett 'build.dir'</fail>
+        <fail unless="src.dir">Must sett 'src.dir'</fail>
+        <!--default value-->
+        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
+        <property name="src.include" value="**.*"/>
+        <property name="src.exclude" value=""/>
+        <property name="javadoc.title" value="${project.name} API"/>
+        <property name="javadoc.author" value=""/>
+        <property name="javadoc.version" value="${project.version}"/>
+        <property name="javadoc.charset" value="UTF-8"/>
+        <property name="javadoc.noindex" value="false"/>
+        <property name="javadoc.nonavbar" value="false"/>
+        <property name="javadoc.notree" value="false"/>
+        <property name="javadoc.private" value="false"/>
+        <property name="javadoc.splitindex" value="false"/>
+        <!--initial-->
+        <mkdir dir="${build.javadoc.dir}"/>
+        <!--javadoc-->
+        <javadoc destdir="${build.javadoc.dir}"
+                 windowtitle="${javadoc.title}"
+                 author="${javadoc.author}"
+                 version="${javadoc.version}"
+                 charset="${javadoc.charset}"
+                 noindex="${javadoc.noindex}"
+                 nonavbar="${javadoc.nonavbar}"
+                 notree="${javadoc.notree}"
+                 private="${javadoc.private}"
+                 splitindex="${javadoc.splitindex}"
+                 failonerror="true">
+            <classpath path="${real.compile.classpath}"/>
+            <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
+        </javadoc>
+    </target>
+</project>

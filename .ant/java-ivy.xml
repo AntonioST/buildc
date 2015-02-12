@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant">
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <property name="define.ivy" value=""/>
+    <!--
+    initial section
+    -->
+    <property name="lib.dir" value="lib"/>
+    <available property="exist.ivy" file="ivy.xml" type="file"/>
+    <available property="exist.lib" file="${lib.dir}" type="dir"/>
+    <!--
+    retrieve section
+    -->
+    <target name="-try-retrieve" if="exist.ivy" unless="exist.lib" extensionOf="-post-init">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+    <target name="retrieve" if="exist.ivy">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+</project>

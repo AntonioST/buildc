@@ -1,56 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <target name="-pre-git">
-        <available property="exist.git" file=".git" type="dir"/>
-    </target>
-    <target name="-def-macro-git" depends="-pre-git" if="exist.git">
-        <exec executable="git"
-              outputproperty="macro.git.output"
-              resultproperty="macro.git.result"
-              failonerror="true">
-            <arg line="--version"/>
-        </exec>
-        <macrodef name="macro-git">
-            <attribute name="property"/>
-            <element name="custom" implicit="true"/>
-            <sequential>
-                <exec executable="git"
-                      outputproperty="@{property}"
-                      failonerror="false">
-                    <custom/>
-                </exec>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-def-macro-git-describe" depends="-pre-git,-def-macro-git" if="exist.git">
-        <macrodef name="git-describe">
-            <attribute name="property"/>
-            <sequential>
-                <macro-git property="@{property}">
-                    <arg value="describe"/>
-                    <arg value="--tags"/>
-                </macro-git>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-def-macro-git-current-branch" depends="-pre-git,-def-macro-git" if="exist.git">
-        <macrodef name="git-current-branch">
-            <attribute name="property"/>
-            <sequential>
-                <macro-git property="@{property}">
-                    <arg value="branch"/>
-                </macro-git>
-                <script language="javascript"> <![CDATA[
-                    var p = self.getProject();
-                    if (p.getProperty("@{property}") != null) {
-                        for each (var b in p.getProperty("@{property}").split('\n')) {
-                            if (b.startsWith('*')) {
-                                p.setProperty("@{property}", b.substring(1).trim());
-                            }
+    <!--
+    global property
+    -->
+    <available property="exist.git" file=".git" type="dir"/>
+    <!--
+    macro
+    -->
+    <exec executable="git"
+          outputproperty="macro.git.output"
+          resultproperty="macro.git.result"
+          failonerror="true">
+        <arg line="--version"/>
+    </exec>
+    <macrodef name="macro-git">
+        <attribute name="property"/>
+        <element name="custom" implicit="true"/>
+        <sequential>
+            <exec executable="git"
+                  outputproperty="@{property}"
+                  failonerror="false">
+                <custom/>
+            </exec>
+        </sequential>
+    </macrodef>
+    <macrodef name="git-describe">
+        <attribute name="property"/>
+        <sequential>
+            <macro-git property="@{property}">
+                <arg value="describe"/>
+                <arg value="--tags"/>
+            </macro-git>
+        </sequential>
+    </macrodef>
+    <macrodef name="git-current-branch">
+        <attribute name="property"/>
+        <sequential>
+            <macro-git property="@{property}">
+                <arg value="branch"/>
+            </macro-git>
+            <script language="javascript"> <![CDATA[
+                var p = self.getProject();
+                if (p.getProperty("@{property}") != null) {
+                    for each (var b in p.getProperty("@{property}").split('\n')) {
+                        if (b.startsWith('*')) {
+                            p.setProperty("@{property}", b.substring(1).trim());
                         }
                     }
-                ]]> </script>
-            </sequential>
-        </macrodef>
-    </target>
+                }
+            ]]> </script>
+        </sequential>
+    </macrodef>
+    <macrodef name="git-ls-files">
+        <attribute name="property"/>
+        <sequential>
+            <macro-git property="@{property}.tmp">
+                <arg value="ls-files"/>
+            </macro-git>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                var FS = org.apache.tools.ant.types.selectors.FilenameSelector;
+                if (p.getProperty("@{property}.tmp") != null) {
+                    var set = new org.apache.tools.ant.types.FileSet();
+                    set.appendIncludes(p.getProperty("@{property}.tmp").split('\n'));
+                    p.addIdReference("@{property}", set);
+                }
+            ]]></script>
+        </sequential>
+    </macrodef>
 </project>

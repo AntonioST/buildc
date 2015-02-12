@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant">
+    <!--
+    check import
+    -->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <fail unless="define.ivy">should import 'java-ivy.xml'</fail>
+    <fail unless="define.javadoc">should import 'java-javadoc.xml'</fail>
+    <!--
+    global define
+    -->
+    <property name="define.publish" value=""/>
+    <property name="release.dir" value="release"/>
+    <!--
+    custom section
+    -->
+    <extension-point name="-pre-release"/>
+    <extension-point name="-post-release"/>
+    <extension-point name="-pre-publish"/>
+    <extension-point name="-post-publish"/>
+    <!--
+    release task
+    -->
+    <target name="-release-init" depends="init">
+        <mkdir dir="${release.dir}"/>
+    </target>
+    <target name="-release-init-git-ls-files" depends="init" if="exist.git" unless="release.src.fileset">
+        <antcall target="-def-macro-git-ls-files"/>
+        <git-ls-files property="release.src.fileset"/>
+    </target>
+    <target name="-release-init-default-src-fileset" unless="release.src.fileset">
+        <fileset id="release.src.fileset" dir=".">
+            <include name=".ant/*.xml"/>
+            <include name="build.xml"/>
+            <include name="build.properties"/>
+            <include name="ivy.xml"/>
+            <include name="${readme.file}"/>
+            <include name="${res.dir}/**/*"/>
+            <include name="${src.dir}/**/*"/>
+            <include name="${test.dir}/**/*"/>
+        </fileset>
+    </target>
+    <target name="-release-prepare" depends="init,compile,test,jar,-release-init,-pre-release"/>
+    <target name="-release-bin" depends="-release-prepare">
+        <fail unless="release.bin.fileset">Must set 'release.bin.fileset'</fail>
+        <zip destfile="${release.dir}/${project.version}/${project.name}.zip">
+            <fileset dir="${build.jar.dir}"/>
+            <fileset refid="release.bin.fileset"/>
+        </zip>
+    </target>
+    <target name="release-bin" depends="-release-bin,-post-release"/>
+    <target name="release-src" depends="-release-init,-release-init-git-ls-files,-release-init-default-src-fileset">
+        <zip destfile="${release.dir}/${project.version}/${project.name}-source.zip">
+            <fileset refid="release.src.fileset"/>
+        </zip>
+    </target>
+    <target name="release-javadoc" depends="-release-init,javadoc">
+        <zip destfile="${release.dir}/${project.version}/${project.name}-javadoc.zip">
+            <fileset dir="${build.javadoc.dir}"/>
+        </zip>
+    </target>
+    <target name="release" depends="release-bin,release-src,release-javadoc"/>
+    <!--
+    publish task
+    -->
+    <target name="-publish" depends="release,-pre-publish" if="exist.ivy">
+        <fail unless="project.version">project.version set set</fail>
+        <ivy:resolve/>
+        <ivy:publish resolver="local"
+                     pubrevision="${project.version}"
+                     status="release"
+                     overwrite="true"
+                     update="true"
+                     forcedeliver="true">
+            <ivy:artifacts pattern="${release.dir}/${project.version}/[artifact].[ext]"/>
+            <ivy:artifacts pattern="${release.dir}/${project.version}/[artifact]-[type].[ext]"/>
+        </ivy:publish>
+    </target>
+    <target name="publish" depends="-publish,-post-publish" if="exist.ivy"/>
+</project>
