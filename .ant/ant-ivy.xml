@@ -9,6 +9,7 @@
     -->
     <extension-point name="-pre-publish"/>
     <!--
+    initial section
     -->
     <target name="-ivy-init">
         <property name="lib.dir" value="lib"/>
@@ -27,7 +28,7 @@
     <!--
     publish section
     -->
-    <target name="publish" depends="-pre-publish">
+    <target name="publish" depends="-ivy-init,-pre-publish"  if="exist.ivy">
         <fail unless="project.name">project.name set set</fail>
         <fail unless="project.version">project.version set set</fail>
         <ivy:resolve/>

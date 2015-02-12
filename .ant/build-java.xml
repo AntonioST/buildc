@@ -21,6 +21,7 @@
     <import file="ant-classpath.xml"/>
     <import file="ant-javac.xml"/>
     <import file="ant-junit.xml"/>
+    <import file="ant-make.xml"/>
     <!--
     custom section
     -->
@@ -60,9 +61,7 @@
         <property name="test.result.dir" value="${build.dir}/test/result"/>
         <property name="jar.lib.dir" value="lib"/>
         <!--exist property-->
-        <macro-exist property="exist.main.class" path="${main.class}"/>
-        <available property="exist.git" file=".git" type="dir"/>
-        <available property="exist.test" file="${test.dir}" type="dir"/>
+        <macro-exist property="exist.main.class" path="${main.class}" type="class"/>
         <available property="exist.res" file="${res.dir}" type="dir"/>
         <!--default value-->
         <property name="javac.source" value="1.8"/>
@@ -74,25 +73,34 @@
         <property name="release.src" value="false"/>
         <property name="release.javadoc" value="false"/>
         <property name="jar.lib.copy" value="true"/>
+        <!--verbose-->
+        <echo message="[source] include=${src.include}" level="verbose"/>
+        <echo message="[source] exclude=${src.exclude}" level="verbose"/>
+        <echo message="[javac] source=${javac.source}" level="verbose"/>
+        <echo message="[javac] target=${javac.target}" level="verbose"/>
     </target>
-    <target name="-init-classpath" depends="-init,-def-task-classpath">
+    <target name="-init-classpath" depends="-init,-def-macro-list-path,-def-macro-path-append">
         <!--default classpath-->
         <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
         <property name="runtime.classpath" value=""/>
         <property name="test.classpath" value=""/>
-        <path-to-classpath classpath="lib.compile.classpath" dir="${lib.compile.dir}"/>
-        <path-to-classpath classpath="lib.runtime.classpath" dir="${lib.runtime.dir}"/>
-        <path-to-classpath classpath="lib.test.classpath" dir="${lib.test.dir}"/>
-        <join-classpath classpath="real.compile.classpath" append="${master.classpath}"/>
-        <join-classpath classpath="real.compile.classpath" append="${compile.classpath}"/>
-        <join-classpath classpath="real.compile.classpath" append="${lib.compile.classpath}"/>
-        <join-classpath classpath="real.runtime.classpath" append="${master.classpath}"/>
-        <join-classpath classpath="real.runtime.classpath" append="${runtime.classpath}"/>
-        <join-classpath classpath="real.runtime.classpath" append="${lib.runtime.classpath}"/>
-        <join-classpath classpath="real.test.classpath" append="${master.classpath}"/>
-        <join-classpath classpath="real.test.classpath" append="${test.classpath}"/>
-        <join-classpath classpath="real.test.classpath" append="${lib.test.classpath}"/>
+        <list-path property="lib.compile.classpath" dir="${lib.compile.dir}"/>
+        <list-path property="lib.runtime.classpath" dir="${lib.runtime.dir}"/>
+        <list-path property="lib.test.classpath" dir="${lib.test.dir}"/>
+        <path-append property="real.compile.classpath" path="${master.classpath}"/>
+        <path-append property="real.compile.classpath" path="${compile.classpath}"/>
+        <path-append property="real.compile.classpath" path="${lib.compile.classpath}"/>
+        <path-append property="real.runtime.classpath" path="${master.classpath}"/>
+        <path-append property="real.runtime.classpath" path="${runtime.classpath}"/>
+        <path-append property="real.runtime.classpath" path="${lib.runtime.classpath}"/>
+        <path-append property="real.test.classpath" path="${master.classpath}"/>
+        <path-append property="real.test.classpath" path="${test.classpath}"/>
+        <path-append property="real.test.classpath" path="${lib.test.classpath}"/>
+        <!--verbose-->
+        <echo message="[classpath] real.compile.classpath=${real.compile.classpath}" level="verbose"/>
+        <echo message="[classpath] real.runtime.classpath=${real.runtime.classpath}" level="verbose"/>
+        <echo message="[classpath] real.test.classpath=${real.test.classpath}" level="verbose"/>
     </target>
     <target name="init" depends="-init,-post-init"/>
     <!--
@@ -104,39 +112,41 @@
     </target>
     <target name="-compile-prepare" depends="init,-compile-init,-pre-compile,-def-macro-javac"/>
     <target name="-compile" depends="-compile-prepare">
-        <macro-javac srcdir="${src.dir}"
-                     destdir="${build.classes.dir}">
+        <macro-javac src="${src.dir}"
+                     dest="${build.classes.dir}">
             <classpath path="${real.compile.classpath}"/>
         </macro-javac>
     </target>
     <target name="-compile-single" depends="-compile-prepare">
-        <fail unless="class">Must set class</fail>
-        <macro-javac srcdir="${src.dir}"
-                     destdir="${build.classes.dir}"
+        <fail unless="class">Must set 'class'</fail>
+        <macro-javac src="${src.dir}"
+                     dest="${build.classes.dir}"
                      includes="${class}">
             <classpath path="${real.compile.classpath}"/>
         </macro-javac>
     </target>
-    <target name="-compile-test" depends="-compile">
+    <target name="compile" depends="-compile,-post-compile"/>
+    <target name="compile-single" depends="-compile-single,-post-compile"/>
+    <!--
+    test section
+    -->
+    <target name="-test-init" depends="init,compile">
+        <available property="exist.test" file="${test.dir}" type="dir"/>
+    </target>
+    <target name="-compile-test" depends="-compile,-test-init" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
-        <macro-javac srcdir="${test.dir}"
-                     destdir="${build.test.dir}"
+        <macro-javac src="${test.dir}"
+                     dest="${build.test.dir}"
                      includes="${class}">
             <classpath path="${build.classes.dir}"/>
             <classpath path="${real.test.classpath}"/>
         </macro-javac>
     </target>
-    <target name="compile" depends="-compile,-post-compile"/>
-    <target name="compile-single" depends="-compile-single,-post-compile"/>
     <target name="compile-test" depends="-compile-test,-post-compile" if="exist.test"/>
-    <!--
-    test section
-    -->
-    <target name="-test-init" depends="init,compile,compile-test"/>
-    <target name="-test-parepare" depends="-test-init,-pre-test,-def-macro-test">
+    <target name="-test-prepare" depends="-test-init,compile-test,-pre-test,-def-macro-test" if="exist.test">
         <property name="test.jvmargs" value=""/>
     </target>
-    <target name="-test" depends="-test-parepare">
+    <target name="-test" depends="-test-prepare" if="exist.test">
         <delete dir="${test.result.dir}" failonerror="false"/>
         <marco-test output="${test.result.dir}">
             <batchtest todir="${test.result.dir}">
@@ -144,16 +154,16 @@
             </batchtest>
         </marco-test>
     </target>
-    <target name="-test-class" depends="-test-parepare">
-        <fail unless="class">Must set class</fail>
+    <target name="-test-class" depends="-test-prepare" if="exist.test">
+        <fail unless="class">Must set 'class'</fail>
         <marco-test output="${test.result.dir}">
             <test name="${class}"
                   todir="${test.result.dir}"/>
         </marco-test>
     </target>
-    <target name="-test-method" depends="-test-parepare">
-        <fail unless="class">Must set class</fail>
-        <fail unless="method">Must set method</fail>
+    <target name="-test-method" depends="-test-prepare" if="exist.test">
+        <fail unless="class">Must set 'class'</fail>
+        <fail unless="method">Must set 'method'</fail>
         <marco-test output="${test.result.dir}">
             <test name="${class}"
                   methods="${method}"
@@ -196,12 +206,19 @@
             var rt = P.get(p.getProperty('build.jar.dir'));
             var to = rt.resolve(P.get(p.getProperty('jar.lib.dir')));
             for each (var cp in p.getProperty('real.runtime.classpath').split(':')){
-                var f = P.get(cp);
-                var t = to.resolve(f.getFileName());
-                F.move(f, t);
-                ls.add(rt.relative(t).toString());
+                if (!cp.isEmpty()){
+                    var f = P.get(cp);
+                    var t = to.resolve(f.getFileName());
+                    if (!F.exists(t)){
+                        var echo = p.createTask('echo');
+                        echo.setMessage('move ' + f + ' -> ' + t);
+                        echo.perform();
+                        F.copy(f, t);
+                    }
+                    ls.add(rt.relative(t).toString());
+                }
             }
-            p.setProperty('jar.classpath', String.join(' ', ls));
+            p.setProperty('jar.classpath', java.lang.String.join(' ', ls));
         ]]></script>
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="Class-Path" value="${jar.classpath}"/>

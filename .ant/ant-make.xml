@@ -1,3 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+    <target name="-def-macro-make">
+        <macrodef name="make">
+            <attribute name="basedir" default="${basedir}"/>
+            <attribute name="makefile" default="Makefile"/>
+            <attribute name="target" default=""/>
+            <attribute name="property" default="macro.make.output"/>
+            <attribute name="resultproperty" default="macro.make.result"/>
+            <element name="custom" implicit="true" optional="true"/>
+            <sequential>
+                <exec executable="make"
+                      dir="@{basedir}"
+                      outputproperty="@{property}"
+                      resultproperty="@{resultproperty}">
+                    <arg value="-f"/>
+                    <arg file="@{makefile}"/>
+                    <custom/>
+                    <arg value="@{target}"/>
+                </exec>
+            </sequential>
+        </macrodef>
+    </target>
 </project>

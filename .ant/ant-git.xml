@@ -11,15 +11,12 @@
             <arg line="--version"/>
         </exec>
         <macrodef name="macro-git">
-            <attribute name="outputproperty" default="macro.git.output"/>
-            <attribute name="resultproperty" default="macro.git.result"/>
-            <attribute name="failonerror" default="false"/>
+            <attribute name="property"/>
             <element name="custom" implicit="true"/>
             <sequential>
                 <exec executable="git"
-                      outputproperty="@{outputproperty}"
-                      resultproperty="@{resultproperty}"
-                      failonerror="@{failonerror}">
+                      outputproperty="@{property}"
+                      failonerror="false">
                     <custom/>
                 </exec>
             </sequential>
@@ -29,7 +26,7 @@
         <macrodef name="git-describe">
             <attribute name="property"/>
             <sequential>
-                <macro-git outputproperty="@{property}">
+                <macro-git property="@{property}">
                     <arg value="describe"/>
                     <arg value="--tags"/>
                 </macro-git>
@@ -40,13 +37,13 @@
         <macrodef name="git-current-branch">
             <attribute name="property"/>
             <sequential>
-                <macro-git>
+                <macro-git property="@{property}">
                     <arg value="branch"/>
                 </macro-git>
                 <script language="javascript"> <![CDATA[
                     var p = self.getProject();
-                    if (p.getProperty('macro.git.result') == '0') {
-                        for each (var b in p.getProperty('macro.git.output').split('\n')) {
+                    if (p.getProperty("@{property}") != null) {
+                        for each (var b in p.getProperty("@{property}").split('\n')) {
                             if (b.startsWith('*')) {
                                 p.setProperty("@{property}", b.substring(1).trim());
                             }
@@ -56,5 +53,4 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-def-task-git" depends="-def-macro-git-describe,-def-macro-git-current-branch"/>
 </project>
