@@ -46,9 +46,9 @@
     <target name="-init" depends="-pre-init,-init-properties,-init-version">
         <property name="project.name" value="${ant.project.name}"/>
         <tstamp>
-            <format property="stamp" pattern="yyyyMMdd"/>
+            <format property="time.stamp" pattern="yyyyMMdd"/>
         </tstamp>
-        <property name="project.version" value="snapshot-${stamp}"/>
+        <property name="project.version" value="snapshot-${time.stamp}"/>
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--default directory-->
         <property name="build.classes.dir" value="${build.dir}/classes"/>
@@ -70,8 +70,6 @@
         <property name="javac.jvmargs" value=""/>
         <property name="src.include" value="**"/>
         <property name="src.exclude" value=""/>
-        <property name="release.src" value="false"/>
-        <property name="release.javadoc" value="false"/>
         <property name="jar.lib.copy" value="true"/>
         <!--verbose-->
         <echo message="[source] include=${src.include}" level="verbose"/>
