@@ -168,8 +168,12 @@
                        printsummary="withOutAndErr"
                        haltonfailure="false"
                        haltonerror="false"
-                       fork="true">
+                       fork="true"
+                       failureproperty="test.fail">
                     <formatter type="brief"/>
+                    <classpath path="${real.test.classpath}"/>
+                    <classpath path="${build.classes.dir}"/>
+                    <classpath path="${build.test.dir}"/>
                     <custom/>
                 </junit>
             </sequential>
@@ -181,8 +185,7 @@
     <target name="-compile-test" depends="-compile,-test-init" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
         <macro-javac src="${test.dir}"
-                     dest="${build.test.dir}"
-                     includes="${class}">
+                     dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
             <classpath path="${real.test.classpath}"/>
         </macro-javac>
@@ -215,9 +218,12 @@
                   todir="${test.result.dir}"/>
         </marco-test>
     </target>
-    <target name="test" depends="-test,-post-test" if="exist.test"/>
-    <target name="test-class" depends="-test-class,-post-test" if="exist.test"/>
-    <target name="test-method" depends="-test-method,-post-test" if="exist.test"/>
+    <target name="-test-check" if="exist.test">
+        <fail if="test.fail">test fail</fail>
+    </target>
+    <target name="test" depends="-test,-post-test,-test-check" if="exist.test"/>
+    <target name="test-class" depends="-test-class,-post-test,-test-check" if="exist.test"/>
+    <target name="test-method" depends="-test-method,-post-test,-test-check" if="exist.test"/>
     <!--
     jar section
     -->
@@ -318,32 +324,15 @@
             <arg line="${program.args}"/>
         </java>
     </target>
-    <target name="-run-single" depends="init,compile,-run-init,-pre-run">
+    <target name="-run-class" depends="init,compile,-run-init,-pre-run">
         <fail unless="class">Must set 'class'</fail>
         <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
         <java classname="${class}"
               fork="true"
               failonerror="true">
             <classpath path="${real.runtime.classpath}"/>
             <classpath path="${build.classes.dir}"/>
             <jvmarg line="${java.jvmargs}"/>
-            <arg line="${program.args}"/>
-        </java>
-    </target>
-    <target name="-run-test" depends="-run-prepare">
-        <fail unless="class">Must set 'class'</fail>
-        <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
-        <java classname="${main.class}"
-              fork="true"
-              failonerror="true">
-            <classpath path="${real.runtime.classpath}"/>
-            <classpath path="${real.test.classpath}"/>
-            <classpath path="${build.classes.dir}"/>
-            <classpath path="${build.test.dir}"/>
-            <jvmarg line="${java.jvmargs}"/>
-            <arg line="${program.args}"/>
         </java>
     </target>
     <target name="-run-jar" depends="-run-prepare">
@@ -357,8 +346,7 @@
         </java>
     </target>
     <target name="run" depends="-run,-post-run"/>
-    <target name="run-single" depends="-run-single,-post-run"/>
-    <target name="run-test" depends="-run-test,-post-run"/>
+    <target name="run-class" depends="-run-class,-post-run"/>
     <target name="run-jar" depends="-run-jar,-post-run"/>
     <!--
     clean section
