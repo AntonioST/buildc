@@ -47,15 +47,15 @@ Global Property
 property            | value                         | type      | description
 --------            | -----                         | ----      | -----------
 define.java         |                               |           | define this build script is imported
-src.dir             | src                           | directory |
-test.dir            | test                          | directory |
-build.dir           | build                         | directory |
-res.dir             | res                           | directory |
-lib.dir             | lib                           | directory |
+src.dir             | src                           | directory | source directory
+test.dir            | test                          | directory | test source directory
+build.dir           | build                         | directory | build project output directory
+res.dir             | res                           | directory | resource directory
+lib.dir             | lib                           | directory | external library directory
 lib.master.dir      | `${lib.dir}`/master           | directory |
-lib.compile.dir     | `${lib.dir}`/compile          | directory |
-lib.runtime.dir     | `${lib.dir}`/runtime          | directory |
-lib.test.dir        | `${lib.dir}`/test             | directory |
+lib.compile.dir     | `${lib.dir}`/compile          | directory | compile-time use only
+lib.runtime.dir     | `${lib.dir}`/runtime          | directory | runtime use only
+lib.test.dir        | `${lib.dir}`/test             | directory | test-time use only
 
 Property Defined
 ----------------
@@ -99,6 +99,12 @@ classpath           |                               | classpath | -init-classpat
 real.compile.classpath |                            | classpath | -init-classpath | join all compile-relative classpath
 real.runtime.classpath |                            | classpath | -init-classpath | join all runtime-relative classpath
 real.test.classpath |                               | classpath | -init-classpath | join all test-relative classpath
+exist.test          |                               | bool      | -test-init | does directory `${build.test.dir}` exist?
+exist.manifest.file |                               | bool      | -jar-init | does file `${manifest.file}` exist?
+exist.splash.file   |                               | bool      | -jar-init | does file `${splash.file}` exist?
+exist.readme.file   |                               | bool      | -jar-init | does file `${readme.file}` exist?
+exist.meta.dir      |                               | bool      | -jar-init | does directory `${res.dir}`/META-INF exist?
+jar.manifest.file   | `${build.dir}`/MANIFEST.MF    | file      | -jar-init |
 
 -------------------------------------------------------------------------------
 
@@ -121,11 +127,11 @@ Extension Point
 
 ### -post-test
 
-### -post-clean
-
 ### -pre-run
 
 ### -post-run
+
+### -post-clean
 
 ### -post-clean
 
@@ -138,28 +144,49 @@ Task
 
 ### compile
 
+compile java file under `${src.dir}`
+
 ### compile-single
+
+compile java file `${class}`
 
 ### compile-test
 
+compile java file under `${test.dir}`
+
 ### test
+
+unit test with all test file under `${test.dir}`
 
 ### test-class
 
+unit test with test class `${class}`
+
 ### test-method
+
+unit test a method with test class `${class}` and method `${method}`
 
 ### jar
 
+build jar file
+
 ### run
 
-### run-test
+run main class.
+
+you can use `${config}` to set condig file path.
+
+### run-class
 
 ### run-jar
 
 ### clean
 
+delete `${build.dir}`
+
 ### clean-all
 
+delete `${build.dir}` and `${lib.dir}`
 
 -------------------------------------------------------------------------------
 
