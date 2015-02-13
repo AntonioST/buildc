@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:ivy="antlib:org.apache.ivy.ant">
+    <!--
+    check import
+    -->
     <fail unless="define.java">should import 'build-java.xml'</fail>
+    <!--
+    global define
+    -->
     <property name="define.ivy" value=""/>
     <!--
     initial section

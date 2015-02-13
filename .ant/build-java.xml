@@ -20,8 +20,6 @@
     <import file="ant-git.xml"/>
     <import file="ant-exist.xml"/>
     <import file="ant-classpath.xml"/>
-    <import file="ant-javac.xml"/>
-    <import file="ant-junit.xml"/>
     <!--
     custom section
     -->
@@ -67,6 +65,8 @@
         <property name="javac.source" value="1.8"/>
         <property name="javac.target" value="1.8"/>
         <property name="javac.debug" value="true"/>
+        <property name="javac.verbose" value="false"/>
+        <property name="javac.list-file" value="true"/>
         <property name="javac.jvmargs" value=""/>
         <property name="src.include" value="**"/>
         <property name="src.exclude" value=""/>
@@ -78,6 +78,8 @@
         <echo message="[source] exclude=${src.exclude}" level="verbose"/>
         <echo message="[javac] source=${javac.source}" level="verbose"/>
         <echo message="[javac] target=${javac.target}" level="verbose"/>
+        <echo message="[javac] debug=${javac.debug}" level="verbose"/>
+        <echo message="[javac] verbose=${javac.verbose}" level="verbose"/>
     </target>
     <target name="-init-classpath" depends="-init">
         <!--default classpath-->
@@ -106,11 +108,37 @@
     <!--
     compile section
     -->
-    <target name="-compile-init" depends="init,-init-classpath">
+    <target name="-def-macro-javac" depends="">
+        <macrodef name="macro-javac">
+            <attribute name="src"/>
+            <attribute name="dest"/>
+            <attribute name="includes" default="${src.include}"/>
+            <attribute name="excludes" default="${src.exclude}"/>
+            <element name="customize" implicit="true" optional="true"/>
+            <sequential>
+                <javac srcdir="@{src}"
+                       destdir="@{dest}"
+                       includes="@{includes}"
+                       excludes="@{excludes}"
+                       source="${javac.source}"
+                       target="${javac.target}"
+                       debug="${javac.debug}"
+                       verbose="${javac.verbose}"
+                       listfiles="${javac.list-file}"
+                       includeantruntime="no"
+                       includejavaruntime="no"
+                       fork="true"
+                       failonerror="true">
+                    <customize/>
+                </javac>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-compile-init" depends="init,-init-classpath,-def-macro-javac">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.classes.dir}"/>
     </target>
-    <target name="-compile-prepare" depends="init,-compile-init,-pre-compile,-def-macro-javac"/>
+    <target name="-compile-prepare" depends="init,-compile-init,-pre-compile"/>
     <target name="-compile" depends="-compile-prepare">
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}">
@@ -130,7 +158,24 @@
     <!--
     test section
     -->
-    <target name="-test-init" depends="init,compile">
+    <target name="-def-macro-test">
+        <macrodef name="marco-test">
+            <attribute name="output"/>
+            <element name="custom" implicit="true"/>
+            <sequential>
+                <mkdir dir="@{output}"/>
+                <junit tempdir="@{output}"
+                       printsummary="withOutAndErr"
+                       haltonfailure="false"
+                       haltonerror="false"
+                       fork="true">
+                    <formatter type="brief"/>
+                    <custom/>
+                </junit>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-test-init" depends="init,compile,-def-macro-test">
         <available property="exist.test" file="${test.dir}" type="dir"/>
     </target>
     <target name="-compile-test" depends="-compile,-test-init" if="exist.test">
@@ -143,7 +188,7 @@
         </macro-javac>
     </target>
     <target name="compile-test" depends="-compile-test,-post-compile" if="exist.test"/>
-    <target name="-test-prepare" depends="-test-init,compile-test,-pre-test,-def-macro-test" if="exist.test">
+    <target name="-test-prepare" depends="-test-init,compile-test,-pre-test" if="exist.test">
         <property name="test.jvmargs" value=""/>
     </target>
     <target name="-test" depends="-test-prepare" if="exist.test">
@@ -261,7 +306,7 @@
     </target>
     <target name="-run-prepare" depends="-run-config,init,compile,-run-init,-pre-run"/>
     <target name="-run" depends="-run-prepare">
-        <fail unless="main.class">class not set</fail>
+        <fail unless="main.class">Must set 'main.class'</fail>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
         <java classname="${main.class}"
@@ -274,7 +319,7 @@
         </java>
     </target>
     <target name="-run-single" depends="init,compile,-run-init,-pre-run">
-        <fail unless="class">class not set</fail>
+        <fail unless="class">Must set 'class'</fail>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
         <java classname="${class}"
@@ -287,7 +332,7 @@
         </java>
     </target>
     <target name="-run-test" depends="-run-prepare">
-        <fail unless="class">class not set</fail>
+        <fail unless="class">Must set 'class'</fail>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
         <java classname="${main.class}"
