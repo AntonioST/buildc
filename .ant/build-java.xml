@@ -31,8 +31,6 @@
     <extension-point name="-post-jar"/>
     <extension-point name="-pre-test"/>
     <extension-point name="-post-test"/>
-    <extension-point name="-pre-run"/>
-    <extension-point name="-post-run"/>
     <extension-point name="-post-clean"/>
     <!--
     initial section
@@ -299,53 +297,6 @@
         </jar>
     </target>
     <target name="jar" depends="-jar,-post-jar"/>
-    <!--
-    run section
-    -->
-    <target name="-run-init">
-        <macro-exist property="exist.config.file" path="${config}" type="file"/>
-    </target>
-    <target name="-run-config" depends="-run-init" if="exist.config.file">
-        <property file="${config}"/>
-    </target>
-    <target name="-run-prepare" depends="-run-config,init,compile,-run-init,-pre-run"/>
-    <target name="-run" depends="-run-prepare">
-        <fail unless="main.class">Must set 'main.class'</fail>
-        <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
-        <java classname="${main.class}"
-              fork="true"
-              failonerror="true">
-            <classpath path="${real.runtime.classpath}"/>
-            <classpath path="${build.classes.dir}"/>
-            <jvmarg line="${java.jvmargs}"/>
-            <arg line="${program.args}"/>
-        </java>
-    </target>
-    <target name="-run-class" depends="init,compile,-run-init,-pre-run">
-        <fail unless="class">Must set 'class'</fail>
-        <property name="java.jvmargs" value=""/>
-        <java classname="${class}"
-              fork="true"
-              failonerror="true">
-            <classpath path="${real.runtime.classpath}"/>
-            <classpath path="${build.classes.dir}"/>
-            <jvmarg line="${java.jvmargs}"/>
-        </java>
-    </target>
-    <target name="-run-jar" depends="-run-prepare">
-        <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
-        <java jar="${build.jar.dir}/${jar.file}"
-              fork="true"
-              failonerror="true">
-            <jvmarg line="${java.jvmargs}"/>
-            <arg line="${program.args}"/>
-        </java>
-    </target>
-    <target name="run" depends="-run,-post-run"/>
-    <target name="run-class" depends="-run-class,-post-run"/>
-    <target name="run-jar" depends="-run-jar,-post-run"/>
     <!--
     clean section
     -->
