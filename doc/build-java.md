@@ -4,6 +4,8 @@ Build Java
 Basic Information
 -----------------
 
+Basic working flow for java development.
+
 Directory Structure
 -------------------
 
@@ -57,22 +59,11 @@ lib.compile.dir     | `${lib.dir}`/compile          | directory | compile-time u
 lib.runtime.dir     | `${lib.dir}`/runtime          | directory | runtime use only
 lib.test.dir        | `${lib.dir}`/test             | directory | test-time use only
 
-Property Defined
-----------------
+Pre-Defined Property
+--------------------
 
 property            | value                         | type      | task  | description
 --------            | -----                         | ----      | ----  | -----------
-readme.file         |                               | file      |       |
-main.class          |                               | class     |       |
-manifest.file       |                               | file      |       |
-splash.image        |                               | file      |       |
-config              |                               | file      |       | task __run__ use
-class               |                               | class     |       | task __test-class__, __test-method__ use
-method              |                               | method    |       | task __test-method__ use
-java.jvmargs        |                               | lines     |       |
-test.jvmargs        |                               | lines     |       |
-program.args        |                               | lines     |       |
-jar.file            | `${project.name}`-`${project.version}`.jar | file | |
 project.name        | `${ant.project.name}`         | string    | -init |
 project.version     |                               | string    | -init | use either git-describle or time-stamp
 javac.source        | 1.8                           | value     | -init | -source
@@ -83,7 +74,10 @@ javac.jvmargs       |                               | lines     | -init |
 javac.list-file     | true                          | bool      | -init |
 src.include         | **                            | glob      | -init |
 src.exclude         |                               | glob      | -init |
-jar.lib.copy        | true                          | bool      | -init | copy lib to jar
+java.jvmargs        |                               | lines     |       |
+test.jvmargs        |                               | lines     |       |
+jar.file            | `${project.name}`-`${project.version}`.jar | file | -init |
+jar.lib.copy        | true                          | bool      | -init | copy lib to jar anr set Class-Path in manifest file
 jar.lib.dir         | lib                           | directory | -init | library directory used in jar manifest classpath
 build.classes.dir   | `${build.dir}`/classes        | directory | -init |
 build.test.dir      | `${build.dir}`/test/classes   | directory | -init |
@@ -106,6 +100,21 @@ exist.readme.file   |                               | bool      | -jar-init | do
 exist.meta.dir      |                               | bool      | -jar-init | does directory `${res.dir}`/META-INF exist?
 jar.manifest.file   | `${build.dir}`/MANIFEST.MF    | file      | -jar-init |
 
+
+Custom Define Property
+----------------------
+
+property                | type      | task used     | description
+--------                | ----      | ---------     | -----------
+class                   | class     | test-class, test-method | unit test a class
+mathod                  | method    | test-method   | unit test a method
+manifest.file           | file      | jar           | the template manifest file
+jar.resource.fileset    | fileset   | jar           | the directory compressed into jar file
+main.class              | class     | jar           | set the Main-Class in manifest file
+readme.file             | file      | jar           |
+splash.image            | file      | jar           | set the splash image
+
+
 -------------------------------------------------------------------------------
 
 Extension Point
@@ -126,12 +135,6 @@ Extension Point
 ### -pre-test
 
 ### -post-test
-
-### -pre-run
-
-### -post-run
-
-### -post-clean
 
 ### -post-clean
 
@@ -170,16 +173,6 @@ unit test a method with test class `${class}` and method `${method}`
 
 build jar file
 
-### run
-
-run main class.
-
-you can use `${config}` to set condig file path.
-
-### run-class
-
-### run-jar
-
 ### clean
 
 delete `${build.dir}`
@@ -193,8 +186,47 @@ delete `${build.dir}` and `${lib.dir}`
 Macro
 -----
 
+### macro-javac
+
+defined by task __-def-macro-javac__
+
+pre-set reference to [javac task][ant-task-javac] attribute
+
+attribute   | default value     | description
+---------   | -------------     | -----------
+src         | (required)        | `srcdir` attribute
+dest        | (required)        | `destdir` attribute
+includes    | `${src.include}`  | `includes` attribute
+excludes    | `${src.exclude}`  | `excludes` attribute
+            | `${javac.source}` | `source` attribute
+            | `${javac.target}` | `target` attribute
+            | `${javac.debug}`  | `debug` attribute
+            | `${javac.verbose}` | `verbose` attribute
+            | `${javac.list-file}` | `listfiles` attribute
+            | no                | `includeantruntime` attribute
+            | no                | `includejavaruntime` attribute
+            | true              | `fork` attribute
+            | true              | `failonerror` attribute
+
+### macro-test
+
+defined by task __-def-macro-test__
+
+pre-set reference to [junit task][ant-task-junit]
+
+attribute   | default value     | description
+---------   | -------------     | -----------
+output      | (required)        | `tempdir` attribute and output directory
+            | withOutAndErr     | `printsummary` attribute
+            | false             | `haltonfailure` attribute
+            | false             | `haltonerror` attribute
+            | true              | `fork` attribute
+            | test.fail         | `failureproperty` attribute, fail check in task __-test-check__
+
 -------------------------------------------------------------------------------
 
 See Also
 --------
 
+[ant-task-javac]: http://ant.apache.org/manual/Tasks/javac.html
+[ant-task-junit]: http://ant.apache.org/manual/Tasks/junit.html

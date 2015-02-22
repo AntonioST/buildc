@@ -57,7 +57,6 @@
         <property name="test.result.dir" value="${build.dir}/test/result"/>
         <property name="jar.lib.dir" value="lib"/>
         <!--exist property-->
-        <macro-exist property="exist.main.class" path="${main.class}" type="class"/>
         <available property="exist.res" file="${res.dir}" type="dir"/>
         <!--default value-->
         <property name="javac.source" value="1.8"/>
@@ -69,7 +68,6 @@
         <property name="src.include" value="**"/>
         <property name="src.exclude" value=""/>
         <property name="jar.lib.copy" value="true"/>
-        <property name="jar.res.compress" value="false"/>
         <!--verbose-->
         <echo message="[source] include=${src.include}" level="verbose"/>
         <echo message="[source] exclude=${src.exclude}" level="verbose"/>
@@ -107,7 +105,7 @@
     <!--
     compile section
     -->
-    <target name="-def-macro-javac" depends="">
+    <target name="-def-macro-javac">
         <macrodef name="macro-javac">
             <attribute name="src"/>
             <attribute name="dest"/>
@@ -288,19 +286,11 @@
             <fileset dir="${res.dir}/META-INF"/>
         </copy>
     </target>
-    <target name="-jar-resource" depends="-jar-init" if="exist.res">
-        <fileset id="jar.resource.fileset" dir="${res.dir}">
-            <exclude name="META-INF/*"/>
-        </fileset>
-        <condition property="jar.resource.compress">
-            <equals arg1="${jar.res.compress}" arg2="" trim="true"/>
-        </condition>
-    </target>
     <target name="-jar-readme" depends="-jar-init" if="exist.readme.file">
         <copy file="${readme.file}" todir="${build.jar.dir}"/>
     </target>
-    <target name="-jar-prepare" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-jar-resource,-pre-jar"/>
-    <target name="-jar-with-res-compress" depends="-jar-prepare">
+    <target name="-jar-prepare" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-pre-jar"/>
+    <target name="-jar-with-res-fileset" depends="-jar-prepare" if="jar.resource.fileset">
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
@@ -308,7 +298,7 @@
             <fileset refid="jar.resource.fileset"/>
         </jar>
     </target>
-    <target name="-jar-without-res-compress" depends="-jar-prepare">
+    <target name="-jar-without-res-fileset" depends="-jar-prepare" unless="jar.resource.fileset">
         <copy
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">

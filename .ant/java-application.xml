@@ -49,6 +49,7 @@
             <classpath path="${real.runtime.classpath}"/>
             <classpath path="${build.classes.dir}"/>
             <jvmarg line="${java.jvmargs}"/>
+            <arg line="${program.args}"/>
         </java>
     </target>
     <target name="-run-jar" depends="-run-prepare">
