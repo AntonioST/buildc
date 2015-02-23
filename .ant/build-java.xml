@@ -299,14 +299,13 @@
         </jar>
     </target>
     <target name="-jar-without-res-fileset" depends="-jar-prepare" unless="jar.resource.fileset">
-        <copy
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
         </jar>
     </target>
-    <target name="jar" depends="-jar,-post-jar"/>
+    <target name="jar" depends="-jar-with-res-fileset,-jar-without-res-fileset,-post-jar"/>
     <!--
     clean section
     -->

@@ -4,20 +4,20 @@
     check import
     -->
     <fail unless="define.java">should import 'build-java.xml'</fail>
+    <fail unless="build.dir">Must sett 'build.dir'</fail>
+    <fail unless="src.dir">Must sett 'src.dir'</fail>
     <!--
     global define
     -->
     <property name="define.javadoc" value=""/>
+    <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
     <!--
     task
     -->
     <target name="javadoc" depends="init">
         <!--check-->
-        <fail unless="build.dir">Must sett 'build.dir'</fail>
-        <fail unless="src.dir">Must sett 'src.dir'</fail>
         <!--default value-->
-        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
-        <property name="src.include" value="**.*"/>
+        <property name="src.include" value="**/*"/>
         <property name="src.exclude" value=""/>
         <property name="javadoc.title" value="${project.name} API"/>
         <property name="javadoc.author" value=""/>

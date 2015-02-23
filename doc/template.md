@@ -18,6 +18,9 @@ Build Script Require
 Property Require
 ----------------
 
+property                | type      | task used     | description
+--------                | ----      | ---------     | -----------
+
 -------------------------------------------------------------------------------
 
 Global Property

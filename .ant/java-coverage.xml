@@ -12,6 +12,7 @@
     initial section
     -->
     <property name="build.coverage.dir" value="${build.dir}/jacoco"/>
+    <property name="coverage.report.type" value="html"/>
     <!--
     task
     -->
@@ -58,27 +59,63 @@
             </junit>
         </jacoco:coverage>
     </target>
-    <target name="-coverage-report" depends="-coverage-init">
-        <available property="exist.coverage.result" file="${coverage.result.file}"/>
-        <fail unless="exist.coverage.result">Coverage Result File doesn't exist</fail>
-        <mkdir dir="${coverage.report.dir}"/>
-        <jacoco:report>
-            <executiondata>
-                <file file="${coverage.result.file}"/>
-            </executiondata>
-            <structure name="Project">
-                <classfiles>
-                    <fileset dir="${build.classes.dir}"/>
-                </classfiles>
-                <sourcefiles encoding="UTF-8">
-                    <fileset dir="${src.dir}"/>
-                </sourcefiles>
-            </structure>
-            <html destdir="${coverage.report.dir}"/>
-            <!--<xml destdir="${coverage.report.dir}"/>-->
-            <!--<csv destdir="${coverage.report.dir}"/>-->
-        </jacoco:report>
+    <target name="-def-macro-coverage-report">
+        <macrodef name="coverage-report">
+            <attribute name="result" default="${coverage.result.file}"/>
+            <attribute name="classpath" default="${build.classes.dir}"/>
+            <attribute name="sourcepath" default="${src.dir}"/>
+            <element name="custom" implicit="true" option="true"/>
+            <sequential>
+                <jacoco:report>
+                    <executiondata>
+                        <file file="@{result}"/>
+                    </executiondata>
+                    <structure name="Project">
+                        <classfiles>
+                            <fileset dir="@{classpath}"/>
+                        </classfiles>
+                        <sourcefiles encoding="UTF-8">
+                            <fileset dir="@{sourcepath}"/>
+                        </sourcefiles>
+                    </structure>
+                    <custom/>
+                </jacoco:report>
+            </sequential>
+        </macrodef>
     </target>
+    <target name="-coverage-report-init" depends="-coverage-init,-def-macro-coverage-report">
+        <fail if="coverage.report.type.html">property 'coverage.report.type.html' is used</fail>
+        <fail if="coverage.report.type.xml">property 'coverage.report.type.xml' is used</fail>
+        <fail if="coverage.report.type.csv">property 'coverage.report.type.csv' is used</fail>
+        <condition property="coverage.report.type.html">
+            <equals arg1="coverage.report.type" arg2="html"/>
+        </condition>
+        <condition property="coverage.report.type.xml">
+            <equals arg1="coverage.report.type" arg2="xml"/>
+        </condition>
+        <condition property="coverage.report.type.csv">
+            <equals arg1="coverage.report.type" arg2="csv"/>
+        </condition>
+        <available property="exist.coverage.result" fi1le="${coverage.result.file}"/>
+        <fail unless="exist.coverage.result">Coverage Result File doesn't exist</fail>
+        <mkdir dir="${coverage.result.file}"/>
+    </target>
+    <target name="-coverage-report-html" depends="-coverage-report-init" if="coverage.report.type.html">
+        <coverage-report>
+            <html destdir="${coverage.report.dir}"/>
+        </coverage-report>
+    </target>
+    <target name="-coverage-report-xml" depends="-coverage-report-init" if="coverage.report.type.xml">
+        <coverage-report>
+            <xml destdir="${coverage.report.dir}"/>
+        </coverage-report>
+    </target>
+    <target name="-coverage-report-csv" depends="-coverage-report-init" if="coverage.report.type.csv">
+        <coverage-report>
+            <csv destdir="${coverage.report.dir}"/>
+        </coverage-report>
+    </target>
+    <target name="-coverage-report" depends="-coverage-report-html,-coverage-report-xml,-coverage-report-csv"/>
     <target name="coverage" depends="-coverage-main,-post-run,-coverage-report"/>
     <target name="coverage-test" depends="-coverage-test,-post-test,-coverage-report"/>
     <target name="coverage-test-class" depends="-coverage-test-class,-post-test,-coverage-report"/>

@@ -11,6 +11,7 @@
     -->
     <property name="define.publish" value=""/>
     <property name="release.dir" value="release"/>
+
     <!--
     custom section
     -->
@@ -40,7 +41,9 @@
             <include name="${test.dir}/**/*"/>
         </fileset>
     </target>
-    <target name="-release-prepare" depends="init,compile,test,jar,-release-init,-pre-release"/>
+    <target name="-release-prepare" depends="init,compile,test,jar,-release-init,-pre-release">
+        <fail unless="project.version">project.version set set</fail>
+    </target>
     <target name="-release-bin" depends="-release-prepare">
         <fail unless="release.bin.fileset">Must set 'release.bin.fileset'</fail>
         <zip destfile="${release.dir}/${project.version}/${project.name}.zip">
@@ -63,15 +66,25 @@
     <!--
     publish task
     -->
-    <target name="-publish" depends="release,-pre-publish" if="exist.ivy">
-        <fail unless="project.version">project.version set set</fail>
+    <target name="-publish-init" depends="release">
+        <!--copy jar file into release directory-->
+        <copy file="${build.jar.dir}/${jar.file}"
+              tofile="${release.dir}/${project.version}/${project.name}.jar"/>
+    </target>
+    <target name="-publish-prepare" depends="-publish-init,-pre-publish"/>
+    <target name="-publish" depends="-publish-prepare" if="exist.ivy">
+        <property name="publish.resolver" value="local"/>
+        <property name="publish.status" value="release"/>
+        <property name="publish.overwrite" value="true"/>
+        <property name="publish.update" value="true"/>
+        <property name="publish.forcedeliver" value="true"/>
         <ivy:resolve/>
-        <ivy:publish resolver="local"
+        <ivy:publish resolver="${publish.resolver}"
                      pubrevision="${project.version}"
-                     status="release"
-                     overwrite="true"
-                     update="true"
-                     forcedeliver="true">
+                     status="${publish.status}"
+                     overwrite="${publish.overwrite}"
+                     update="${publish.update}"
+                     forcedeliver="${publish.forcedeliver}">
             <ivy:artifacts pattern="${release.dir}/${project.version}/[artifact].[ext]"/>
             <ivy:artifacts pattern="${release.dir}/${project.version}/[artifact]-[type].[ext]"/>
         </ivy:publish>
