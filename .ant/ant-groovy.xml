@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <!--initial-->
+    <property environment="env"/>
+    <fail unless="env.GROOVY_HOME">env 'GROOVY_HOME' not set</fail>
+    <property name="groovy.home" value="${env.GROOVY_HOME}"/>
+    <exec executable="${groovy.home}/bin/groovy"
+          outputproperty="groovy.version.description"
+          failonerror="true">
+        <arg value="-version"/>
+    </exec>
+    <script language="javascript"><![CDATA[
+        var description = self.getProject().getProperty('groovy.version.description');
+        var ii = description.indexOf(':');
+        var ij = description.indexOf(' ', ii + 2);
+        description = description.substring(ii + 1, ij).trim();
+        self.getProject().setProperty('groovy.version', description);
+    ]]></script>
+    <echo message="[groovy] home=${groovy.home}" level="verbose"/>
+    <echo message="[groovy] version=${groovy.version}" level="verbose"/>
+    <!--task define-->
+    <taskdef uri="antlib:org.codehaus.groovy"
+             resource="org/codehaus/groovy/antlib.xml"
+             onerror="failall">
+        <classpath path="${groovy.home}/lib/groovy-${groovy.version}.jar"/>
+        <classpath path="${groovy.home}/lib/groovy-ant-${groovy.version}.jar"/>
+        <classpath path="${groovy.home}/lib/groovy-groovydoc-${groovy.version}.jar"/>
+    </taskdef>
+</project>
