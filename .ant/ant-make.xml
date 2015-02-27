@@ -4,18 +4,16 @@
         <attribute name="basedir" default="${basedir}"/>
         <attribute name="makefile" default="Makefile"/>
         <attribute name="target" default=""/>
-        <attribute name="property" default="macro.make.output"/>
-        <attribute name="resultproperty" default="macro.make.result"/>
+        <attribute name="failonerror" default="true"/>
         <element name="custom" implicit="true" optional="true"/>
         <sequential>
             <exec executable="make"
                   dir="@{basedir}"
-                  outputproperty="@{property}"
-                  resultproperty="@{resultproperty}">
+                  failonerror="@{failonerror}">
                 <arg value="-f"/>
-                <arg file="@{makefile}"/>
+                <arg file="@{basedir}/@{makefile}"/>
                 <custom/>
-                <arg value="@{target}"/>
+                <arg line="@{target}"/> <!--may empty, so use line-->
             </exec>
         </sequential>
     </macrodef>
