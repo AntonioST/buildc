@@ -57,12 +57,12 @@
             <fileset refid="release.src.fileset"/>
         </zip>
     </target>
-    <target name="release-javadoc" depends="-release-init,javadoc">
+    <target name="release-doc" depends="-release-init,javadoc">
         <zip destfile="${release.dir}/${project.version}/${project.name}-javadoc.zip">
             <fileset dir="${build.javadoc.dir}"/>
         </zip>
     </target>
-    <target name="release" depends="release-bin,release-src,release-javadoc"/>
+    <target name="release" depends="release-bin,release-src,release-doc"/>
     <!--
     publish task
     -->

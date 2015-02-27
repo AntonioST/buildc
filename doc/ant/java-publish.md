@@ -6,6 +6,11 @@ Basic Information
 
 provide publish relative task. Use ivy
 
+Task Graph
+----------
+
+![java-publish](res/java-publish.png)
+
 -------------------------------------------------------------------------------
 
 Default import
@@ -85,7 +90,7 @@ default output file pattern `${release.dir}/${project.version}/${project.name}.z
 
 default output file pattern `${release.dir}/${project.version}/${project.name}-source.zip`
 
-### release-javadoc
+### release-doc
 
 default output file pattern `${release.dir}/${project.version}/${project.name}-javadoc.zip`
 

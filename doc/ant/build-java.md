@@ -39,6 +39,11 @@ build/jar           | build.jar.dir     | jar file build output directory
       |_jar
       |_META-INF/
 
+Task Graph
+----------
+
+![build-java](res/build-java.png)
+
 -------------------------------------------------------------------------------
 
 Default import
@@ -83,16 +88,16 @@ property            | value                         | type      | task  | descri
 --------            | -----                         | ----      | ----  | -----------
 project.name        | `${ant.project.name}`         | string    | -init |
 project.version     |                               | string    | -init | use either git-describle or time-stamp
-javac.source        | 1.8                           | value     | -init | -source
-javac.target        | 1,8                           | value     | -init | -target
+javac.source        | 1.8                           | string    | -init | -source
+javac.target        | 1.8                           | string    | -init | -target
 javac.debug         | true                          | bool      | -init |
 javac.verbose       | true                          | bool      | -init | -verbose
-javac.jvmargs       |                               | lines     | -init |
+javac.jvmargs       |                               | arg-line  | -init |
 javac.list-file     | true                          | bool      | -init |
 src.include         | **                            | glob      | -init |
 src.exclude         |                               | glob      | -init |
-java.jvmargs        |                               | lines     |       |
-test.jvmargs        |                               | lines     |       |
+java.jvmargs        |                               | arg-line  |       |
+test.jvmargs        |                               | arg-line  |       |
 jar.file            | `${project.name}`-`${project.version}`.jar | file | -init |
 jar.lib.copy        | true                          | bool      | -init | copy lib to jar anr set Class-Path in manifest file
 jar.lib.dir         | lib                           | directory | -init | library directory used in jar manifest classpath
@@ -131,13 +136,6 @@ main.class              | class     | jar           | set the Main-Class in mani
 readme.file             | file      | jar           |
 splash.image            | file      | jar           | set the splash image
 
-
--------------------------------------------------------------------------------
-
-Task Graph
-----------
-
-![build-java](/doc/ant/res/build-java.png)
 
 -------------------------------------------------------------------------------
 
@@ -220,21 +218,26 @@ defined by task __-def-macro-javac__
 
 pre-set reference to [javac task][ant-task-javac] attribute
 
-attribute   | default value     | description
----------   | -------------     | -----------
-src         | (required)        | `srcdir` attribute
-dest        | (required)        | `destdir` attribute
-includes    | `${src.include}`  | `includes` attribute
-excludes    | `${src.exclude}`  | `excludes` attribute
-            | `${javac.source}` | `source` attribute
-            | `${javac.target}` | `target` attribute
-            | `${javac.debug}`  | `debug` attribute
-            | `${javac.verbose}` | `verbose` attribute
-            | `${javac.list-file}` | `listfiles` attribute
-            | no                | `includeantruntime` attribute
-            | no                | `includejavaruntime` attribute
-            | true              | `fork` attribute
-            | true              | `failonerror` attribute
+
+attribute   | task-attribute    | default value     | description
+---------   | -------------     | -----------       | -----------
+src         | srcdir            | (required)        |
+dest        | destdir           | (required)        |
+includes    | includes          | `${src.include}`  |
+excludes    | excludes          | `${src.exclude}`  |
+            | source            | `${javac.source}` |
+            | target            | `${javac.target}` |
+            | debug             | `${javac.debug}`  |
+            | verbose           | `${javac.verbose}` |
+            | listfiles         | `${javac.list-file}` |
+            | includeantruntime | no                |
+            | includejavaruntime | no               |
+            | fork              | true              |
+            | failonerror       | true              |
+
+element     | implicit  | optional  | description
+-------     | --------  | --------  | -----------
+customize   | true      | true      | `javac` task nest elements
 
 ### macro-test
 
@@ -242,14 +245,18 @@ defined by task __-def-macro-test__
 
 pre-set reference to [junit task][ant-task-junit]
 
-attribute   | default value     | description
----------   | -------------     | -----------
-output      | (required)        | `tempdir` attribute and output directory
-            | withOutAndErr     | `printsummary` attribute
-            | false             | `haltonfailure` attribute
-            | false             | `haltonerror` attribute
-            | true              | `fork` attribute
-            | test.fail         | `failureproperty` attribute, fail check in task __-test-check__
+attribute   | task-attribute    | default value     | description
+---------   | -------------     | -----------       | -----------
+output      | tempdir           | (required)        |
+            | printsummary      | withOutAndErr     |
+            | haltonfailure     | false             |
+            | haltonerror       | false             |
+            | fork              | true              |
+            | failureproperty   | test.fail         |
+
+element     | implicit  | optional  | description
+-------     | --------  | --------  | -----------
+customize   | true      | false     | `junit` task nest elements
 
 -------------------------------------------------------------------------------
 

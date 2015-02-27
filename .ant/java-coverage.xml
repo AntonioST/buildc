@@ -21,7 +21,7 @@
         <property name="coverage.result.file" value="${build.coverage.dir}/jacoco.exec"/>
         <property name="coverage.report.dir" value="${build.coverage.dir}/report"/>
     </target>
-    <target name="-coverage-main" depends="-run-prepare,-coverage-init">
+    <target name="-coverage-main" depends="-run-prepare,-coverage-init" if="define.application">
         <fail unless="main.class">Must set 'main.class'</fail>
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
@@ -116,7 +116,7 @@
         </coverage-report>
     </target>
     <target name="-coverage-report" depends="-coverage-report-html,-coverage-report-xml,-coverage-report-csv"/>
-    <target name="coverage" depends="-coverage-main,-post-run,-coverage-report"/>
+    <target name="coverage" depends="-coverage-main,-post-run,-coverage-report" if="define.application"/>
     <target name="coverage-test" depends="-coverage-test,-post-test,-coverage-report"/>
     <target name="coverage-test-class" depends="-coverage-test-class,-post-test,-coverage-report"/>
 </project>

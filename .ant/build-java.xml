@@ -160,7 +160,7 @@
     <target name="-def-macro-test">
         <macrodef name="marco-test">
             <attribute name="output"/>
-            <element name="custom" implicit="true"/>
+            <element name="customize" implicit="true"/>
             <sequential>
                 <mkdir dir="@{output}"/>
                 <junit tempdir="@{output}"
@@ -173,7 +173,7 @@
                     <classpath path="${real.test.classpath}"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
-                    <custom/>
+                    <customize/>
                 </junit>
             </sequential>
         </macrodef>

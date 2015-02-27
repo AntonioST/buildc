@@ -6,8 +6,8 @@ Basic Information
 
 provide code coverage task. use [JaCoCo][ant-jacoco]
 
-Directory Structure
--------------------
+Project Layout
+--------------
     ${build.dir}/
     |_jacoco/
       |_jacoco.exec
@@ -96,6 +96,11 @@ sourcepath  | `${src.dir}`              |
 See Also
 --------
 
+-------------------------------------------------------------------------------
 
+Bug Note
+--------
+
+* If root build.xml not import java-applicaiton.xml, coverage may cause error.
 
 [ant-jacoco]: http://www.eclemma.org/jacoco/trunk/doc/ant.html

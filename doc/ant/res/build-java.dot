@@ -1,4 +1,4 @@
-digraph detail {
+digraph build_java {
     rankdir="RL";
     //default
     "default" [shape=box,style=filled,color=yellow];

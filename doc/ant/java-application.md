@@ -6,6 +6,11 @@ Basic Information
 
 provide java application relative task which has the main class in the project.
 
+Task Graph
+----------
+
+![java-application](res/java-application.png)
+
 -------------------------------------------------------------------------------
 
 Default import

@@ -7,6 +7,9 @@ Basic Information
 Project Layout
 --------------
 
+Task Graph
+----------
+
 -------------------------------------------------------------------------------
 
 Default import
@@ -61,6 +64,12 @@ Macro
 
 attribute   | default value     | description
 ---------   | -------------     | -----------
+
+attribute   | task-attribute    | default value     | description
+---------   | -------------     | -----------       | -----------
+
+element     | implicit  | optional  | description
+-------     | --------  | --------  | -----------
 
 -------------------------------------------------------------------------------
 
