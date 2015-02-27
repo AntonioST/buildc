@@ -1,0 +1,33 @@
+digraph detail {
+    rankdir="RL";
+    //default
+    "default" [shape=box,style=filled,color=yellow];
+    "default" -> "init";
+    "default" -> "compile";
+    "default" -> "test";
+    "default" -> "jar";
+    //init
+    "init" [shape=box];
+    //compile
+    "compile" [shape=box];
+    "compile-single" [shape=box];
+    "compile" -> "init";
+    "compile-single" -> "init";
+    //test
+    "test" [shape=box];
+    "test-class" [shape=box];
+    "test-method" [shape=box];
+    "compile-test" [shape=box];
+    "compile-test" -> "compile";
+    "test" -> "compile-test";
+    "test-class" -> "compile-test";
+    "test-method" -> "compile-test";
+    //jar
+    "jar" [shape=box];
+    "jar" -> "compile";
+    //clean
+    "clean" [shape=box];
+    "clean-all" [shape=box];
+    "clean-all" -> "clean";
+}
+

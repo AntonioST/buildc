@@ -6,14 +6,31 @@ Basic Information
 
 Basic working flow for java development.
 
-Directory Structure
--------------------
+Project Layout
+--------------
+
+directory           | property          | description
+---------           | --------          | -----------
+src                 | src.dir           | source file directory
+test                | test.dir          | test source file directory
+res                 | res.dir           | resource file directory
+lib                 | lib.dir           | library directory
+build               | build.dir         | build output directory
+build/classes       | build.classes.dir | source file build output directory
+build/test/classes  | build.test.dir    | test source file build output directory
+build/test/result   | test.result.dir   | test result output directory
+build/jar           | build.jar.dir     | jar file build output directory
 
     ./
     |_src/
     |_test/
     |_res/
+    | |_META-INF
     |_lib/
+    | |_master
+    | |_compile
+    | |_runtime
+    | |_test
     |_build/
       |_classes/
       |_test/
@@ -117,6 +134,13 @@ splash.image            | file      | jar           | set the splash image
 
 -------------------------------------------------------------------------------
 
+Task Graph
+----------
+
+![build-java](/doc/ant/res/build-java.png)
+
+-------------------------------------------------------------------------------
+
 Extension Point
 ---------------
 
@@ -127,6 +151,10 @@ Extension Point
 ### -pre-compile
 
 ### -post-compile
+
+### -pre-compile-test
+
+### -post-compile-test
 
 ### -pre-jar
 

@@ -27,6 +27,8 @@
     <extension-point name="-post-init"/>
     <extension-point name="-pre-compile"/>
     <extension-point name="-post-compile"/>
+    <extension-point name="-pre-compile-test"/>
+    <extension-point name="-post-compile-test"/>
     <extension-point name="-pre-jar"/>
     <extension-point name="-post-jar"/>
     <extension-point name="-pre-test"/>
@@ -101,7 +103,7 @@
         <echo message="[classpath] real.runtime.classpath=${real.runtime.classpath}" level="verbose"/>
         <echo message="[classpath] real.test.classpath=${real.test.classpath}" level="verbose"/>
     </target>
-    <target name="init" depends="-init,-post-init"/>
+    <target name="init" depends="-init,-post-init" description="init project"/>
     <!--
     compile section
     -->
@@ -179,7 +181,8 @@
     <target name="-test-init" depends="init,compile,-def-macro-test">
         <available property="exist.test" file="${test.dir}" type="dir"/>
     </target>
-    <target name="-compile-test" depends="-compile,-test-init" if="exist.test">
+    <target name="-compile-test-prepare" depends="compile,-test-init,-pre-compile-test" if="exist.test"/>
+    <target name="-compile-test" depends="-compile-test-prepare" if="exist.test">
         <mkdir dir="${build.test.dir}"/>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
@@ -187,7 +190,7 @@
             <classpath path="${real.test.classpath}"/>
         </macro-javac>
     </target>
-    <target name="compile-test" depends="-compile-test,-post-compile" if="exist.test"/>
+    <target name="compile-test" depends="-compile-test,-post-compile-test" if="exist.test"/>
     <target name="-test-prepare" depends="-test-init,compile-test,-pre-test" if="exist.test">
         <property name="test.jvmargs" value=""/>
     </target>
@@ -240,7 +243,7 @@
         <copy file="manifest.file" tofile="${jar.manifest.file}"/>
     </target>
     <target name="-manifest-init" depends="-manifest-copy,-manifest-create"/>
-    <target name="-manifest-main-class" depends="-jar-init,-manifest-init" if="main.class">
+    <target name="-manifest-main-class" depends="-manifest-init" if="main.class">
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="Main-Class" value="${main.class}"/>
         </manifest>
@@ -272,7 +275,7 @@
             <attribute name="Class-Path" value="${jar.classpath}"/>
         </manifest>
     </target>
-    <target name="-manifest-splash" depends="-jar-init,-manifest-init" if="exist.splash.image">
+    <target name="-manifest-splash" depends="-manifest-init" if="exist.splash.image">
         <basename file="${splash.image}" property="splash.image.basename"/>
         <mkdir dir="${build.meta.dir}"/>
         <copy failonerror="false" file="${splash.image}" todir="${build.meta.dir}"/>

@@ -4,8 +4,8 @@ Build Script Template
 Basic Information
 -----------------
 
-Directory Structure
--------------------
+Project Layout
+--------------
 
 -------------------------------------------------------------------------------
 
