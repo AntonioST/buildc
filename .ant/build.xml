@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="antbuild"
+<project name="buildc"
          default="retrieve"
          xmlns:ivy="antlib:org.apache.ivy.ant">
-    <description></description>
     <target name="retrieve">
         <ivy:retrieve pattern="lib/[artifact].[ext]"/>
     </target>

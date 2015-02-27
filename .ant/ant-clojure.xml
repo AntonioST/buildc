@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <!--initial-->
+    <property environment="env"/>
+    <fail unless="env.CLOJURE_HOME">env 'CLOJURE_HOME' not set</fail>
+    <property name="clojure.home" value="${env.CLOJURE_HOME}"/>
+    <script language="javascript"><![CDATA[
+        var home = self.getProject().getProperty('clojure.home');
+        var p = java.nio.file.Paths.get(home);
+        var jar = java.nio.file.Files.find(p, 1, function(path, attr){
+            var filename = path.getFileName().toString();
+            if (filename.endsWith('jar') && filename.startsWith('clojure')) {
+                return true;
+            } else {
+                return false;
+            }
+        }, java.nio.file.FileVisitOption.FOLLOW_LINKS).findFirst().orElse(null);
+        if (jar == null){
+            var fail = self.getProject().createTask('fail');
+            fail.setMessage('clojure jar file not found');
+            fail.perform();
+        } else {
+            self.getProject().setProperty('clojure.jar', jar.toAbsolutePath().toString());
+        }
+    ]]></script>
+    <echo message="[clojure] home=${clojure.home}" level="verbose"/>
+    <echo message="[clojure] jar=${clojure.jar}" level="verbose"/>
+    <!--task defined-->
+    <macrodef name="clojure">
+        <attribute name="dir" default="${basedir}"/>
+        <attribute name="failonerror" default="false"/>
+        <element name="custom" optional="true" implicit="true"/>
+        <sequential>
+            <java classname="clojure.main"
+                  dir="@{dir}"
+                  failonerror="@{failonerror}"
+                  fork="true">
+                <classpath path="${clojure.jar}"/>
+                <custom/>
+            </java>
+        </sequential>
+    </macrodef>
+    <macrodef name="clojure-eval">
+        <attribute name="dir" default="${basedir}"/>
+        <attribute name="outputproperty" default="clojure.output"/>
+        <attribute name="failonerror" default="false"/>
+        <element name="custom" optional="true" implicit="true"/>
+        <text name="text"/>
+        <sequential>
+            <java classname="clojure.main"
+                  dir="@{dir}"
+                  outputproperty="@{outputproperty}"
+                  failonerror="@{failonerror}"
+                  fork="true">
+                <classpath path="${clojure.jar}"/>
+                <arg value="--eval"/>
+                <arg value="@{text}"/>
+                <custom/>
+            </java>
+        </sequential>
+    </macrodef>
+</project>

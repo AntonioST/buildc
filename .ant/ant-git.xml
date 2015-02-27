@@ -11,7 +11,7 @@
           outputproperty="macro.git.output"
           resultproperty="macro.git.result"
           failonerror="true">
-        <arg line="--version"/>
+        <arg value="--version"/>
     </exec>
     <macrodef name="macro-git">
         <attribute name="property"/>
