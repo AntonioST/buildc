@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="__PROJECT__"
-         default="default">
-    <description></description>
+<project name="__PROJECT__" default="default">
+    <description>__DESCRIPTION__</description>
+    <!--
+    import ptr-defined build script file
+    -->
     <import file=".ant/build-java.xml"/>
+    <!--
+    property setting
+    -->
+    <!--
+    custom task
+    -->
 </project>
