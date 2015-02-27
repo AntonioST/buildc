@@ -1,3 +1,5 @@
+/src/
+/test/
 /.ant/lib/
-/.idea/
-
+/.idea/workspace.xml
+/.idea/ant.xml
