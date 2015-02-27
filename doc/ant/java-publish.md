@@ -1,6 +1,8 @@
 Build Script Template
 =====================
 
+[java-publish.xml](/.ant/java-publish.xml)
+
 Basic Information
 -----------------
 
@@ -100,5 +102,8 @@ default output file pattern `${release.dir}/${project.version}/${project.name}-j
 -------------------------------------------------------------------------------
 
 See Also
+--------
+
+Bug Note
 --------
 

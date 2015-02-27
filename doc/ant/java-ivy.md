@@ -1,6 +1,8 @@
 Build Script Template
 =====================
 
+[java-ivy.xml](/.ant/java-ivy.xml)
+
 Basic Information
 -----------------
 

@@ -1,6 +1,8 @@
 Build Script Template
 =====================
 
+[java-application.xml](/.ant/java-application.xml)
+
 Basic Information
 -----------------
 
