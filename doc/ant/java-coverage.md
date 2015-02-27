@@ -1,6 +1,8 @@
 Build Script Template
 =====================
 
+[java-coverage.xml](/.ant/java-coverage.xml)
+
 Basic Information
 -----------------
 

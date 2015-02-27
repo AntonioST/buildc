@@ -1,6 +1,8 @@
 Build Java
 ==========
 
+[build-java.xml](/.ant/build-java.xml)
+
 Basic Information
 -----------------
 

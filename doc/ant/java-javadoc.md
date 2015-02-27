@@ -1,6 +1,8 @@
 Build Script Template
 =====================
 
+[java-javadoc.xml](/.ant/java-javadoc.xml)
+
 Basic Information
 -----------------
 

@@ -1,6 +1,8 @@
 Util Task module
 ================
 
+[ant-classpath.xml](/.ant/ant-classpath.xml)
+
 Basic Information
 -----------------
 
@@ -19,7 +21,7 @@ append path.
 attribute   | default value     | description
 ---------   | -------------     | -----------
 property    | (required)        | the property be set (override)
-path        | (required)        | the path apprnd into `@{property}`
+path        | (required)        | the path append into `@{property}`
 split       | :                 | split character
 
 example:
