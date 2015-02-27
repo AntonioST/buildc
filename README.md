@@ -1,5 +1,5 @@
-Ant Build Template
-==================
+Project Build Script Collections
+================================
 
 Basic Information
 -----------------
@@ -8,13 +8,10 @@ Basic Information
 
     2
 
-Script
-------
+Project
+-------
 
-Build Template
---------------
-
-### java
+### ant for java
 
 * [build-java.xml](doc/build-java.md)
 
