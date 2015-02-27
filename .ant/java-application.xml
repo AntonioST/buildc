@@ -52,7 +52,7 @@
             <arg line="${program.args}"/>
         </java>
     </target>
-    <target name="-run-jar" depends="init,compile,jar,-run-init,-pre-runr">
+    <target name="-run-jar" depends="init,compile,jar,-run-init,-pre-run">
         <property name="java.jvmargs" value=""/>
         <property name="program.args" value=""/>
         <java jar="${build.jar.dir}/${jar.file}"
