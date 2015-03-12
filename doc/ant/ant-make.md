@@ -23,8 +23,11 @@ attribute   | default value     | description
 basedir     | `${basedir}`      |
 makefile    | Makefile          |
 target      |                   |
-property    | macro.make.output |
-resultproperty | macro.make.result |
+failonerror | true              |
+
+element     | implicit  | optional  | description
+-------     | --------  | --------  | -----------
+custom      | true      | true      | task `exec` nest element before target
 
 -------------------------------------------------------------------------------
 

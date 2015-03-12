@@ -249,6 +249,7 @@
         </manifest>
     </target>
     <target name="-manifest-classpath" depends="-init-classpath,-manifest-init" if="jar.lib.copy">
+        <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
         <script language="javascript"><![CDATA[
             var p = self.getProject();
             var F = java.nio.file.Files;
@@ -262,11 +263,11 @@
                     var t = to.resolve(f.getFileName());
                     if (!F.exists(t)){
                         var echo = p.createTask('echo');
-                        echo.setMessage('move ' + f + ' -> ' + t);
+                        echo.setMessage('copy ' + f + ' -> ' + t);
                         echo.perform();
                         F.copy(f, t);
                     }
-                    ls.add(rt.relative(t).toString());
+                    ls.add(rt.relativize(t).toString());
                 }
             }
             p.setProperty('jar.classpath', java.lang.String.join(' ', ls));
