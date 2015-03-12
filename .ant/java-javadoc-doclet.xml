@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+    <!-- doclet
+    ==pegdown doclet==
+    <dependency org="ch.raffael.pegdown-doclet" name="pegdown-doclet" rev="1.1.1"/>
+    <doclet name="com.visural.doclets.markdown.standard.Standard">
+    -->
     <!--
     check import
     -->
@@ -17,6 +22,7 @@
     -->
     <target name="javadoc" depends="init,-init-classpath">
         <!--check-->
+        <fail unless="javadoc.doclet">Must set 'javadoc.doclet'</fail>
         <!--default value-->
         <property name="src.include" value="**/*"/>
         <property name="src.exclude" value=""/>
@@ -44,6 +50,7 @@
                  splitindex="${javadoc.splitindex}"
                  failonerror="true">
             <classpath path="${real.compile.classpath}"/>
+            <doclet name="${javadoc.doclet}" path="${real.compile.classpath}"/>
             <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
         </javadoc>
     </target>
