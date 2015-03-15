@@ -248,29 +248,32 @@
             <attribute name="Main-Class" value="${main.class}"/>
         </manifest>
     </target>
-    <target name="-manifest-classpath" depends="-init-classpath,-manifest-init" if="jar.lib.copy">
-        <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
+    <target name="-manifest-classpath" depends="-init-classpath,-manifest-init">
         <script language="javascript"><![CDATA[
             var p = self.getProject();
-            var F = java.nio.file.Files;
-            var P = java.nio.file.Paths;
-            var ls = new java.util.ArrayList();
-            var rt = P.get(p.getProperty('build.jar.dir'));
-            var to = rt.resolve(P.get(p.getProperty('jar.lib.dir')));
-            for each (var cp in p.getProperty('real.runtime.classpath').split(':')){
-                if (!cp.isEmpty()){
-                    var f = P.get(cp);
-                    var t = to.resolve(f.getFileName());
-                    if (!F.exists(t)){
-                        var echo = p.createTask('echo');
-                        echo.setMessage('copy ' + f + ' -> ' + t);
-                        echo.perform();
-                        F.copy(f, t);
+            var copy = p.getProperty('jar.lib.copy');
+            if (copy != null && java.lang.Boolean.valueOf(copy)){
+                var F = java.nio.file.Files;
+                var P = java.nio.file.Paths;
+                var ls = new java.util.ArrayList();
+                var rt = P.get(p.getProperty('build.jar.dir'));
+                var to = rt.resolve(P.get(p.getProperty('jar.lib.dir')));
+                F.createDirectories(to);
+                for each (var cp in p.getProperty('real.runtime.classpath').split(':')){
+                    if (!cp.isEmpty()){
+                        var f = P.get(cp);
+                        var t = to.resolve(f.getFileName());
+                        if (!F.exists(t)){
+                            var echo = p.createTask('echo');
+                            echo.setMessage('move ' + f + ' -> ' + t);
+                            echo.perform();
+                            F.copy(f, t);
+                        }
+                        ls.add(rt.relativize(t).toString());
                     }
-                    ls.add(rt.relativize(t).toString());
                 }
+                p.setProperty('jar.classpath', java.lang.String.join(' ', ls));
             }
-            p.setProperty('jar.classpath', java.lang.String.join(' ', ls));
         ]]></script>
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="Class-Path" value="${jar.classpath}"/>

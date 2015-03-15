@@ -2,8 +2,8 @@
 <project>
     <!-- doclet
     ==pegdown doclet==
+    ch.raffael.doclets.pegdown.PegdownDoclet
     <dependency org="ch.raffael.pegdown-doclet" name="pegdown-doclet" rev="1.1.1"/>
-    <doclet name="com.visural.doclets.markdown.standard.Standard">
     -->
     <!--
     check import
