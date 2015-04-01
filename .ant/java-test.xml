@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <!-- testing
+    ==junit==
+    <dependency org="junit" name="junit" rev="4.11"/>
+    -->
+    <!--
+    check import
+    -->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <fail if="define.test">'test' has imported</fail>
+    <!--
+    global property
+    -->
+    <property name="define.test" value=""/>
+    <property name="test.dir" value="test"/>
+    <property name="lib.test.dir" value="${lib.dir}/test"/>
+    <available property="exist.test" file="${test.dir}" type="dir"/>
+    <fail unless="exist.test">${test.dir} doesn't exist</fail>
+    <!--
+    import
+    -->
+    <import file="ant-classpath.xml"/>
+    <!--
+    custom section
+    -->
+    <extension-point name="-pre-compile-test"/>
+    <extension-point name="-post-compile-test"/>
+    <extension-point name="-pre-test"/>
+    <extension-point name="-post-test"/>
+    <!--
+    task
+    -->
+    <target name="-test-init" depends="init,compile">
+        <!--default property-->
+        <property name="build.test.dir" value="${build.dir}/test/classes"/>
+        <property name="test.result.dir" value="${build.dir}/test/result"/>
+        <!--initial classpath for testing-->
+        <property name="test.classpath" value=""/>
+        <list-path property="lib.test.classpath" dir="${lib.test.dir}"/>
+        <path-append property="real.test.classpath" path="${master.classpath}"/>
+        <path-append property="real.test.classpath" path="${test.classpath}"/>
+        <path-append property="real.test.classpath" path="${lib.test.classpath}"/>
+        <echo message="[classpath] real.test.classpath=${real.test.classpath}" level="verbose"/>
+        <!--macro define-->
+        <macrodef name="marco-test">
+            <element name="customize" implicit="true"/>
+            <sequential>
+                <mkdir dir="${test.result.dir}"/>
+                <junit tempdir="${test.result.dir}"
+                       printsummary="withOutAndErr"
+                       haltonfailure="false"
+                       haltonerror="false"
+                       fork="true"
+                       failureproperty="test.fail">
+                    <formatter type="brief"/>
+                    <classpath path="${real.test.classpath}"/>
+                    <classpath path="${build.classes.dir}"/>
+                    <classpath path="${build.test.dir}"/>
+                    <customize/>
+                </junit>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-compile-test-prepare" depends="compile,-test-init,-pre-compile-test"/>
+    <target name="-compile-test" depends="-compile-test-prepare">
+        <mkdir dir="${build.test.dir}"/>
+        <macro-javac src="${test.dir}"
+                     dest="${build.test.dir}">
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${real.test.classpath}"/>
+        </macro-javac>
+    </target>
+    <target name="compile-test" depends="-compile-test,-post-compile-test"/>
+    <target name="-test-prepare" depends="-test-init,compile-test,-pre-test">
+        <property name="test.jvmargs" value=""/>
+    </target>
+    <target name="-test" depends="-test-prepare">
+        <delete dir="${test.result.dir}" failonerror="false"/>
+        <marco-test>
+            <batchtest todir="${test.result.dir}">
+                <fileset dir="${test.dir}"/>
+            </batchtest>
+        </marco-test>
+    </target>
+    <target name="-test-class" depends="-test-prepare">
+        <fail unless="class">Must set 'class'</fail>
+        <marco-test>
+            <test name="${class}"
+                  todir="${test.result.dir}"/>
+        </marco-test>
+    </target>
+    <target name="-test-method" depends="-test-prepare">
+        <fail unless="class">Must set 'class'</fail>
+        <fail unless="method">Must set 'method'</fail>
+        <marco-test>
+            <test name="${class}"
+                  methods="${method}"
+                  todir="${test.result.dir}"/>
+        </marco-test>
+    </target>
+    <target name="-test-check">
+        <fail if="test.fail">test fail</fail>
+    </target>
+    <target name="test" depends="-test,-post-test,-test-check"/>
+    <target name="test-class" depends="-test-class,-post-test,-test-check"/>
+    <target name="test-method" depends="-test-method,-post-test,-test-check"/>
+</project>

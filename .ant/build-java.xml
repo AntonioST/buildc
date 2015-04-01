@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <target name="default" depends="init,compile,test,jar"/>
+    <target name="default" depends="init,compile,jar"/>
     <!--
     global property
     -->
     <property name="define.java" value=""/>
     <property name="src.dir" value="src"/>
-    <property name="test.dir" value="test"/>
     <property name="build.dir" value="build"/>
     <property name="res.dir" value="res"/>
     <property name="lib.dir" value="lib"/>
     <property name="lib.master.dir" value="${lib.dir}/master"/>
     <property name="lib.compile.dir" value="${lib.dir}/compile"/>
     <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
-    <property name="lib.test.dir" value="${lib.dir}/test"/>
     <!--
     import
     -->
@@ -27,12 +25,8 @@
     <extension-point name="-post-init"/>
     <extension-point name="-pre-compile"/>
     <extension-point name="-post-compile"/>
-    <extension-point name="-pre-compile-test"/>
-    <extension-point name="-post-compile-test"/>
     <extension-point name="-pre-jar"/>
     <extension-point name="-post-jar"/>
-    <extension-point name="-pre-test"/>
-    <extension-point name="-post-test"/>
     <extension-point name="-post-clean"/>
     <!--
     initial section
@@ -52,11 +46,9 @@
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--default directory-->
         <property name="build.classes.dir" value="${build.dir}/classes"/>
-        <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
         <property name="build.jar.dir" value="${build.dir}/jar"/>
         <property name="build.meta.dir" value="${build.dir}/META-INF"/>
-        <property name="test.result.dir" value="${build.dir}/test/result"/>
         <property name="jar.lib.dir" value="lib"/>
         <!--exist property-->
         <available property="exist.res" file="${res.dir}" type="dir"/>
@@ -85,23 +77,17 @@
         <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
         <property name="runtime.classpath" value=""/>
-        <property name="test.classpath" value=""/>
         <list-path property="lib.compile.classpath" dir="${lib.compile.dir}"/>
         <list-path property="lib.runtime.classpath" dir="${lib.runtime.dir}"/>
-        <list-path property="lib.test.classpath" dir="${lib.test.dir}"/>
         <path-append property="real.compile.classpath" path="${master.classpath}"/>
         <path-append property="real.compile.classpath" path="${compile.classpath}"/>
         <path-append property="real.compile.classpath" path="${lib.compile.classpath}"/>
         <path-append property="real.runtime.classpath" path="${master.classpath}"/>
         <path-append property="real.runtime.classpath" path="${runtime.classpath}"/>
         <path-append property="real.runtime.classpath" path="${lib.runtime.classpath}"/>
-        <path-append property="real.test.classpath" path="${master.classpath}"/>
-        <path-append property="real.test.classpath" path="${test.classpath}"/>
-        <path-append property="real.test.classpath" path="${lib.test.classpath}"/>
         <!--verbose-->
         <echo message="[classpath] real.compile.classpath=${real.compile.classpath}" level="verbose"/>
         <echo message="[classpath] real.runtime.classpath=${real.runtime.classpath}" level="verbose"/>
-        <echo message="[classpath] real.test.classpath=${real.test.classpath}" level="verbose"/>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
     <!--
@@ -154,76 +140,6 @@
     </target>
     <target name="compile" depends="-compile,-post-compile"/>
     <target name="compile-single" depends="-compile-single,-post-compile"/>
-    <!--
-    test section
-    -->
-    <target name="-def-macro-test">
-        <macrodef name="marco-test">
-            <attribute name="output"/>
-            <element name="customize" implicit="true"/>
-            <sequential>
-                <mkdir dir="@{output}"/>
-                <junit tempdir="@{output}"
-                       printsummary="withOutAndErr"
-                       haltonfailure="false"
-                       haltonerror="false"
-                       fork="true"
-                       failureproperty="test.fail">
-                    <formatter type="brief"/>
-                    <classpath path="${real.test.classpath}"/>
-                    <classpath path="${build.classes.dir}"/>
-                    <classpath path="${build.test.dir}"/>
-                    <customize/>
-                </junit>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-test-init" depends="init,compile,-def-macro-test">
-        <available property="exist.test" file="${test.dir}" type="dir"/>
-    </target>
-    <target name="-compile-test-prepare" depends="compile,-test-init,-pre-compile-test" if="exist.test"/>
-    <target name="-compile-test" depends="-compile-test-prepare" if="exist.test">
-        <mkdir dir="${build.test.dir}"/>
-        <macro-javac src="${test.dir}"
-                     dest="${build.test.dir}">
-            <classpath path="${build.classes.dir}"/>
-            <classpath path="${real.test.classpath}"/>
-        </macro-javac>
-    </target>
-    <target name="compile-test" depends="-compile-test,-post-compile-test" if="exist.test"/>
-    <target name="-test-prepare" depends="-test-init,compile-test,-pre-test" if="exist.test">
-        <property name="test.jvmargs" value=""/>
-    </target>
-    <target name="-test" depends="-test-prepare" if="exist.test">
-        <delete dir="${test.result.dir}" failonerror="false"/>
-        <marco-test output="${test.result.dir}">
-            <batchtest todir="${test.result.dir}">
-                <fileset dir="${test.dir}"/>
-            </batchtest>
-        </marco-test>
-    </target>
-    <target name="-test-class" depends="-test-prepare" if="exist.test">
-        <fail unless="class">Must set 'class'</fail>
-        <marco-test output="${test.result.dir}">
-            <test name="${class}"
-                  todir="${test.result.dir}"/>
-        </marco-test>
-    </target>
-    <target name="-test-method" depends="-test-prepare" if="exist.test">
-        <fail unless="class">Must set 'class'</fail>
-        <fail unless="method">Must set 'method'</fail>
-        <marco-test output="${test.result.dir}">
-            <test name="${class}"
-                  methods="${method}"
-                  todir="${test.result.dir}"/>
-        </marco-test>
-    </target>
-    <target name="-test-check" if="exist.test">
-        <fail if="test.fail">test fail</fail>
-    </target>
-    <target name="test" depends="-test,-post-test,-test-check" if="exist.test"/>
-    <target name="test-class" depends="-test-class,-post-test,-test-check" if="exist.test"/>
-    <target name="test-method" depends="-test-method,-post-test,-test-check" if="exist.test"/>
     <!--
     jar section
     -->
