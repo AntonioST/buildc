@@ -28,6 +28,7 @@
     <extension-point name="-pre-jar"/>
     <extension-point name="-post-jar"/>
     <extension-point name="-post-clean"/>
+    <extension-point name="-post-clean-all"/>
     <!--
     initial section
     -->
@@ -37,7 +38,7 @@
     <target name="-init-version" depends="-init-properties" if="exist.git" unless="project.version">
         <git-describe property="project.version"/>
     </target>
-    <target name="-init" depends="-pre-init,-init-properties,-init-version">
+    <target name="-init" depends="-init-properties,-init-version">
         <property name="project.name" value="${ant.project.name}"/>
         <tstamp>
             <format property="time.stamp" pattern="yyyyMMdd"/>
@@ -239,5 +240,5 @@
         <delete dir="${lib.dir}"/>
     </target>
     <target name="clean" depends="-clean,-post-clean"/>
-    <target name="clean-all" depends="-clean-all,-post-clean"/>
+    <target name="clean-all" depends="-clean-all,-post-clean,-post-clean-all"/>
 </project>
