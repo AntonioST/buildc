@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
     <!-- testing
-    ==TestNG==
-    <dependency org="org.testng" name="testng" rev="6.8.21"/>
+    ==junit==
+    <dependency org="junit" name="junit" rev="4.11"/>
     -->
     <!--
     check import
@@ -16,7 +16,7 @@
     <property name="test.dir" value="test"/>
     <property name="lib.test.dir" value="${lib.dir}/test"/>
     <available property="exist.test" file="${test.dir}" type="dir"/>
-    <fail unless="exist.test">${test.dir} doesn't exist</fail>
+    <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
     <!--
     import
     -->
@@ -32,10 +32,6 @@
     task
     -->
     <target name="-test-init" depends="init,compile">
-        <!--task define-->
-        <taskdef classpath="${lib.test.dir}/testng.jar"
-                 resource="testngtasks"
-                 onerror="failall"/>
         <!--default property-->
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
@@ -51,13 +47,18 @@
             <element name="customize" implicit="true"/>
             <sequential>
                 <mkdir dir="${test.result.dir}"/>
-                <testng outputdir="${test.result.dir}"
-                        failureProperty="test.fail">
+                <junit tempdir="${test.result.dir}"
+                       printsummary="withOutAndErr"
+                       haltonfailure="false"
+                       haltonerror="false"
+                       fork="true"
+                       failureproperty="test.fail">
+                    <formatter type="brief"/>
                     <classpath path="${real.test.classpath}"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
                     <customize/>
-                </testng>
+                </junit>
             </sequential>
         </macrodef>
     </target>
@@ -74,27 +75,34 @@
     <target name="-test-prepare" depends="-test-init,compile-test,-pre-test">
         <property name="test.jvmargs" value=""/>
     </target>
-    <target name="-test-xml" depends="-test-prepare" if="testng.xml.fileset">
+    <target name="-test" depends="-test-prepare">
         <delete dir="${test.result.dir}" failonerror="false"/>
         <marco-test>
-            <xmlfileset refid="testng.xml.fileset"/>
-        </marco-test>
-    </target>
-    <target name="-test-all" depends="-test-prepare" unless="testng.xml.fileset">
-        <delete dir="${test.result.dir}" failonerror="false"/>
-        <marco-test>
-            <classfileset dir="${build.test.dir}" includes="**/*.class"/>
+            <batchtest todir="${test.result.dir}">
+                <fileset dir="${test.dir}"/>
+            </batchtest>
         </marco-test>
     </target>
     <target name="-test-class" depends="-test-prepare">
         <fail unless="class">Must set 'class'</fail>
         <marco-test>
-            <classfileset dir="${build.test.dir}" includes="**/${class}.class"/>
+            <test name="${class}"
+                  todir="${test.result.dir}"/>
+        </marco-test>
+    </target>
+    <target name="-test-method" depends="-test-prepare">
+        <fail unless="class">Must set 'class'</fail>
+        <fail unless="method">Must set 'method'</fail>
+        <marco-test>
+            <test name="${class}"
+                  methods="${method}"
+                  todir="${test.result.dir}"/>
         </marco-test>
     </target>
     <target name="-test-check">
         <fail if="test.fail">test fail</fail>
     </target>
-    <target name="test" depends="-test-xml,-test-all,-post-test,-test-check"/>
+    <target name="test" depends="-test,-post-test,-test-check"/>
     <target name="test-class" depends="-test-class,-post-test,-test-check"/>
+    <target name="test-method" depends="-test-method,-post-test,-test-check"/>
 </project>
