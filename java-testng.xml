@@ -31,6 +31,11 @@
     <!--
     task
     -->
+    <target name="-help-test" extensionOf="-help-extend">
+        <echo>compile-test : compile test file under ${test.dir}</echo>
+        <echo>test : test project</echo>
+        <echo>test-class : run a test class</echo>
+    </target>
     <target name="-test-init" depends="init,compile">
         <!--task define-->
         <taskdef classpath="${lib.test.dir}/testng.jar"

@@ -20,6 +20,11 @@
     <!--
     run task
     -->
+    <target name="-help-application" extensionOf="-help-extend">
+        <echo>run : run ${main.class}</echo>
+        <echo>run-class : run class</echo>
+        <echo>run-jar : run ${jar.file}</echo>
+    </target>
     <target name="-run-init">
         <macro-exist property="exist.config.file" path="${config}" type="file"/>
     </target>

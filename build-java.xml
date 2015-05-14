@@ -29,6 +29,24 @@
     <extension-point name="-post-jar"/>
     <extension-point name="-post-clean"/>
     <extension-point name="-post-clean-all"/>
+    <extension-point name="-help-extend"/>
+    <!--
+    help section
+    -->
+    <target name="-help-general" depends="init">
+        <echo>Usage:</echo>
+        <echo>  ant TASK [-DKEY=VALUE...]</echo>
+        <echo></echo>
+        <echo>task are listed below for each task module</echo>
+    </target>
+    <target name="-help-build-java" depends="init">
+        <echo>init : initial task</echo>
+        <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
+        <echo>jar : generate jar file</echo>
+        <echo>clean : clean</echo>
+        <echo>clean-all : clean</echo>
+    </target>
+    <target name="help" depends="-help-general,-help-build-java,-help-extend"/>
     <!--
     initial section
     -->

@@ -31,6 +31,12 @@
     <!--
     task
     -->
+    <target name="-help-test" extensionOf="-help-extend">
+        <echo>compile-test : compile test file under ${test.dir}</echo>
+        <echo>test : test project</echo>
+        <echo>test-class : run a test class</echo>
+        <echo>test-method : run a test method</echo>
+    </target>
     <target name="-test-init" depends="init,compile">
         <!--default property-->
         <property name="build.test.dir" value="${build.dir}/test/classes"/>

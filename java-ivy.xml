@@ -17,6 +17,9 @@
     <!--
     retrieve section
     -->
+    <target name="-help-ivy" extensionOf="-help-extend">
+        <echo>retrieve : retrieve library at ${lib.dir}</echo>
+    </target>
     <target name="-try-retrieve" if="exist.ivy" unless="exist.lib" extensionOf="-post-init">
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
