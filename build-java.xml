@@ -149,7 +149,7 @@
             <classpath path="${real.compile.classpath}"/>
         </macro-javac>
     </target>
-    <target name="-compile-single" depends="-compile-prepare">
+    <target name="-compile-class" depends="-compile-prepare">
         <fail unless="class">Must set 'class'</fail>
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}"
@@ -158,7 +158,7 @@
         </macro-javac>
     </target>
     <target name="compile" depends="-compile,-post-compile"/>
-    <target name="compile-single" depends="-compile-single,-post-compile"/>
+    <target name="compile-class" depends="-compile-class,-post-compile"/>
     <!--
     jar section
     -->
