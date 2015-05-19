@@ -42,6 +42,7 @@
     <target name="-help-build-java" depends="init">
         <echo>init : initial task</echo>
         <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
+        <echo>compile-class : compile source file, use property 'class' to set included files (path under ${src.dir}/)</echo>
         <echo>jar : generate jar file</echo>
         <echo>clean : clean</echo>
         <echo>clean-all : clean</echo>
