@@ -35,14 +35,15 @@
     -->
     <target name="-help-general" depends="init">
         <echo>Usage:</echo>
-        <echo>  ant TASK [-DKEY=VALUE...]</echo>
+        <echo>ant TASK [-DKEY=VALUE...]</echo>
         <echo></echo>
         <echo>task are listed below for each task module</echo>
     </target>
     <target name="-help-build-java" depends="init">
         <echo>init : initial task</echo>
         <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
-        <echo>compile-class : compile source file, use property 'class' to set included files (path under ${src.dir}/)</echo>
+        <echo>compile-class : compile source file, use property 'class' to set included files (path under ${src.dir}/)
+        </echo>
         <echo>jar : generate jar file</echo>
         <echo>clean : clean</echo>
         <echo>clean-all : clean</echo>
@@ -150,7 +151,25 @@
             <classpath path="${real.compile.classpath}"/>
         </macro-javac>
     </target>
-    <target name="-compile-class" depends="-compile-prepare">
+    <target name="-compile-class-clean">
+        <fail unless="class">Must set 'class'</fail>
+        <script language="javascript"><![CDATA[
+            var p = self.getProject();
+            var j = p.getProperty('class');
+            if (j.endsWith('.java')) {
+                var c = j.replaceAll('.java$', '.class');
+            } else {
+                var c = j;
+            }
+            p.setProperty('class.tmp', c);
+        ]]></script>
+        <delete>
+            <fileset dir="${build.classes.dir}">
+                <include name="${class.tmp}"/>
+            </fileset>
+        </delete>
+    </target>
+    <target name="-compile-class" depends="-compile-prepare,-compile-class-clean">
         <fail unless="class">Must set 'class'</fail>
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}"
