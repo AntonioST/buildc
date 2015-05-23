@@ -14,10 +14,12 @@
         <arg value="--version"/>
     </exec>
     <macrodef name="macro-git">
+        <attribute name="dir" default="."/>
         <attribute name="property"/>
         <element name="custom" implicit="true"/>
         <sequential>
             <exec executable="git"
+                  dir="@{dir}"
                   outputproperty="@{property}"
                   failonerror="false">
                 <custom/>
@@ -25,18 +27,22 @@
         </sequential>
     </macrodef>
     <macrodef name="git-describe">
+        <attribute name="dir" default="."/>
         <attribute name="property"/>
         <sequential>
-            <macro-git property="@{property}">
+            <macro-git dir="@{dir}"
+                       property="@{property}">
                 <arg value="describe"/>
                 <arg value="--tags"/>
             </macro-git>
         </sequential>
     </macrodef>
     <macrodef name="git-current-branch">
+        <attribute name="dir" default="."/>
         <attribute name="property"/>
         <sequential>
-            <macro-git property="@{property}">
+            <macro-git dir="@{dir}"
+                       property="@{property}">
                 <arg value="branch"/>
             </macro-git>
             <script language="javascript"> <![CDATA[
@@ -52,9 +58,11 @@
         </sequential>
     </macrodef>
     <macrodef name="git-ls-files">
+        <attribute name="dir" default="."/>
         <attribute name="property"/>
         <sequential>
-            <macro-git property="@{property}.tmp">
+            <macro-git dir="@{dir}"
+                       property="@{property}.tmp">
                 <arg value="ls-files"/>
             </macro-git>
             <script language="javascript"><![CDATA[
