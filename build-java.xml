@@ -93,7 +93,7 @@
         <echo message="[jar] lib copy=${jar.lib.copy}" level="verbose"/>
         <echo message="[jar] res compress=${jar.res.compress}" level="verbose"/>
     </target>
-    <target name="-init-classpath" depends="-init">
+    <target name="init-classpath" depends="-init">
         <!--default classpath-->
         <property name="master.classpath" value=""/>
         <property name="compile.classpath" value=""/>
@@ -140,7 +140,7 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-compile-init" depends="init,-init-classpath,-def-macro-javac">
+    <target name="-compile-init" depends="init,init-classpath,-def-macro-javac">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${build.classes.dir}"/>
     </target>
@@ -203,7 +203,7 @@
             <attribute name="Main-Class" value="${main.class}"/>
         </manifest>
     </target>
-    <target name="-manifest-classpath" depends="-init-classpath,-manifest-init">
+    <target name="-manifest-classpath" depends="init-classpath,-manifest-init">
         <script language="javascript"><![CDATA[
             var p = self.getProject();
             var copy = p.getProperty('jar.lib.copy');
