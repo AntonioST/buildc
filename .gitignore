@@ -1,3 +1,4 @@
-/.ant/lib/
+/lib/
 /.idea/
 /tmp/
+/test/
