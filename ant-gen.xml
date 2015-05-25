@@ -3,15 +3,15 @@
 
     <property name="build.dir" value="build"/>
 
-    <macrodef name="add-task">
+    <macrodef name="gen-task">
         <attribute name="src" default="."/>
         <attribute name="name"/>
         <attribute name="class"/>
         <attribute name="classpath" default=""/>
         <sequential>
-            <mkdir dir="${build.dir}/gen/@{name}"/>
+            <mkdir dir="${build.dir}/gen/@{src}"/>
             <javac srcdir="@{src}"
-                   destdir="${build.dir}/gen/@{name}"
+                   destdir="${build.dir}/gen/@{src}"
                    includes="**/*"
                    listfiles="true"
                    includeantruntime="no"
@@ -20,26 +20,33 @@
                    failonerror="true">
                 <classpath path="@{classpath}"/>
             </javac>
-            <taskdef name="@{name}" classname="@{class}" classpath="${build.dir}/gen/@{name}"/>
+            <taskdef name="@{name}" classname="@{class}" classpath="${build.dir}/gen/@{src}"/>
         </sequential>
     </macrodef>
 
-    <!--<macrodef name="add-tasks">-->
-        <!--<attribute name="src" default="."/>-->
-        <!--<attribute name="classpath" default=""/>-->
-        <!--<sequential>-->
-            <!--<mkdir dir="${build.dir}/gen/@{src}"/>-->
-            <!--<mkdir dir="${build.dir}/gen/@{src}/classes"/>-->
-            <!--<javac srcdir="@{src}"-->
-                   <!--destdir="${build.dir}/gen/@{src}/classes"-->
-                   <!--includes="**/*"-->
-                   <!--listfiles="true"-->
-                   <!--includeantruntime="no"-->
-                   <!--includejavaruntime="no"-->
-                   <!--fork="true"-->
-                   <!--failonerror="true">-->
-                <!--<classpath path="@{classpath}"/>-->
-            <!--</javac>-->
-        <!--</sequential>-->
-    <!--</macrodef>-->
+    <macrodef name="gen-tasks">
+        <attribute name="src" default="."/>
+        <attribute name="antlibfile" default="antlib.xml"/>
+        <attribute name="antlibpath" default="@{src}/@{antlibfile}"/>
+        <attribute name="classpath" default=""/>
+        <attribute name="uri" default=""/>
+        <sequential>
+            <available property="exist.antlib.@{src}" file="@{antlibpath}"/>
+            <fail unless="exist.antlib.@{src}">lost antlib.xml under @{src}</fail>
+            <mkdir dir="${build.dir}/gen/@{src}"/>
+            <mkdir dir="${build.dir}/gen/@{src}/classes"/>
+            <javac srcdir="@{src}"
+                   destdir="${build.dir}/gen/@{src}/classes"
+                   includes="**/*"
+                   listfiles="true"
+                   includeantruntime="no"
+                   includejavaruntime="no"
+                   fork="true"
+                   failonerror="true">
+                <classpath path="@{classpath}"/>
+            </javac>
+            <copy file="@{antlibpath}" tofile="${build.dir}/gen/@{src}/classes/antlib.xml"/>
+            <typedef resource="antlib.xml" classpath="${build.dir}/gen/@{src}/classes"/>
+        </sequential>
+    </macrodef>
 </project>
