@@ -23,7 +23,7 @@
     <target name="-help-javadoc" extensionOf="-help-extend">
         <echo>javadoc : generate javadoc to ${build.javadoc.dir}</echo>
     </target>
-    <target name="javadoc" depends="init,-init-classpath">
+    <target name="javadoc" depends="init,init-classpath">
         <!--check-->
         <fail unless="javadoc.doclet">Must set 'javadoc.doclet'</fail>
         <!--default value-->

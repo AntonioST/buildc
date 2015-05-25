@@ -33,10 +33,11 @@
     -->
     <target name="-help-test" extensionOf="-help-extend">
         <echo>compile-test : compile test file under ${test.dir}</echo>
+        <echo>compile-test-class : compile test file under ${test.dir}</echo>
         <echo>test : test project</echo>
         <echo>test-class : run a test class</echo>
     </target>
-    <target name="-test-init" depends="init,compile">
+    <target name="-test-init" depends="init,init-classpath">
         <!--task define-->
         <taskdef classpath="${lib.test.dir}/testng.jar"
                  resource="testngtasks"
@@ -51,6 +52,7 @@
         <path-append property="real.test.classpath" path="${test.classpath}"/>
         <path-append property="real.test.classpath" path="${lib.test.classpath}"/>
         <echo message="[classpath] real.test.classpath=${real.test.classpath}" level="verbose"/>
+        <mkdir dir="${build.test.dir}"/>
         <!--macro define-->
         <macrodef name="marco-test">
             <element name="customize" implicit="true"/>
@@ -68,14 +70,24 @@
     </target>
     <target name="-compile-test-prepare" depends="compile,-test-init,-pre-compile-test"/>
     <target name="-compile-test" depends="-compile-test-prepare">
-        <mkdir dir="${build.test.dir}"/>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
             <classpath path="${real.test.classpath}"/>
         </macro-javac>
     </target>
+    <target name="-compile-test-class-prepare" depends="-compile-init,-test-init,-pre-compile-test"/>
+    <target name="-compile-test-class" depends="-compile-test-class-prepare">
+        <fail unless="class">Must set 'class'</fail>
+        <macro-javac src="${test.dir}"
+                     dest="${build.test.dir}"
+                     includes="${class}">
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${real.test.classpath}"/>
+        </macro-javac>
+    </target>
     <target name="compile-test" depends="-compile-test,-post-compile-test"/>
+    <target name="compile-test-class" depends="-compile-test-class,-post-compile-test"/>
     <target name="-test-prepare" depends="-test-init,compile-test,-pre-test">
         <property name="test.jvmargs" value=""/>
     </target>
