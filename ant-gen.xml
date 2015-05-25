@@ -46,7 +46,17 @@
                 <classpath path="@{classpath}"/>
             </javac>
             <copy file="@{antlibpath}" tofile="${build.dir}/gen/@{src}/classes/antlib.xml"/>
-            <typedef resource="antlib.xml" classpath="${build.dir}/gen/@{src}/classes"/>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                var dir = p.getProperty('build.dir');
+                var t = p.createTask('typedef');
+                t.setResource('antlib.xml');
+                t.setClasspath(new org.apache.tools.ant.types.Path(p, dir + '/gen/@{src}/classes'));
+                if (!'@{uri}'.isEmpty()){
+                    t.setUri('@{uri}');
+                }
+                t.perform();
+            ]]></script>
         </sequential>
     </macrodef>
 </project>
