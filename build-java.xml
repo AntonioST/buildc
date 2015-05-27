@@ -185,6 +185,9 @@
     <target name="-jar-init" depends="init,compile">
         <mkdir dir="${build.jar.dir}"/>
         <mkdir dir="${build.meta.dir}"/>
+        <delete dir="${build.jar.dir}">
+            <include name="*.jar"/>
+        </delete>
         <macro-exist property="exist.manifest.file" path="${manifest.file}" type="file"/>
         <macro-exist property="exist.splash.file" path="${splash.image}" type="file"/>
         <macro-exist property="exist.readme.file" path="${readme.file}" type="file"/>
