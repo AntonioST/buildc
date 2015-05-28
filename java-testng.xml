@@ -1,36 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!-- testing
-    ==TestNG==
-    <dependency org="org.testng" name="testng" rev="6.8.21"/>
-    -->
-    <!--
-    check import
-    -->
+    <!--==============
+   dependence library
+   ==================
+
+   name    : TestNG
+   site    : http://mvnrepository.com/artifact/org.testng/testng
+
+   ================-->
+
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <fail if="define.test">'test' has imported</fail>
-    <!--
-    global property
-    -->
     <property name="define.test" value=""/>
+
+    <!--=========
+    global define
+    ==========-->
     <property name="test.dir" value="test"/>
     <property name="lib.test.dir" value="${lib.dir}/test"/>
+
+    <!--============
+    initial checking
+    =============-->
     <available property="exist.test" file="${test.dir}" type="dir"/>
     <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
-    <!--
+
+    <!--==
     import
-    -->
+    ===-->
     <import file="ant-classpath.xml"/>
-    <!--
-    custom section
-    -->
+
+    <!--====================
+    custom extension section
+    =====================-->
     <extension-point name="-pre-compile-test"/>
     <extension-point name="-post-compile-test"/>
     <extension-point name="-pre-test"/>
     <extension-point name="-post-test"/>
-    <!--
-    task
-    -->
+
+    <!--=======
+    task define
+    ========-->
     <target name="-help-test" extensionOf="-help-extend">
         <echo>compile-test : compile test file under ${test.dir}</echo>
         <echo>compile-test-class : compile test file under ${test.dir}</echo>

@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!--
-    check import
-    -->
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <fail unless="build.dir">Must set 'build.dir'</fail>
     <fail unless="src.dir">Must set 'src.dir'</fail>
     <fail if="define.javadoc">'javadoc' has imported</fail>
-    <!--
-    global define
-    -->
     <property name="define.javadoc" value=""/>
+
+    <!--=========
+    global define
+    ==========-->
     <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
-    <!--
-    task
-    -->
+
+    <!--=================
+    Help Document Section
+    ==================-->
     <target name="-help-javadoc" extensionOf="-help-extend">
         <echo>javadoc : generate javadoc to ${build.javadoc.dir}</echo>
     </target>
+
+    <!--=======
+    task define
+    ========-->
     <target name="javadoc" depends="init,init-classpath">
         <!--check-->
         <!--default value-->

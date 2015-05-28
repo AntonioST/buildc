@@ -1,31 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!--initial-->
+
+    <!--===========
+    initial section
+    ============-->
     <property environment="env"/>
     <fail unless="env.CLOJURE_HOME">env 'CLOJURE_HOME' not set</fail>
     <property name="clojure.home" value="${env.CLOJURE_HOME}"/>
     <script language="javascript"><![CDATA[
-        var home = self.getProject().getProperty('clojure.home');
-        var p = java.nio.file.Paths.get(home);
-        var jar = java.nio.file.Files.find(p, 1, function(path, attr){
-            var filename = path.getFileName().toString();
-            if (filename.endsWith('jar') && filename.startsWith('clojure')) {
-                return true;
+        var P = self.getProject();
+        if(P.getProperty('clojure.jar') == null){
+            var home = P.getProperty('clojure.home');
+            var p = java.nio.file.Paths.get(home);
+            var jar = java.nio.file.Files.find(p, 1, function(path, attr){
+                var filename = path.getFileName().toString();
+                if (filename.endsWith('jar') && filename.startsWith('clojure')) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }, java.nio.file.FileVisitOption.FOLLOW_LINKS).findFirst().orElse(null);
+            if (jar == null){
+                var fail = self.getProject().createTask('fail');
+                fail.setMessage('clojure jar file not found');
+                fail.perform();
             } else {
-                return false;
+                self.getProject().setProperty('clojure.jar', jar.toAbsolutePath().toString());
             }
-        }, java.nio.file.FileVisitOption.FOLLOW_LINKS).findFirst().orElse(null);
-        if (jar == null){
-            var fail = self.getProject().createTask('fail');
-            fail.setMessage('clojure jar file not found');
-            fail.perform();
-        } else {
-            self.getProject().setProperty('clojure.jar', jar.toAbsolutePath().toString());
         }
     ]]></script>
     <echo message="[clojure] home=${clojure.home}" level="verbose"/>
     <echo message="[clojure] jar=${clojure.jar}" level="verbose"/>
-    <!--task defined-->
+
+    <!--========
+    task defined
+    =========-->
     <macrodef name="clojure">
         <attribute name="dir" default="${basedir}"/>
         <attribute name="failonerror" default="false"/>

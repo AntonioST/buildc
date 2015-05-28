@@ -1,36 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!-- testing
-    ==junit==
-    <dependency org="junit" name="junit" rev="4.11"/>
-    -->
-    <!--
-    check import
-    -->
+    <!--==============
+    dependence library
+    ==================
+
+    name    : junit
+    site    : http://mvnrepository.com/artifact/junit/junit
+
+    ================-->
+
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <fail if="define.test">'test' has imported</fail>
-    <!--
-    global property
-    -->
     <property name="define.test" value=""/>
+
+    <!--=========
+    global define
+    ==========-->
     <property name="test.dir" value="test"/>
     <property name="lib.test.dir" value="${lib.dir}/test"/>
+
+    <!--============
+    initial checking
+    =============-->
     <available property="exist.test" file="${test.dir}" type="dir"/>
     <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
-    <!--
+
+    <!--==
     import
-    -->
+    ===-->
     <import file="ant-classpath.xml"/>
-    <!--
-    custom section
-    -->
+
+    <!--====================
+    custom extension section
+    =====================-->
     <extension-point name="-pre-compile-test"/>
     <extension-point name="-post-compile-test"/>
     <extension-point name="-pre-test"/>
     <extension-point name="-post-test"/>
-    <!--
-    task
-    -->
+
+    <!--=================
+    Help Document Section
+    ==================-->
     <target name="-help-test" extensionOf="-help-extend">
         <echo>compile-test : compile test file under ${test.dir}</echo>
         <echo>compile-test-class : compile test file under ${test.dir}</echo>
@@ -38,6 +51,10 @@
         <echo>test-class : run a test class, use property 'class' to set class</echo>
         <echo>test-method : run a test method, use property 'class' and 'method' to set method</echo>
     </target>
+
+    <!--=======
+    task define
+    ========-->
     <target name="-test-init" depends="init,init-classpath">
         <!--default property-->
         <property name="build.test.dir" value="${build.dir}/test/classes"/>

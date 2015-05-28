@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!--initial-->
+    <!--===========
+    initial section
+    ============-->
     <property environment="env"/>
     <fail unless="env.GROOVY_HOME">env 'GROOVY_HOME' not set</fail>
     <property name="groovy.home" value="${env.GROOVY_HOME}"/>
@@ -18,7 +20,10 @@
     ]]></script>
     <echo message="[groovy] home=${groovy.home}" level="verbose"/>
     <echo message="[groovy] version=${groovy.version}" level="verbose"/>
-    <!--task define-->
+
+    <!--=======
+    task define
+    ========-->
     <taskdef uri="antlib:org.codehaus.groovy"
              resource="org/codehaus/groovy/antlib.xml"
              onerror="failall">

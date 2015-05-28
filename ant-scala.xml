@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!--initial-->
+    <!--===========
+    initial section
+    ============-->
     <property environment="env"/>
     <fail unless="env.SCALA_HOME">env 'SCALA_HOME' not set</fail>
     <property name="scala.home" value="${env.SCALA_HOME}"/>
@@ -19,7 +21,10 @@
     ]]></script>
     <echo message="[scala] home=${scala.home}" level="verbose"/>
     <echo message="[scala] version=${scala.version}" level="verbose"/>
-    <!--task define-->
+
+    <!--=======
+    task define
+    ========-->
     <taskdef uri="antlib:scala.tools.ant"
              resource="scala/tools/ant/antlib.xml"
              onerror="failall">

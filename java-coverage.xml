@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:jacoco="antlib:org.jacoco.ant">
     <!--
+    <dependency org="org.jacoco" name="org.jacoco.ant" rev="0.7.2.201409121644" conf="default"/>
+    -->
+    <!--
     check import
     -->
     <fail unless="define.java">should import 'build-java.xml'</fail>
@@ -16,6 +19,12 @@
     <!--
     task
     -->
+    <target name="-help-coverage" extensionOf="-help-extend">
+        <echo>coverage : run program and profiling coverage</echo>
+        <echo>coverage-class : run single main class and profiling coverage</echo>
+        <echo>coverage-test : run test and profiling coverage</echo>
+        <echo>coverage-test-class : run single test and profiling coverage</echo>
+    </target>
     <target name="-coverage-init">
         <mkdir dir="${build.coverage.dir}"/>
         <property name="coverage.result.file" value="${build.coverage.dir}/jacoco.exec"/>

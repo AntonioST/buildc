@@ -1,25 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:ivy="antlib:org.apache.ivy.ant">
-    <!--
-    check import
-    -->
+    <description>provide basic ivy retrieve function.</description>
+
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
-    <!--
+
+    <!--=========
     global define
-    -->
+    ==========-->
     <property name="define.ivy" value=""/>
-    <!--
+
+    <!--===========
     initial section
-    -->
+    ============-->
     <property name="lib.dir" value="lib"/>
     <available property="exist.ivy" file="ivy.xml" type="file"/>
     <available property="exist.lib" file="${lib.dir}" type="dir"/>
-    <!--
-    retrieve section
-    -->
+
+    <!--=================
+    Help Document Section
+    ==================-->
     <target name="-help-ivy" extensionOf="-help-extend">
         <echo>retrieve : retrieve library at ${lib.dir}</echo>
     </target>
+
+    <!--===================
+    task (retrieve) section
+    ====================-->
     <target name="-try-retrieve" if="exist.ivy" unless="exist.lib" extensionOf="-pre-compile">
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>

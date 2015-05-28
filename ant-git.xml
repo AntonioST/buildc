@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!--
+    <description>provide some git task</description>
+
+    <!--===========
     global property
-    -->
+    ============-->
+    <property name="git.command" value="git"/>
     <available property="exist.git" file=".git" type="dir"/>
-    <!--
-    macro
-    -->
-    <exec executable="git"
-          outputproperty="macro.git.output"
-          resultproperty="macro.git.result"
-          failonerror="true">
+
+    <!--================
+    git command checking
+    =================-->
+    <exec executable="git" failonerror="true" outputproperty="null" errorproperty="null">
         <arg value="--version"/>
     </exec>
+
+    <!--========
+    macro define
+    =========-->
     <macrodef name="macro-git">
         <attribute name="dir" default="."/>
         <attribute name="property"/>
         <element name="custom" implicit="true"/>
         <sequential>
-            <exec executable="git"
+            <exec executable="${git.command}"
                   dir="@{dir}"
                   outputproperty="@{property}"
                   failonerror="false">
@@ -30,21 +35,25 @@
         <attribute name="dir" default="."/>
         <attribute name="property"/>
         <sequential>
-            <macro-git dir="@{dir}"
-                       property="@{property}">
+            <exec executable="${git.command}"
+                  dir="@{dir}"
+                  outputproperty="@{property}"
+                  failonerror="false">
                 <arg value="describe"/>
                 <arg value="--tags"/>
-            </macro-git>
+            </exec>
         </sequential>
     </macrodef>
     <macrodef name="git-current-branch">
         <attribute name="dir" default="."/>
         <attribute name="property"/>
         <sequential>
-            <macro-git dir="@{dir}"
-                       property="@{property}">
+            <exec executable="${git.command}"
+                  dir="@{dir}"
+                  outputproperty="@{property}"
+                  failonerror="false">
                 <arg value="branch"/>
-            </macro-git>
+            </exec>
             <script language="javascript"> <![CDATA[
                 var p = self.getProject();
                 if (p.getProperty("@{property}") != null) {
@@ -61,10 +70,12 @@
         <attribute name="dir" default="."/>
         <attribute name="property"/>
         <sequential>
-            <macro-git dir="@{dir}"
-                       property="@{property}.tmp">
+            <exec executable="${git.command}"
+                  dir="@{dir}"
+                  outputproperty="@{property}.tmp"
+                  failonerror="false">
                 <arg value="ls-files"/>
-            </macro-git>
+            </exec>
             <script language="javascript"><![CDATA[
                 var p = self.getProject();
                 if (p.getProperty("@{property}.tmp") != null) {

@@ -1,27 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:ivy="antlib:org.apache.ivy.ant">
-    <!--
-    check import
-    -->
+
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <fail unless="define.ivy">should import 'java-ivy.xml'</fail>
     <fail unless="define.javadoc">should import 'java-javadoc.xml'</fail>
-    <!--
-    global define
-    -->
     <property name="define.publish" value=""/>
+
+    <!--=========
+    global define
+    ==========-->
     <property name="release.dir" value="release"/>
 
-    <!--
-    custom section
-    -->
+    <!--====================
+    custom extension section
+    =====================-->
     <extension-point name="-pre-release"/>
     <extension-point name="-post-release"/>
     <extension-point name="-pre-publish"/>
     <extension-point name="-post-publish"/>
-    <!--
-    release task
-    -->
+
+    <!--=================
+    Help Document Section
+    ==================-->
+    <target name="-help-publish" extensionOf="-help-extend">
+        <echo>release : release all</echo>
+        <echo>release-bin : release binary file</echo>
+        <echo>release-src : release source file</echo>
+        <echo>release-doc : release javadoc file</echo>
+        <echo>publish-local : local publish</echo>
+    </target>
+
+    <!--=================
+    task define : release
+    ===================-->
     <target name="-release-init" depends="init">
         <mkdir dir="${release.dir}"/>
     </target>
@@ -63,16 +77,17 @@
         </zip>
     </target>
     <target name="release" depends="release-bin,release-src,release-doc"/>
-    <!--
-    publish task
-    -->
+
+    <!--=================
+    task define : publish
+    ===================-->
     <target name="-publish-init" depends="release">
         <!--copy jar file into release directory-->
         <copy file="${build.jar.dir}/${jar.file}"
               tofile="${release.dir}/${project.version}/${project.name}.jar"/>
     </target>
     <target name="-publish-prepare" depends="-publish-init,-pre-publish"/>
-    <target name="-publish" depends="-publish-prepare" if="exist.ivy">
+    <target name="-publish-local" depends="-publish-prepare" if="exist.ivy">
         <property name="publish.resolver" value="local"/>
         <property name="publish.status" value="release"/>
         <property name="publish.overwrite" value="true"/>
@@ -89,5 +104,5 @@
             <ivy:artifacts pattern="${release.dir}/${project.version}/[artifact]-[type].[ext]"/>
         </ivy:publish>
     </target>
-    <target name="publish" depends="-publish,-post-publish" if="exist.ivy"/>
+    <target name="publish-local" depends="-publish-local,-post-publish" if="exist.ivy"/>
 </project>

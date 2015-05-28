@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-    <!--
-    check import
-    -->
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
-    <!--
-    global define
-    -->
     <property name="define.application" value=""/>
-    <!--
+
+    <!--==
     import
-    -->
+    ===-->
     <import file="ant-exist.xml"/>
-    <!--
-    custom section
-    -->
+
+    <!--====================
+    custom extension section
+    =====================-->
     <extension-point name="-pre-run"/>
     <extension-point name="-post-run"/>
-    <!--
-    run task
-    -->
+
+    <!--=================
+    Help Document Section
+    ==================-->
     <target name="-help-application" extensionOf="-help-extend">
         <echo>run : run ${main.class}</echo>
         <echo>run-class : run class</echo>
         <echo>run-jar : run ${jar.file}</echo>
     </target>
+
+    <!--=======
+    task define
+    =========-->
     <target name="-run-init">
         <macro-exist property="exist.config.file" path="${config}" type="file"/>
     </target>
@@ -41,6 +45,7 @@
               failonerror="true">
             <classpath path="${real.runtime.classpath}"/>
             <classpath path="${build.classes.dir}"/>
+            <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}"/>
             <arg line="${program.args}"/>
         </java>
@@ -53,6 +58,7 @@
               failonerror="true">
             <classpath path="${real.runtime.classpath}"/>
             <classpath path="${build.classes.dir}"/>
+            <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}"/>
             <arg line="${program.args}"/>
         </java>
