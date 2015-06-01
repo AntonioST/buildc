@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
     <!--===========
     import checking
     ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <property name="define.application" value=""/>
-
-    <!--==
-    import
-    ===-->
-    <import file="ant-exist.xml"/>
 
     <!--====================
     custom extension section
@@ -30,7 +26,7 @@
     task define
     =========-->
     <target name="-run-init">
-        <macro-exist property="exist.config.file" path="${config}" type="file"/>
+        <available property="exist.config.file" file="${config}" if:set="${config}"/>
     </target>
     <target name="-run-config" depends="-run-init" if="exist.config.file">
         <property file="${config}"/>
@@ -38,16 +34,14 @@
     <target name="-run-prepare" depends="-run-config,init,compile,-run-init,-pre-run"/>
     <target name="-run" depends="-run-prepare">
         <fail unless="main.class">Must set 'main.class'</fail>
-        <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
         <java classname="${main.class}"
               fork="true"
               failonerror="true">
             <classpath path="${real.runtime.classpath}"/>
             <classpath path="${build.classes.dir}"/>
             <classpath path="${res.dir}"/>
-            <jvmarg line="${java.jvmargs}"/>
-            <arg line="${program.args}"/>
+            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>
     <target name="-run-class" depends="init,compile,-run-init,-pre-run">
@@ -64,13 +58,11 @@
         </java>
     </target>
     <target name="-run-jar" depends="init,compile,jar,-run-init,-pre-run">
-        <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
         <java jar="${build.jar.dir}/${jar.file}"
               fork="true"
               failonerror="true">
-            <jvmarg line="${java.jvmargs}"/>
-            <arg line="${program.args}"/>
+            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>
     <target name="run" depends="-run,-post-run"/>

@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+
+    <!--========
+    default task
+    ==========-->
     <target name="default" depends="init,compile,jar"/>
-    <!--
-    global property
-    -->
+
+    <!--=========
+    global define
+    ==========-->
     <property name="define.java" value=""/>
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
@@ -12,15 +18,15 @@
     <property name="lib.master.dir" value="${lib.dir}/master"/>
     <property name="lib.compile.dir" value="${lib.dir}/compile"/>
     <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
-    <!--
+
+    <!--==
     import
-    -->
+    ===-->
     <import file="ant-git.xml"/>
-    <import file="ant-exist.xml"/>
-    <import file="ant-classpath.xml"/>
-    <!--
-    custom section
-    -->
+
+    <!--====================
+    custom extension section
+    =====================-->
     <extension-point name="-pre-init"/>
     <extension-point name="-post-init"/>
     <extension-point name="-pre-compile"/>
@@ -30,9 +36,10 @@
     <extension-point name="-post-clean"/>
     <extension-point name="-post-clean-all"/>
     <extension-point name="-help-extend"/>
-    <!--
-    help section
-    -->
+
+    <!--=================
+    help document section
+    ===================-->
     <target name="-help-general" depends="init">
         <echo>Usage:</echo>
         <echo>ant TASK [-DKEY=VALUE...]</echo>
@@ -49,9 +56,10 @@
         <echo>clean-all : clean</echo>
     </target>
     <target name="help" depends="-help-general,-help-build-java,-help-extend"/>
-    <!--
+
+    <!--===========
     initial section
-    -->
+    ============-->
     <target name="-init-properties" depends="-pre-init">
         <property file="${basedir}/build.properties"/>
     </target>
@@ -94,26 +102,26 @@
         <echo message="[jar] res compress=${jar.res.compress}" level="verbose"/>
     </target>
     <target name="init-classpath" depends="-init">
-        <!--default classpath-->
-        <property name="master.classpath" value=""/>
-        <property name="compile.classpath" value=""/>
-        <property name="runtime.classpath" value=""/>
-        <list-path property="lib.compile.classpath" dir="${lib.compile.dir}"/>
-        <list-path property="lib.runtime.classpath" dir="${lib.runtime.dir}"/>
-        <path-append property="real.compile.classpath" path="${master.classpath}"/>
-        <path-append property="real.compile.classpath" path="${compile.classpath}"/>
-        <path-append property="real.compile.classpath" path="${lib.compile.classpath}"/>
-        <path-append property="real.runtime.classpath" path="${master.classpath}"/>
-        <path-append property="real.runtime.classpath" path="${runtime.classpath}"/>
-        <path-append property="real.runtime.classpath" path="${lib.runtime.classpath}"/>
-        <!--verbose-->
-        <echo message="[classpath] real.compile.classpath=${real.compile.classpath}" level="verbose"/>
-        <echo message="[classpath] real.runtime.classpath=${real.runtime.classpath}" level="verbose"/>
+        <path id="real.compile.classpath">
+            <pathelement path="master.classpath" if:set="master.classpath"/>
+            <pathelement path="compile.classpath" if:set="compile.classpath"/>
+            <fileset dir="${lib.compile.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+        <path id="real.runtime.classpath">
+            <pathelement path="master.classpath" if:set="master.classpath"/>
+            <pathelement path="runtime.classpath" if:set="runtime.classpath"/>
+            <fileset dir="${lib.runtime.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
-    <!--
+
+    <!--===========
     compile section
-    -->
+    ============-->
     <target name="-def-macro-javac">
         <macrodef name="macro-javac">
             <attribute name="src"/>
@@ -148,7 +156,7 @@
     <target name="-compile" depends="-compile-prepare">
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}">
-            <classpath path="${real.compile.classpath}"/>
+            <classpath refid="real.compile.classpath"/>
         </macro-javac>
     </target>
     <target name="-compile-class-clean">
@@ -174,33 +182,31 @@
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}"
                      includes="${class}">
-            <classpath path="${real.compile.classpath}"/>
+            <classpath refid="real.compile.classpath"/>
         </macro-javac>
     </target>
     <target name="compile" depends="-compile,-post-compile"/>
     <target name="compile-class" depends="-compile-class,-post-compile"/>
-    <!--
+
+    <!--=======
     jar section
-    -->
+    ========-->
     <target name="-jar-init" depends="init,compile">
         <mkdir dir="${build.jar.dir}"/>
         <mkdir dir="${build.meta.dir}"/>
         <delete dir="${build.jar.dir}">
             <include name="*.jar"/>
         </delete>
-        <macro-exist property="exist.manifest.file" path="${manifest.file}" type="file"/>
-        <macro-exist property="exist.splash.file" path="${splash.image}" type="file"/>
-        <macro-exist property="exist.readme.file" path="${readme.file}" type="file"/>
-        <macro-exist property="exist.meta.dir" path="${res.dir}/META-INF" type="dir"/>
+        <available property="exist.manifest.file" file="${manifest.file}" if:set="manifest.file"/>
+        <available property="exist.splash.file" file="${splash.file}" if:set="splash.file"/>
+        <available property="exist.readme.file" file="${readme.file}" if:set="readme.file"/>
+        <available property="exist.meta.dir" file="${res.dir}/META-INF"  type="dir"/>
         <property name="jar.manifest.file" value="${build.dir}/MANIFEST.MF"/>
     </target>
-    <target name="-manifest-create" depends="-jar-init" unless="exist.manifest.file">
-        <touch file="${jar.manifest.file}"/>
+    <target name="-manifest-init" depends="-jar-init">
+        <touch file="${jar.manifest.file}" unless:set="exist.manifest.file"/>
+        <copy file="manifest.file" tofile="${jar.manifest.file}" if:set="exist.manifest.file"/>
     </target>
-    <target name="-manifest-copy" depends="-jar-init" if="exist.manifest.file">
-        <copy file="manifest.file" tofile="${jar.manifest.file}"/>
-    </target>
-    <target name="-manifest-init" depends="-manifest-copy,-manifest-create"/>
     <target name="-manifest-main-class" depends="-manifest-init" if="main.class">
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="Main-Class" value="${main.class}"/>
@@ -254,26 +260,19 @@
     <target name="-jar-readme" depends="-jar-init" if="exist.readme.file">
         <copy file="${readme.file}" todir="${build.jar.dir}"/>
     </target>
-    <target name="-jar-prepare" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-pre-jar"/>
-    <target name="-jar-with-res-fileset" depends="-jar-prepare" if="jar.resource.fileset">
+    <target name="-jar" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-pre-jar">
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
-            <fileset refid="jar.resource.fileset"/>
+            <fileset refid="jar.resource.fileset" if:set="jar.resource.fileset"/>
         </jar>
     </target>
-    <target name="-jar-without-res-fileset" depends="-jar-prepare" unless="jar.resource.fileset">
-        <jar destfile="${build.jar.dir}/${jar.file}"
-             manifest="${jar.manifest.file}">
-            <metainf dir="${build.meta.dir}"/>
-            <fileset dir="${build.classes.dir}"/>
-        </jar>
-    </target>
-    <target name="jar" depends="-jar-with-res-fileset,-jar-without-res-fileset,-post-jar"/>
-    <!--
+    <target name="jar" depends="-jar,-post-jar"/>
+
+    <!--=========
     clean section
-    -->
+    ==========-->
     <target name="-clean" depends="init">
         <delete dir="${build.dir}"/>
     </target>

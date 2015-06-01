@@ -1,98 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:jacoco="antlib:org.jacoco.ant">
-    <!--
-    <dependency org="org.jacoco" name="org.jacoco.ant" rev="0.7.2.201409121644" conf="default"/>
-    -->
-    <!--
-    check import
-    -->
+<project xmlns:jacoco="antlib:org.jacoco.ant"
+         xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+    <!--==============
+    dependence library
+    ==================
+
+    name    : org.jacoco.ant
+    site    :http://mvnrepository.com/artifact/org.jacoco/org.jacoco.ant
+    ===============-->
+
+    <!--===========
+    import checking
+    ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
-    <!--
-    global define
-    -->
+    <fail unless="define.application">should import 'java-application.xml'</fail>
+    <fail unless="define.test">should import 'java-test*.xml'</fail>
     <property name="define.coverage" value=""/>
-    <!--
+
+    <!--===========
     initial section
-    -->
+    ============-->
     <property name="build.coverage.dir" value="${build.dir}/jacoco"/>
     <property name="coverage.report.type" value="html"/>
-    <!--
-    task
-    -->
+
+    <!--=================
+    Help Document Section
+    ==================-->
     <target name="-help-coverage" extensionOf="-help-extend">
         <echo>coverage : run program and profiling coverage</echo>
         <echo>coverage-class : run single main class and profiling coverage</echo>
         <echo>coverage-test : run test and profiling coverage</echo>
         <echo>coverage-test-class : run single test and profiling coverage</echo>
     </target>
+
+    <!--==================
+    task define : coverage
+    ===================-->
     <target name="-coverage-init">
         <mkdir dir="${build.coverage.dir}"/>
         <property name="coverage.result.file" value="${build.coverage.dir}/jacoco.exec"/>
         <property name="coverage.report.dir" value="${build.coverage.dir}/report"/>
     </target>
-    <target name="-coverage-main" depends="-run-prepare,-coverage-init" if="define.application">
+    <target name="-coverage-main" depends="-run-prepare,-coverage-init">
         <fail unless="main.class">Must set 'main.class'</fail>
-        <property name="java.jvmargs" value=""/>
-        <property name="program.args" value=""/>
         <jacoco:coverage destfile="${coverage.result.file}">
             <java classname="${main.class}"
                   fork="true"
                   failonerror="true">
-                <classpath path="${real.runtime.classpath}"/>
+                <classpath refid="real.runtime.classpath"/>
                 <classpath path="${build.classes.dir}"/>
-                <jvmarg line="${java.jvmargs}"/>
-                <arg line="${program.args}"/>
+                <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+                <arg line="${program.args}" if:set="program.args"/>
             </java>
         </jacoco:coverage>
     </target>
-    <target name="-coverage-test" depends="-test-prepare,-coverage-init" if="exist.test">
+    <target name="-coverage-test" depends="-test-prepare,-coverage-init">
         <jacoco:coverage destfile="${coverage.result.file}">
             <junit printsummary="withOutAndErr"
                    haltonfailure="true"
                    haltonerror="true"
                    fork="true">
+                <classpath refid="real.test.classpath"/>
+                <classpath path="${build.classes.dir}"/>
+                <classpath path="${build.test.dir}"/>
                 <batchtest todir="${test.result.dir}">
                     <fileset dir="${test.dir}"/>
                 </batchtest>
             </junit>
         </jacoco:coverage>
     </target>
-    <target name="-coverage-test-class" depends="-test-prepare,-coverage-init" if="exist.test">
+    <target name="-coverage-test-class" depends="-test-prepare,-coverage-init">
         <fail unless="class">Must set 'class'</fail>
         <jacoco:coverage destfile="${coverage.result.file}">
             <junit printsummary="withOutAndErr"
                    haltonfailure="true"
                    haltonerror="true"
                    fork="true">
+                <classpath refid="real.test.classpath"/>
+                <classpath path="${build.classes.dir}"/>
+                <classpath path="${build.test.dir}"/>
                 <test name="${class}" todir="${test.result.dir}"/>
             </junit>
         </jacoco:coverage>
     </target>
-    <target name="-def-macro-coverage-report">
-        <macrodef name="coverage-report">
-            <attribute name="result" default="${coverage.result.file}"/>
-            <attribute name="classpath" default="${build.classes.dir}"/>
-            <attribute name="sourcepath" default="${src.dir}"/>
-            <element name="custom" implicit="true" option="true"/>
-            <sequential>
-                <jacoco:report>
-                    <executiondata>
-                        <file file="@{result}"/>
-                    </executiondata>
-                    <structure name="Project">
-                        <classfiles>
-                            <fileset dir="@{classpath}"/>
-                        </classfiles>
-                        <sourcefiles encoding="UTF-8">
-                            <fileset dir="@{sourcepath}"/>
-                        </sourcefiles>
-                    </structure>
-                    <custom/>
-                </jacoco:report>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-coverage-report-init" depends="-coverage-init,-def-macro-coverage-report">
+
+    <!--================
+    task define : report
+    =================-->
+    <target name="-coverage-report" depends="-coverage-init">
         <fail if="coverage.report.type.html">property 'coverage.report.type.html' is used</fail>
         <fail if="coverage.report.type.xml">property 'coverage.report.type.xml' is used</fail>
         <fail if="coverage.report.type.csv">property 'coverage.report.type.csv' is used</fail>
@@ -108,23 +104,27 @@
         <available property="exist.coverage.result" fi1le="${coverage.result.file}"/>
         <fail unless="exist.coverage.result">Coverage Result File doesn't exist</fail>
         <mkdir dir="${coverage.result.file}"/>
+        <jacoco:report>
+            <executiondata>
+                <file file="${coverage.result.file}"/>
+            </executiondata>
+            <structure name="Project">
+                <classfiles>
+                    <fileset dir="${build.classes.dir}"/>
+                </classfiles>
+                <sourcefiles encoding="UTF-8">
+                    <fileset dir="${src.dir}"/>
+                </sourcefiles>
+            </structure>
+            <html destdir="${coverage.report.dir}" if:set="coverage.report.type.html"/>
+            <xml destdir="${coverage.report.dir}"  if:set="coverage.report.type.xml"/>
+            <csv destdir="${coverage.report.dir}"  if:set="coverage.report.type.csv"/>
+        </jacoco:report>
     </target>
-    <target name="-coverage-report-html" depends="-coverage-report-init" if="coverage.report.type.html">
-        <coverage-report>
-            <html destdir="${coverage.report.dir}"/>
-        </coverage-report>
-    </target>
-    <target name="-coverage-report-xml" depends="-coverage-report-init" if="coverage.report.type.xml">
-        <coverage-report>
-            <xml destdir="${coverage.report.dir}"/>
-        </coverage-report>
-    </target>
-    <target name="-coverage-report-csv" depends="-coverage-report-init" if="coverage.report.type.csv">
-        <coverage-report>
-            <csv destdir="${coverage.report.dir}"/>
-        </coverage-report>
-    </target>
-    <target name="-coverage-report" depends="-coverage-report-html,-coverage-report-xml,-coverage-report-csv"/>
+
+    <!--=======
+    task define
+    ========-->
     <target name="coverage" depends="-coverage-main,-post-run,-coverage-report" if="define.application"/>
     <target name="coverage-test" depends="-coverage-test,-post-test,-coverage-report"/>
     <target name="coverage-test-class" depends="-coverage-test-class,-post-test,-coverage-report"/>

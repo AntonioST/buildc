@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
     <!--==============
     dependence library
     ==================
@@ -28,11 +29,6 @@
     <available property="exist.test" file="${test.dir}" type="dir"/>
     <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
 
-    <!--==
-    import
-    ===-->
-    <import file="ant-classpath.xml"/>
-
     <!--====================
     custom extension section
     =====================-->
@@ -60,12 +56,13 @@
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
         <!--initial classpath for testing-->
-        <property name="test.classpath" value=""/>
-        <list-path property="lib.test.classpath" dir="${lib.test.dir}"/>
-        <path-append property="real.test.classpath" path="${master.classpath}"/>
-        <path-append property="real.test.classpath" path="${test.classpath}"/>
-        <path-append property="real.test.classpath" path="${lib.test.classpath}"/>
-        <echo message="[classpath] real.test.classpath=${real.test.classpath}" level="verbose"/>
+        <path id="real.test.classpath">
+            <pathelement path="${master.classpath}" if:set="master.classpath"/>
+            <pathelement path="${test.classpath}" if:set="test.classpath"/>
+            <fileset dir="${lib.test.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
         <mkdir dir="${build.test.dir}"/>
         <!--macro define-->
         <macrodef name="marco-test">
@@ -79,7 +76,7 @@
                        fork="true"
                        failureproperty="test.fail">
                     <formatter type="brief"/>
-                    <classpath path="${real.test.classpath}"/>
+                    <classpath refid="real.test.classpath"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
                     <customize/>
@@ -92,7 +89,7 @@
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
-            <classpath path="${real.test.classpath}"/>
+            <classpath refid="real.test.classpath"/>
         </macro-javac>
     </target>
     <target name="-compile-test-class-prepare" depends="-compile-init,-test-init,-pre-compile-test"/>
@@ -102,7 +99,7 @@
                      dest="${build.test.dir}"
                      includes="${class}">
             <classpath path="${build.classes.dir}"/>
-            <classpath path="${real.test.classpath}"/>
+            <classpath refid="real.test.classpath"/>
         </macro-javac>
     </target>
     <target name="compile-test" depends="-compile-test,-post-compile-test"/>
