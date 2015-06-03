@@ -48,9 +48,9 @@
         <echo>test-method : run a test method, use property 'class' and 'method' to set method</echo>
     </target>
 
-    <!--=======
-    task define
-    ========-->
+    <!--======================
+    task define : compile test
+    =======================-->
     <target name="-test-init" depends="init,init-classpath">
         <!--default property-->
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
@@ -85,16 +85,14 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-compile-test-prepare" depends="compile,-test-init,-pre-compile-test"/>
-    <target name="-compile-test" depends="-compile-test-prepare">
+    <target name="-compile-test" depends="compile,-test-init,-pre-compile-test">
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
             <classpath refid="real.test.classpath"/>
         </macro-javac>
     </target>
-    <target name="-compile-test-class-prepare" depends="-compile-init,-test-init,-pre-compile-test"/>
-    <target name="-compile-test-class" depends="-compile-test-class-prepare">
+    <target name="-compile-test-class" depends="-compile-prepare,-test-init,-pre-compile-test">
         <fail unless="class">Must set 'class'</fail>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}"
@@ -105,10 +103,11 @@
     </target>
     <target name="compile-test" depends="-compile-test,-post-compile-test"/>
     <target name="compile-test-class" depends="-compile-test-class,-post-compile-test"/>
-    <target name="-test-prepare" depends="-test-init,compile-test,-pre-test">
-        <property name="test.jvmargs" value=""/>
-    </target>
-    <target name="-test" depends="-test-prepare">
+
+    <!--==============
+    task define : test
+    ===============-->
+    <target name="-test" depends="compile-test,-pre-test">
         <delete dir="${test.result.dir}" failonerror="false"/>
         <marco-test>
             <batchtest todir="${test.result.dir}">
@@ -116,14 +115,14 @@
             </batchtest>
         </marco-test>
     </target>
-    <target name="-test-class" depends="-test-prepare">
+    <target name="-test-class" depends="compile-test-class,-pre-test">
         <fail unless="class">Must set 'class'</fail>
         <marco-test>
             <test name="${class}"
                   todir="${test.result.dir}"/>
         </marco-test>
     </target>
-    <target name="-test-method" depends="-test-prepare">
+    <target name="-test-method" depends="compile-test-class,-pre-test">
         <fail unless="class">Must set 'class'</fail>
         <fail unless="method">Must set 'method'</fail>
         <marco-test>
@@ -135,6 +134,10 @@
     <target name="-test-check">
         <fail if="test.fail">test fail</fail>
     </target>
+
+    <!--=======
+    task define
+    ========-->
     <target name="test" depends="-test,-post-test,-test-check"/>
     <target name="test-class" depends="-test-class,-post-test,-test-check"/>
     <target name="test-method" depends="-test-method,-post-test,-test-check"/>
