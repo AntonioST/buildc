@@ -94,9 +94,10 @@
     </target>
     <target name="-compile-test-class" depends="-compile-prepare,-test-init,-pre-compile-test">
         <fail unless="class">Must set 'class'</fail>
+        <to-file-path property="tmp.compile.test.class" value="${class}"/>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}"
-                     includes="${class}">
+                     includes="${tmp.compile.test.class}">
             <classpath path="${build.classes.dir}"/>
             <classpath refid="real.test.classpath"/>
         </macro-javac>

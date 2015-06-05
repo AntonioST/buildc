@@ -46,14 +46,13 @@
     </target>
     <target name="-run-class" depends="init,compile,-run-init,-pre-run">
         <fail unless="class">Must set 'class'</fail>
-        <property name="java.jvmargs" value=""/>
         <java classname="${class}"
               fork="true"
               failonerror="true">
             <classpath path="${real.runtime.classpath}"/>
             <classpath path="${build.classes.dir}"/>
             <classpath path="${res.dir}"/>
-            <jvmarg line="${java.jvmargs}"/>
+            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
             <arg line="${program.args}"/>
         </java>
     </target>

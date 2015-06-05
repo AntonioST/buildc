@@ -57,6 +57,32 @@
     </target>
     <target name="help" depends="-help-general,-help-build-java,-help-extend"/>
 
+    <!--================
+    Utility Macro define
+    =================-->
+    <macrodef name="to-file-path">
+        <!-- translate pattern
+        package.class   -> package/class.java
+        package.class.  -> package/class/*
+        -->
+        <attribute name="property"/>
+        <attribute name="value"/>
+        <sequential>
+            <script language="javascript"><![CDATA[
+            var p = self.getProject();
+            var v = '@{value}';
+            if(v.matches('\\w+(\\.\\w+)*')) {
+                // v is class path not file path
+                p.setProperty('@{property}', v.replaceAll('\\.', '/') + '.java');
+            } else if(v.matches('\\w+(\\.\\w+)*\\.')) {
+                p.setProperty('@{property}', v.replaceAll('\\.', '/') + '/*');
+            } else {
+                p.setProperty('@{property}', v);
+            }
+        ]]></script>
+        </sequential>
+    </macrodef>
+
     <!--===========
     initial section
     ============-->
@@ -166,24 +192,29 @@
         <script language="javascript"><![CDATA[
             var p = self.getProject();
             var j = p.getProperty('class');
-            if (j.endsWith('.java')) {
+            if (j.matches('\\w+(\\.\\w+)*')) {
+                var c = j.replaceAll('\\.', '/') + '.class';
+            } else if (j.matches('\\w+(\\.\\w+)*\\.')) {
+                var c = j.replaceAll('\\.', '/') + '/*';
+            } else if (j.endsWith('.java')) {
                 var c = j.replaceAll('.java$', '.class');
             } else {
                 var c = j;
             }
-            p.setProperty('class.tmp', c);
+            p.setProperty('tmp.compile.class.clean', c);
         ]]></script>
         <delete>
             <fileset dir="${build.classes.dir}">
-                <include name="${class.tmp}"/>
+                <include name="${tmp.compile.class.clean}"/>
             </fileset>
         </delete>
     </target>
     <target name="-compile-class" depends="-compile-prepare,-compile-class-clean">
         <fail unless="class">Must set 'class'</fail>
+        <to-file-path property="tmp.compile.class" value="${class}"/>
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}"
-                     includes="${class}">
+                     includes="${tmp.compile.class}">
             <classpath refid="real.compile.classpath"/>
         </macro-javac>
     </target>
@@ -202,7 +233,7 @@
         <available property="exist.manifest.file" file="${manifest.file}" if:set="manifest.file"/>
         <available property="exist.splash.file" file="${splash.file}" if:set="splash.file"/>
         <available property="exist.readme.file" file="${readme.file}" if:set="readme.file"/>
-        <available property="exist.meta.dir" file="${res.dir}/META-INF"  type="dir"/>
+        <available property="exist.meta.dir" file="${res.dir}/META-INF" type="dir"/>
         <property name="jar.manifest.file" value="${build.dir}/MANIFEST.MF"/>
     </target>
     <target name="-manifest-init" depends="-jar-init">
