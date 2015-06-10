@@ -246,33 +246,17 @@
         </manifest>
     </target>
     <target name="-manifest-classpath" depends="init-classpath,-manifest-init">
-        <script language="javascript"><![CDATA[
-            var p = self.getProject();
-            var copy = p.getProperty('jar.lib.copy');
-            if (copy != null && java.lang.Boolean.valueOf(copy)){
-                var F = java.nio.file.Files;
-                var P = java.nio.file.Paths;
-                var ls = new java.util.ArrayList();
-                var rt = P.get(p.getProperty('build.jar.dir'));
-                var to = rt.resolve(P.get(p.getProperty('jar.lib.dir')));
-                F.createDirectories(to);
-                for each (var cp in p.getProperty('real.runtime.classpath').split(':')){
-                    if (!cp.isEmpty()){
-                        var f = P.get(cp);
-                        var t = to.resolve(f.getFileName());
-                        if (!F.exists(t)){
-                            var echo = p.createTask('echo');
-                            echo.setMessage('copy ' + f + ' -> ' + t);
-                            echo.perform();
-                            F.copy(f, t);
-                        }
-                        ls.add(rt.relativize(t).toString());
-                    }
-                }
-                p.setProperty('jar.classpath', java.lang.String.join(' ', ls));
-            }
-        ]]></script>
-        <manifest file="${jar.manifest.file}" mode="update">
+        <mkdir dir="${build.jar.dir}/${jar.lib.dir}" if:true="${jar.lib.copy}"/>
+        <copy todir="${build.jar.dir}/${jar.lib.dir}" if:true="${jar.lib.copy}">
+            <path refid="real.runtime.classpath"/>
+        </copy>
+        <fileset id="jar.classpath.filset" dir="${build.jar.dir}" if:true="${jar.lib.copy}">
+            <include name="${jar.lib.dir}/*"/>
+        </fileset>
+        <pathconvert property="jar.classpath" pathsep=" " refid="jar.classpath.filset" if:true="${jar.lib.copy}">
+            <mapper type="regexp" from=".*${build.jar.dir}/(.*\.jar)" to="\1"/>
+        </pathconvert>
+        <manifest file="${jar.manifest.file}" mode="update" if:true="${jar.lib.copy}">
             <attribute name="Class-Path" value="${jar.classpath}"/>
         </manifest>
     </target>
