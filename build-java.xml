@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:if="ant:if"
+<project xmlns:ivy="antlib:org.apache.ivy.ant"
+         xmlns:if="ant:if"
          xmlns:unless="ant:unless">
 
     <!--========
@@ -18,6 +19,8 @@
     <property name="lib.master.dir" value="${lib.dir}/master"/>
     <property name="lib.compile.dir" value="${lib.dir}/compile"/>
     <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
+    <available property="exist.ivy" file="ivy.xml" type="file"/>
+    <available property="exist.lib" file="${lib.dir}" type="dir"/>
 
     <!--==
     import
@@ -48,6 +51,7 @@
     </target>
     <target name="-help-build-java" depends="init">
         <echo>init : initial task</echo>
+        <echo>retrieve : retrieve library at ${lib.dir}</echo>
         <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
         <echo>compile-class : compile source file, use property 'class' to set included files (path under ${src.dir}/)
         </echo>
@@ -127,7 +131,7 @@
         <echo message="[jar] lib copy=${jar.lib.copy}" level="verbose"/>
         <echo message="[jar] res compress=${jar.res.compress}" level="verbose"/>
     </target>
-    <target name="init-classpath" depends="-init">
+    <target name="init-classpath" depends="-init,-try-retrieve">
         <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
         <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
         <path id="real.compile.classpath">
@@ -146,6 +150,16 @@
         </path>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
+
+    <!--===================
+    task (retrieve) section
+    ====================-->
+    <target name="-try-retrieve" if="exist.ivy" unless="exist.lib">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+    <target name="retrieve" if="exist.ivy">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
 
     <!--===========
     compile section
@@ -250,10 +264,10 @@
         <copy todir="${build.jar.dir}/${jar.lib.dir}" if:true="${jar.lib.copy}">
             <path refid="real.runtime.classpath"/>
         </copy>
-        <fileset id="jar.classpath.filset" dir="${build.jar.dir}" if:true="${jar.lib.copy}">
+        <fileset id="jar.classpath.fileset" dir="${build.jar.dir}" if:true="${jar.lib.copy}">
             <include name="${jar.lib.dir}/*"/>
         </fileset>
-        <pathconvert property="jar.classpath" pathsep=" " refid="jar.classpath.filset" if:true="${jar.lib.copy}">
+        <pathconvert property="jar.classpath" pathsep=" " refid="jar.classpath.fileset" if:true="${jar.lib.copy}">
             <mapper type="regexp" from=".*${build.jar.dir}/(.*\.jar)" to="\1"/>
         </pathconvert>
         <manifest file="${jar.manifest.file}" mode="update" if:true="${jar.lib.copy}">
