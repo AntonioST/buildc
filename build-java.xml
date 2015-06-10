@@ -16,6 +16,7 @@
     <property name="build.dir" value="build"/>
     <property name="res.dir" value="res"/>
     <property name="lib.dir" value="lib"/>
+    <property name="lib.default.dir" value="${lib.dir}/default"/>
     <property name="lib.master.dir" value="${lib.dir}/master"/>
     <property name="lib.compile.dir" value="${lib.dir}/compile"/>
     <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
@@ -132,8 +133,18 @@
         <echo message="[jar] res compress=${jar.res.compress}" level="verbose"/>
     </target>
     <target name="init-classpath" depends="-init,-try-retrieve">
+        <available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>
         <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
         <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
+        <path id="real.default.classpath">
+            <pathelement path="default.classpath" if:set="default.classpath"/>
+            <pathelement path="master.classpath" if:set="master.classpath"/>
+            <pathelement path="compile.classpath" if:set="compile.classpath"/>
+            <pathelement path="runtime.classpath" if:set="runtime.classpath"/>
+            <fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
         <path id="real.compile.classpath">
             <pathelement path="master.classpath" if:set="master.classpath"/>
             <pathelement path="compile.classpath" if:set="compile.classpath"/>
@@ -143,6 +154,7 @@
         </path>
         <path id="real.runtime.classpath">
             <pathelement path="master.classpath" if:set="master.classpath"/>
+            <pathelement path="compile.classpath" if:set="compile.classpath"/>
             <pathelement path="runtime.classpath" if:set="runtime.classpath"/>
             <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
                 <include name="*.jar"/>
