@@ -154,12 +154,15 @@
         </path>
         <path id="real.runtime.classpath">
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
-            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
             <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
             <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
                 <include name="*.jar"/>
             </fileset>
         </path>
+        <!--<pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>-->
+        <!--<pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>-->
+        <!--<echo>real.compile.classpath=${temp.real.compile.classpath}</echo>-->
+        <!--<echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>-->
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
 
@@ -273,7 +276,7 @@
     </target>
     <target name="-manifest-classpath" depends="init-classpath,-manifest-init">
         <mkdir dir="${build.jar.dir}/${jar.lib.dir}" if:true="${jar.lib.copy}"/>
-        <copy todir="${build.jar.dir}/${jar.lib.dir}" if:true="${jar.lib.copy}">
+        <copy todir="${build.jar.dir}/${jar.lib.dir}" flatten="true" if:true="${jar.lib.copy}">
             <path refid="real.runtime.classpath"/>
         </copy>
         <fileset id="jar.classpath.fileset" dir="${build.jar.dir}" if:true="${jar.lib.copy}">
