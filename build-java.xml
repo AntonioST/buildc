@@ -314,7 +314,7 @@
             <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
             <fileset dir="${res.dir}" if:set="exist.res">
-                <exclude name="META-INF"/>
+                <exclude name="META-INF/**/*"/>
             </fileset>
             <fileset refid="jar.resource.fileset" if:set="jar.resource.fileset"/>
         </jar>
