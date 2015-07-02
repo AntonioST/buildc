@@ -106,6 +106,7 @@
         <property name="project.name" value="${ant.project.name}"/>
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--default directory-->
+        <property name="build.src.dir" value="${build.dir}/${src.dir}"/>
         <property name="build.classes.dir" value="${build.dir}/classes"/>
         <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
         <property name="build.jar.dir" value="${build.dir}/jar"/>
@@ -213,7 +214,7 @@
     </target>
     <target name="-compile-prepare" depends="init,-compile-init,-pre-compile"/>
     <target name="-compile" depends="-compile-prepare">
-        <macro-javac src="${src.dir}"
+        <macro-javac src="${src.dir}:${build.src.dir}"
                      dest="${build.classes.dir}">
             <classpath refid="real.compile.classpath"/>
         </macro-javac>
