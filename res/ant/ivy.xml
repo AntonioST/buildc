@@ -6,10 +6,10 @@
         <description>__DESCRIPTION__</description>
     </info>
     <configurations>
-        <conf name="default" visibility="public" extends="master,runtime"/>
+        <conf name="default" visibility="public" extends="runtime"/>
         <conf name="master" visibility="public"/>
-        <conf name="compile" visibility="public"/>
-        <conf name="runtime" visibility="public" extends="compile"/>
+        <conf name="compile" visibility="public" extends="master"/>
+        <conf name="runtime" visibility="public" extends="master"/>
         <conf name="test" visibility="public" extends="runtime"/>
         <conf name="source" visibility="public"/>
         <conf name="javadoc" visibility="public"/>
