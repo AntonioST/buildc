@@ -53,6 +53,7 @@
     <target name="-help-build-java" depends="init">
         <echo>init : initial task</echo>
         <echo>retrieve : retrieve library at ${lib.dir}</echo>
+        <echo>echo-classpath : echo classpath</echo>
         <echo/>
         <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
         <echo>compile-class : compile source file, use property 'class' to set included files</echo>
@@ -162,10 +163,12 @@
             </fileset>
             <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
-        <!--<pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>-->
-        <!--<pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>-->
-        <!--<echo>real.compile.classpath=${temp.real.compile.classpath}</echo>-->
-        <!--<echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>-->
+    </target>
+    <target name="echo-classpath" depends="init-classpath">
+        <pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>
+        <pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>
+        <echo>real.compile.classpath=${temp.real.compile.classpath}</echo>
+        <echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
 
