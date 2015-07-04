@@ -214,7 +214,11 @@
     </target>
     <target name="-compile-prepare" depends="init,-compile-init,-pre-compile"/>
     <target name="-compile" depends="-compile-prepare">
-        <macro-javac src="${src.dir}:${build.src.dir}"
+        <fail if="compile.source">property 'compile.source' has beed defined</fail>
+        <available property="exist.build.src" file="${build.src.dir}" type="dir"/>
+        <property name="compile.source" value="${src.dir}:${build.src.dir}" if:set="exist.build.src"/>
+        <property name="compile.source" value="${src.dir}" unless:set="exist.build.src"/>
+        <macro-javac src="${compile.source}"
                      dest="${build.classes.dir}">
             <classpath refid="real.compile.classpath"/>
         </macro-javac>
