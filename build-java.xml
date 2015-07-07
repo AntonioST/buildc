@@ -106,7 +106,6 @@
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--default directory-->
         <property name="build.classes.dir" value="${build.dir}/classes"/>
-        <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
         <property name="build.jar.dir" value="${build.dir}/jar"/>
         <property name="build.meta.dir" value="${build.dir}/META-INF"/>
         <property name="jar.lib.dir" value="lib"/>
