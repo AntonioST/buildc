@@ -46,7 +46,7 @@
         <available property="exist.config.file" file="${config}" if:set="config"/>
         <property file="${config}" if:set="exist.config.file"/>
     </target>
-    <target name="-run-init" depends="init,compile,-def-marco-java,-pre-run"/>
+    <target name="-run-init" depends="init,init-classpath,-def-marco-java,-pre-run"/>
     <target name="-run" depends="-run-config,-run-init">
         <fail unless="main.class">Must set 'main.class'</fail>
         <macro-java>
@@ -62,7 +62,7 @@
     <target name="-run-jar" depends="jar,-run-init">
         <java jar="${build.jar.dir}/${jar.file}"
               fork="true"
-              failonerror="true">
+              failonerror="false">
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
             <arg line="${program.args}" if:set="program.args"/>
         </java>

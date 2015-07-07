@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2015 antonio
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns:if="ant:if">
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <property name="define.debug" value=""/>
+
+    <property name="debug.transport" value="dt_socket"/>
+    <property name="debug.socket" value="5005"/>
+
+    <!--====================
+    custom extension section
+    =====================-->
+    <extension-point name="-pre-debug"/>
+    <extension-point name="-post-debug"/>
+
+    <!--=================
+    Help Document Section
+    ==================-->
+    <target name="-help-debug" extensionOf="-help-extend">
+        <echo>debug : run ${main.class}</echo>
+        <echo>debug-class : run class</echo>
+        <echo>run-jar : run ${jar.file}</echo>
+    </target>
+
+    <!--=======
+    task define
+    =========-->
+    <target name="-def-marco-debug">
+        <macrodef name="macro-debug">
+            <attribute name="classname" default="${main.class}"/>
+            <attribute name="failonerror" default="false"/>
+            <element name="custom" implicit="true"/>
+            <sequential>
+                <java classname="@{classname}"
+                      fork="true"
+                      failonerror="@{failonerror}">
+                    <classpath path="${real.runtime.classpath}"/>
+                    <classpath path="${build.classes.dir}"/>
+                    <classpath path="${res.dir}"/>
+                    <!-- IDEA
+                    -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+                    -->
+                    <jvmarg line="-agentlib:jdwp=transport=${debug.transport},server=y,suspend=y,address=${debug.socket}"/>
+                    <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+                    <custom/>
+                </java>
+            </sequential>
+        </macrodef>
+    </target>
+    <target name="-debug-config">
+        <available property="exist.config.file" file="${config}" if:set="config"/>
+        <property file="${config}" if:set="exist.config.file"/>
+    </target>
+    <target name="-debug-init" depends="init,init-classpath,-def-marco-debug,-pre-debug"/>
+    <target name="-debug" depends="-debug-config,-debug-init">
+        <fail unless="main.class">Must set 'main.class'</fail>
+        <macro-debug>
+            <arg line="${program.args}" if:set="program.args"/>
+        </macro-debug>
+    </target>
+    <target name="-debug-class" depends="-debug-init">
+        <fail unless="class">Must set 'class'</fail>
+        <macro-debug classname="${class}">
+            <arg line="${program.args}" if:set="program.args"/>
+        </macro-debug>
+    </target>
+    <target name="-debug-jar" depends="jar,-debug-init">
+        <java jar="${build.jar.dir}/${jar.file}"
+              fork="true"
+              failonerror="false">
+            <jvmarg line="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${debug.socket}"/>
+            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <arg line="${program.args}" if:set="program.args"/>
+        </java>
+    </target>
+    <target name="debug" depends="-debug,-post-debug"/>
+    <target name="debug-class" depends="-debug-class,-post-debug"/>
+    <target name="debug-jar" depends="-debug-jar,-post-debug"/>
+</project>
