@@ -37,11 +37,18 @@
         <sequential>
             <exec executable="${git.command}"
                   dir="@{dir}"
-                  outputproperty="@{property}"
+                  outputproperty="@{property}.tmp"
+                  resultproperty="@{property}.result"
                   failonerror="false">
                 <arg value="describe"/>
                 <arg value="--tags"/>
             </exec>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                if (p.getProperty('@{property}.result') == '0') {
+                    p.setProperty('@{property}', p.getProperty('@{property}.tmp'));
+                }
+            ]]></script>
         </sequential>
     </macrodef>
     <macrodef name="git-current-branch">
@@ -50,14 +57,14 @@
         <sequential>
             <exec executable="${git.command}"
                   dir="@{dir}"
-                  outputproperty="@{property}"
+                  outputproperty="@{property}.tmp"
                   failonerror="false">
                 <arg value="branch"/>
             </exec>
             <script language="javascript"> <![CDATA[
                 var p = self.getProject();
-                if (p.getProperty("@{property}") != null) {
-                    for each (var b in p.getProperty("@{property}").split('\n')) {
+                if (p.getProperty("@{property}.tmp") != null) {
+                    for each (var b in p.getProperty("@{property}.tmp").split('\n')) {
                         if (b.startsWith('*')) {
                             p.setProperty("@{property}", b.substring(1).trim());
                         }

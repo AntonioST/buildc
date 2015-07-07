@@ -16,9 +16,9 @@
     Help Document Section
     ==================-->
     <target name="-help-application" extensionOf="-help-extend">
-        <echo>run : run ${main.class}</echo>
+        <echo>run : run main class : ${main.class}</echo>
         <echo>run-class : run class</echo>
-        <echo>run-jar : run ${jar.file}</echo>
+        <echo>run-jar : run jar file : ${jar.file}</echo>
     </target>
 
     <!--=======

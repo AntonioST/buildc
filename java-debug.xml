@@ -36,9 +36,9 @@
     Help Document Section
     ==================-->
     <target name="-help-debug" extensionOf="-help-extend">
-        <echo>debug : run ${main.class}</echo>
-        <echo>debug-class : run class</echo>
-        <echo>run-jar : run ${jar.file}</echo>
+        <echo>debug : debug main class : ${main.class}</echo>
+        <echo>debug-class : debug class</echo>
+        <echo>run-jar : debug jar file : ${jar.file}</echo>
     </target>
 
     <!--=======
