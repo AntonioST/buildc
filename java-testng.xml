@@ -91,7 +91,22 @@
     </target>
     <target name="-compile-test-class" depends="-compile-prepare,-test-init,-pre-compile-test">
         <fail unless="class">Must set 'class'</fail>
+        <script language="javascript" unless:set="class.src"><![CDATA[
+            var p = self.getProject();
+            var c = p.getProperty('class');
+            if (c.endsWith('Test')) {
+                p.setProperty('class.src', c.substring(0, c.length() - 4));
+            }
+        ]]></script>
+        <to-file-path property="tmp.compile.src.class" value="${class.src}" if:set="class.src"/>
         <to-file-path property="tmp.compile.test.class" value="${class}"/>
+        <macro-javac src="${src.dir}"
+                     dest="${build.classes.dir}"
+                     includes="${tmp.compile.src.class}"
+                     if:set="tmp.compile.src.class">
+            <classpath path="${build.classes.dir}"/>
+            <classpath refid="real.compile.classpath"/>
+        </macro-javac>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}"
                      includes="${tmp.compile.test.class}">

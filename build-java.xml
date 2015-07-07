@@ -47,16 +47,18 @@
     <target name="-help-general" depends="init">
         <echo>Usage:</echo>
         <echo>ant TASK [-DKEY=VALUE...]</echo>
-        <echo></echo>
+        <echo/>
         <echo>task are listed below for each task module</echo>
     </target>
     <target name="-help-build-java" depends="init">
         <echo>init : initial task</echo>
         <echo>retrieve : retrieve library at ${lib.dir}</echo>
+        <echo>echo-classpath : echo classpath</echo>
+        <echo/>
         <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
-        <echo>compile-class : compile source file, use property 'class' to set included files (path under ${src.dir}/)
-        </echo>
+        <echo>compile-class : compile source file, use property 'class' to set included files</echo>
         <echo>jar : generate jar file</echo>
+        <echo/>
         <echo>clean : clean</echo>
         <echo>clean-all : clean</echo>
     </target>
@@ -95,16 +97,17 @@
         <property file="${basedir}/build.properties"/>
     </target>
     <target name="-init-version" depends="-init-properties" if="exist.git" unless="project.version">
-        <git-describe property="project.version"/>
+        <git-describe property="project.version" unless:set="project.version"/>
+        <tstamp unless:set="project.version">
+            <format property="time.stamp" pattern="yyyyMMdd"/>
+        </tstamp>
+        <property name="project.version" value="snapshot-${time.stamp}" unless:set="project.version"/>
     </target>
     <target name="-init" depends="-init-properties,-init-version">
         <property name="project.name" value="${ant.project.name}"/>
-        <tstamp>
-            <format property="time.stamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="project.version" value="snapshot-${time.stamp}"/>
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--default directory-->
+        <property name="build.src.dir" value="${build.dir}/${src.dir}"/>
         <property name="build.classes.dir" value="${build.dir}/classes"/>
         <property name="build.jar.dir" value="${build.dir}/jar"/>
         <property name="build.meta.dir" value="${build.dir}/META-INF"/>
@@ -129,7 +132,6 @@
         <echo message="[javac] debug=${javac.debug}" level="verbose"/>
         <echo message="[javac] verbose=${javac.verbose}" level="verbose"/>
         <echo message="[jar] lib copy=${jar.lib.copy}" level="verbose"/>
-        <echo message="[jar] res compress=${jar.res.compress}" level="verbose"/>
     </target>
     <target name="init-classpath" depends="-init,-try-retrieve">
         <available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>
@@ -143,6 +145,7 @@
             <fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">
                 <include name="*.jar"/>
             </fileset>
+            <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
         <path id="real.compile.classpath">
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
@@ -157,11 +160,14 @@
             <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
                 <include name="*.jar"/>
             </fileset>
+            <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
-        <!--<pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>-->
-        <!--<pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>-->
-        <!--<echo>real.compile.classpath=${temp.real.compile.classpath}</echo>-->
-        <!--<echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>-->
+    </target>
+    <target name="echo-classpath" depends="init-classpath">
+        <pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>
+        <pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>
+        <echo>real.compile.classpath=${temp.real.compile.classpath}</echo>
+        <echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
 
@@ -210,7 +216,11 @@
     </target>
     <target name="-compile-prepare" depends="init,-compile-init,-pre-compile"/>
     <target name="-compile" depends="-compile-prepare">
-        <macro-javac src="${src.dir}"
+        <fail if="compile.source">property 'compile.source' has beed defined</fail>
+        <available property="exist.build.src" file="${build.src.dir}" type="dir"/>
+        <property name="compile.source" value="${src.dir}:${build.src.dir}" if:set="exist.build.src"/>
+        <property name="compile.source" value="${src.dir}" unless:set="exist.build.src"/>
+        <macro-javac src="${compile.source}"
                      dest="${build.classes.dir}">
             <classpath refid="real.compile.classpath"/>
         </macro-javac>
@@ -310,6 +320,9 @@
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
+            <fileset dir="${res.dir}" if:set="exist.res">
+                <exclude name="META-INF/**/*"/>
+            </fileset>
             <fileset refid="jar.resource.fileset" if:set="jar.resource.fileset"/>
         </jar>
     </target>
