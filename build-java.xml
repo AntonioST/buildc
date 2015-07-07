@@ -96,8 +96,9 @@
     <target name="-init-properties" depends="-pre-init">
         <property file="${basedir}/build.properties"/>
     </target>
-    <target name="-init-version" depends="-init-properties" if="exist.git" unless="project.version">
-        <git-describe property="project.version" unless:set="project.version"/>
+    <target name="-init-version" depends="-init-properties" unless="project.version">
+        <available property="exist.git" file=".git" type="dir"/>
+        <git-describe property="project.version" unless:set="project.version" if:set="exist.git"/>
         <tstamp unless:set="project.version">
             <format property="time.stamp" pattern="yyyyMMdd"/>
         </tstamp>

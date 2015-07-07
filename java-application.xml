@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:if="ant:if"
-         xmlns:unless="ant:unless">
+<project xmlns:if="ant:if">
     <!--===========
     import checking
     ============-->
@@ -25,38 +24,42 @@
     <!--=======
     task define
     =========-->
-    <target name="-run-init">
-        <available property="exist.config.file" file="${config}" if:set="${config}"/>
+    <target name="-def-marco-java">
+        <macrodef name="macro-java">
+            <attribute name="classname" default="${main.class}"/>
+            <attribute name="failonerror" default="false"/>
+            <element name="custom" implicit="true"/>
+            <sequential>
+                <java classname="@{classname}"
+                      fork="true"
+                      failonerror="@{failonerror}">
+                    <classpath path="${real.runtime.classpath}"/>
+                    <classpath path="${build.classes.dir}"/>
+                    <classpath path="${res.dir}"/>
+                    <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+                    <custom/>
+                </java>
+            </sequential>
+        </macrodef>
     </target>
-    <target name="-run-config" depends="-run-init" if="exist.config.file">
-        <property file="${config}"/>
+    <target name="-run-config">
+        <available property="exist.config.file" file="${config}" if:set="config"/>
+        <property file="${config}" if:set="exist.config.file"/>
     </target>
-    <target name="-run-prepare" depends="-run-config,init,compile,-run-init,-pre-run"/>
-    <target name="-run" depends="-run-prepare">
+    <target name="-run-init" depends="init,compile,-def-marco-java,-pre-run"/>
+    <target name="-run" depends="-run-config,-run-init">
         <fail unless="main.class">Must set 'main.class'</fail>
-        <java classname="${main.class}"
-              fork="true"
-              failonerror="true">
-            <classpath path="${real.runtime.classpath}"/>
-            <classpath path="${build.classes.dir}"/>
-            <classpath path="${res.dir}"/>
-            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+        <macro-java>
             <arg line="${program.args}" if:set="program.args"/>
-        </java>
+        </macro-java>
     </target>
-    <target name="-run-class" depends="init,compile,-run-init,-pre-run">
+    <target name="-run-class" depends="-run-init">
         <fail unless="class">Must set 'class'</fail>
-        <java classname="${class}"
-              fork="true"
-              failonerror="true">
-            <classpath path="${real.runtime.classpath}"/>
-            <classpath path="${build.classes.dir}"/>
-            <classpath path="${res.dir}"/>
-            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
-            <arg line="${program.args}"/>
-        </java>
+        <macro-java classname="${class}">
+            <arg line="${program.args}" if:set="program.args"/>
+        </macro-java>
     </target>
-    <target name="-run-jar" depends="init,compile,jar,-run-init,-pre-run">
+    <target name="-run-jar" depends="jar,-run-init">
         <java jar="${build.jar.dir}/${jar.file}"
               fork="true"
               failonerror="true">
