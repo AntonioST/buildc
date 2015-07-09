@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns:if="ant:if" xmlns:unless="ant:unless">
+    <!--==============
+    dependency library
+
+    ==Scala compiler==
+    http://mvnrepository.com/artifact/org.scala-lang/scala-compiler
+
+    ==Scala library==
+    http://mvnrepository.com/artifact/org.scala-lang/scala-library
+
+    ==Scala reflect==
+    http://mvnrepository.com/artifact/org.scala-lang/scala-reflect
+
+    ===============-->
+
     <!--===========
     initial section
     ============-->
-    <property environment="env"/>
-    <fail unless="env.SCALA_HOME">env 'SCALA_HOME' not set</fail>
-    <property name="scala.home" value="${env.SCALA_HOME}"/>
-    <exec executable="${scala.home}/bin/scala"
-          outputproperty="scala.version.description"
-          failonerror="true">
-        <arg value="-version"/>
-    </exec>
-    <script language="javascript"><![CDATA[
-        var description = self.getProject().getProperty('scala.version.description');
-        var version = 'version';
-        var ii = description.indexOf(version);
-        var ij = description.indexOf(' ', ii + version.length() + 2);
-        description = description.substring(ii + 1, ij).trim();
-        self.getProject().setProperty('scala.version', description);
-    ]]></script>
-    <echo message="[scala] home=${scala.home}" level="verbose"/>
-    <echo message="[scala] version=${scala.version}" level="verbose"/>
+    <fail unless="scala.lib">property 'scala.lib' not set</fail>
+    <available property="exist.scala.lib" file="${scala.lib}" type="dir"/>
+    <echo unless:set="exist.scala.lib">please call 'retrieve' task first</echo>
 
     <!--=======
     task define
     ========-->
     <taskdef uri="antlib:scala.tools.ant"
              resource="scala/tools/ant/antlib.xml"
-             onerror="failall">
-        <classpath path="${scala.home}/lib/scala-compiler.jar"/>
-        <classpath path="${scala.home}/lib/scala-library.jar"/>
-        <classpath path="${scala.home}/lib/scala-reflect.jar"/>
+             onerror="failall"
+             if:set="exist.scala.lib">
+        <classpath path="${scala.lib}/scala-compiler.jar"/>
+        <classpath path="${scala.lib}/scala-library.jar"/>
+        <classpath path="${scala.lib}/scala-reflect.jar"/>
     </taskdef>
 </project>

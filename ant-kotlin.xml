@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:if="ant:if" xmlns:unless="ant:unless">
+    <!--=====
+    Reference
+    * http://kotlinlang.org/docs/reference/using-ant.html
+    ======-->
+
+    <!--==============
+    dependency library
+    ==================
+
+    ==Kotlin Compiler==
+    http://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-compiler
+
+    ==Kotlin Runtime==
+    http://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-runtime
+
+    ===============-->
+
+    <!--===========
+    initial section
+    ============-->
+    <fail unless="kotlin.lib">property 'kotlin.lib' not set</fail>
+    <available property="exist.kotlin.lib" file="${kotlin.lib}" type="dir"/>
+    <echo unless:set="exist.kotlin.lib">please call 'retrieve' task first</echo>
+
+    <!--=======
+    task define
+    ========-->
+    <taskdef resource="org/jetbrains/kotlin/ant/antlib.xml"
+             onerror="failall"
+             if:set="exist.kotlin.lib">
+        <!--XXX maven source not found-->
+        <classpath path="${kotlin.lib}/kotlin-ant.jar"/>
+    </taskdef>
+</project>

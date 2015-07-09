@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+    <!--==============
+    dependency library
+    ==================
+
+    ==Groovy==
+    http://mvnrepository.com/artifact/org.codehaus.groovy/groovy
+
+    ==Groovy ant==
+    http://mvnrepository.com/artifact/org.codehaus.groovy/groovy-ant
+
+    ==Groovy groovydoc==
+    http://mvnrepository.com/artifact/org.codehaus.groovy/groovy-groovydoc
+
+    ===============-->
+
     <!--===========
     initial section
     ============-->
-    <property environment="env"/>
-    <fail unless="env.GROOVY_HOME">env 'GROOVY_HOME' not set</fail>
-    <property name="groovy.home" value="${env.GROOVY_HOME}"/>
-    <exec executable="${groovy.home}/bin/groovy"
-          outputproperty="groovy.version.description"
-          failonerror="true">
-        <arg value="-version"/>
-    </exec>
-    <script language="javascript"><![CDATA[
-        var description = self.getProject().getProperty('groovy.version.description');
-        var ii = description.indexOf(':');
-        var ij = description.indexOf(' ', ii + 2);
-        description = description.substring(ii + 1, ij).trim();
-        self.getProject().setProperty('groovy.version', description);
-    ]]></script>
-    <echo message="[groovy] home=${groovy.home}" level="verbose"/>
-    <echo message="[groovy] version=${groovy.version}" level="verbose"/>
+    <fail unless="groovy.lib">property 'groovy.lib' not set</fail>
+    <available property="exist.groovy.lib" file="${groovy.lib}" type="dir"/>
+    <echo unless:set="exist.groovy.lib">please call 'retrieve' task first</echo>
 
     <!--=======
     task define
@@ -27,8 +28,8 @@
     <taskdef uri="antlib:org.codehaus.groovy"
              resource="org/codehaus/groovy/antlib.xml"
              onerror="failall">
-        <classpath path="${groovy.home}/lib/groovy-${groovy.version}.jar"/>
-        <classpath path="${groovy.home}/lib/groovy-ant-${groovy.version}.jar"/>
-        <classpath path="${groovy.home}/lib/groovy-groovydoc-${groovy.version}.jar"/>
+        <classpath path="${groovy.lib}/groovy.jar"/>
+        <classpath path="${groovy.lib}/groovy-ant.jar"/>
+        <classpath path="${groovy.lib}/groovy-groovydoc.jar"/>
     </taskdef>
 </project>
