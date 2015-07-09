@@ -8,6 +8,10 @@
 
     <property name="debug.transport" value="dt_socket"/>
     <property name="debug.socket" value="5005"/>
+    <!-- IDEA
+    -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+    -->
+    <property name="debug.jvmargs" value="-agentlib:jdwp=transport=${debug.transport},server=y,suspend=y,address=${debug.socket}"/>
 
     <!--====================
     custom extension section
@@ -21,7 +25,7 @@
     <target name="-help-debug" extensionOf="-help-extend">
         <echo>debug : debug main class : ${main.class}</echo>
         <echo>debug-class : debug class</echo>
-        <echo>run-jar : debug jar file : ${jar.file}</echo>
+        <echo>debug-jar : debug jar file : ${jar.file}</echo>
     </target>
 
     <!--=======
@@ -39,10 +43,7 @@
                     <classpath path="${real.runtime.classpath}"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${res.dir}"/>
-                    <!-- IDEA
-                    -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
-                    -->
-                    <jvmarg line="-agentlib:jdwp=transport=${debug.transport},server=y,suspend=y,address=${debug.socket}"/>
+                    <jvmarg value="${debug.jvmargs}}"/>
                     <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
                     <custom/>
                 </java>
@@ -70,7 +71,7 @@
         <java jar="${build.jar.dir}/${jar.file}"
               fork="true"
               failonerror="false">
-              <jvmarg line="-agentlib:jdwp=transport=${debug.transport},server=y,suspend=y,address=${debug.socket}"/>
+            <jvmarg value="${debug.jvmargs}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
             <arg line="${program.args}" if:set="program.args"/>
         </java>

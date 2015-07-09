@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
     <!--==============
-   dependence library
-   ==================
+    dependence library
+    ==================
 
-   name    : TestNG
-   site    : http://mvnrepository.com/artifact/org.testng/testng
+    ==TestNG==
+    http://mvnrepository.com/artifact/org.testng/testng
 
-   ================-->
+    ================-->
 
     <!--===========
     import checking
@@ -15,6 +15,7 @@
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <fail if="define.test">'test' has imported</fail>
     <property name="define.test" value=""/>
+    <property name="define.test.testng" value=""/>
 
     <!--=========
     global define

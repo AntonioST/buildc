@@ -4,9 +4,9 @@
     dependence library
     ==================
 
-    name    : pegdown doclet
-    site    : http://mvnrepository.com/artifact/org.pegdown/pegdown
-    property 'javadoc.doclet' = 'ch.raffael.doclets.pegdown.PegdownDoclet'
+    ==pegdown doclet==
+    http://mvnrepository.com/artifact/org.pegdown/pegdown
+    javadoc.doclet = ch.raffael.doclets.pegdown.PegdownDoclet
 
     ===============-->
 

@@ -5,8 +5,8 @@
     dependence library
     ==================
 
-    name    : junit
-    site    : http://mvnrepository.com/artifact/junit/junit
+    ==junit==
+    http://mvnrepository.com/artifact/junit/junit
 
     ================-->
 
@@ -16,6 +16,7 @@
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <fail if="define.test">'test' has imported</fail>
     <property name="define.test" value=""/>
+    <property name="define.test.junit" value=""/>
 
     <!--=========
     global define
