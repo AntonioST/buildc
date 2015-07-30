@@ -5,36 +5,39 @@
     <!--===========
     global property
     ============-->
+    <fail unless="antlr.lib">property 'antlr.lib' not set</fail>
 
     <!--========
     macro define
     =========-->
-    <macrodef name="antlr-gammar">
+    <macrodef name="macro-antlr">
         <attribute name="srcdir"/>
-        <attribute name="package"/>
+        <attribute name="distdir"/>
         <attribute name="grammar"/>
-        <attribute name="dist"/>
-        <attribute name="antlr"/>
         <element name="customize" implicit="true" optional="true"/>
         <sequential>
             <script language="javascript"><![CDATA[
                 var p = self.getProject();
-                p.setProperty('package.@{grammar}.dir',
-                              '@{package}'.replaceAll('\.', '/'));
+                var grammar = '@{grammar}';
+                var index = grammar.lastIndexOf('.');
+                var package = grammar.substring(0, index);
+                p.setProperty('name.@{grammar}', grammar.substring(index + 1, grammar.length()));
+                p.setProperty('package.@{grammar}', package);
+                p.setProperty('package.@{grammar}.dir', package.replaceAll('\\.', '/'));
             ]]></script>
-            <uptodate property="update.gammmar.@{grammar}"
-                      srcfile="@{srcdir}/${package.@{grammar}.dir}/@{grammar}.g4"
-                      targetfile="@{srcdir}/${package.@{grammar}.dir}/@{grammar}Lexer.java"/>
-            <echo unless:set="update.gammmar.@{grammar}">generate @{srcdir}/${package.@{grammar}.dir}/@{grammar}.g4</echo>
-            <java jar="@{antlr}"
+            <uptodate property="update.@{grammar}"
+                      srcfile="@{srcdir}/${package.@{grammar}.dir}/${name.@{grammar}}.g4"
+                      targetfile="@{distdir}/@{srcdir}/${package.@{grammar}.dir}/${name.@{grammar}}Lexer.java"/>
+            <echo unless:set="update.@{grammar}">generate @{srcdir}/${package.@{grammar}.dir}/${name.@{grammar}}.g4</echo>
+            <java jar="${antlr.lib}"
                   fork="true"
                   failonerror="true"
-                  unless:set="update.gammmar.@{grammar}">
+                  unless:set="update.@{grammar}">
                 <arg value="-o"/>
-                <arg value="${build.dir}"/>
+                <arg value="@{distdir}"/>
                 <arg value="-package"/>
-                <arg value="@{package}"/>
-                <arg value="@{srcdir}/${package.@{grammar}.dir}/@{grammar}.g4"/>
+                <arg value="${package.@{grammar}}"/>
+                <arg value="@{srcdir}/${package.@{grammar}.dir}/${name.@{grammar}}.g4"/>
                 <customize/>
             </java>
 
