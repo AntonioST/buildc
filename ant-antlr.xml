@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:unless="ant:unless">
+    <description>provide some antlr task</description>
+
+    <!--===========
+    global property
+    ============-->
+
+    <!--========
+    macro define
+    =========-->
+    <macrodef name="antlr-gammar">
+        <attribute name="srcdir"/>
+        <attribute name="package"/>
+        <attribute name="grammar"/>
+        <attribute name="dist"/>
+        <attribute name="antlr"/>
+        <element name="customize" implicit="true" optional="true"/>
+        <sequential>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                p.setProperty('package.@{grammar}.dir',
+                              '@{package}'.replaceAll('\.', '/'));
+            ]]></script>
+            <uptodate property="update.gammmar.@{grammar}"
+                      srcfile="@{srcdir}/${package.@{grammar}.dir}/@{grammar}.g4"
+                      targetfile="@{srcdir}/${package.@{grammar}.dir}/@{grammar}Lexer.java"/>
+            <echo unless:set="update.gammmar.@{grammar}">generate @{srcdir}/${package.@{grammar}.dir}/@{grammar}.g4</echo>
+            <java jar="@{antlr}"
+                  fork="true"
+                  failonerror="true"
+                  unless:set="update.gammmar.@{grammar}">
+                <arg value="-o"/>
+                <arg value="${build.dir}"/>
+                <arg value="-package"/>
+                <arg value="@{package}"/>
+                <arg value="@{srcdir}/${package.@{grammar}.dir}/@{grammar}.g4"/>
+                <customize/>
+            </java>
+
+        </sequential>
+    </macrodef>
+</project>
