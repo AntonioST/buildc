@@ -49,14 +49,14 @@
         <echo>test-method : run a test method, use property 'class' and 'method' to set method</echo>
     </target>
 
-    <!--======================
-    task define : compile test
-    =======================-->
-    <target name="-test-init" depends="init,init-classpath">
-        <!--default property-->
+    <!--==============
+    task define : init
+    ===============-->
+    <target name="-test-init-property" depends="init">
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
-        <!--initial classpath for testing-->
+    </target>
+    <target name="-test-init-classpath" depends="-test-init-property">
         <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
         <path id="real.test.classpath">
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
@@ -65,6 +65,9 @@
                 <include name="*.jar"/>
             </fileset>
         </path>
+    </target>
+    <target name="-test-init" depends="-test-init-classpath,init-classpath">
+        <!--initial classpath for testing-->
         <mkdir dir="${build.test.dir}"/>
         <!--macro define-->
         <macrodef name="marco-test">
@@ -86,6 +89,14 @@
             </sequential>
         </macrodef>
     </target>
+    <target name="-echo-test-classpath" depends="-test-init-classpath" extensionOf="-echo-classpath-extend">
+        <pathconvert property="temp.real.test.classpath" refid="real.test.classpath"/>
+        <echo>real.test.classpath=${temp.real.test.classpath}</echo>
+    </target>
+
+    <!--======================
+    task define : compile test
+    =======================-->
     <target name="-compile-test" depends="compile,-test-init,-pre-compile-test">
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
@@ -120,6 +131,22 @@
     </target>
     <target name="compile-test" depends="-compile-test,-post-compile-test"/>
     <target name="compile-test-class" depends="-compile-test-class,-post-compile-test"/>
+
+    <!--==============
+    task define : run
+    ===============-->
+    <target name="run-test-class" depends="compile-test">
+        <fail unless="class">Must set 'class'</fail>
+        <java classname="${class}"
+              fork="true"
+              failonerror="flase">
+            <classpath path="${real.test.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${build.test.dir}"/>
+            <classpath path="${res.dir}"/>
+            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+        </java>
+    </target>
 
     <!--==============
     task define : test
