@@ -41,10 +41,10 @@
     Help Document Section
     ==================-->
     <target name="-help-test" extensionOf="-help-extend">
-        <echo>compile-test : compile test file under ${test.dir}</echo>
+        <echo>compile-test       : compile test file under ${test.dir}</echo>
         <echo>compile-test-class : compile test file under ${test.dir}</echo>
-        <echo>test : test project</echo>
-        <echo>test-class : run a test class</echo>
+        <echo>test               : test project</echo>
+        <echo>test-class         : run a test class</echo>
     </target>
 
     <!--======================

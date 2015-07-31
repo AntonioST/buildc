@@ -27,9 +27,9 @@
     Help Document Section
     ==================-->
     <target name="-help-coverage" extensionOf="-help-extend">
-        <echo>coverage : run program and profiling coverage</echo>
-        <echo>coverage-class : run single main class and profiling coverage</echo>
-        <echo>coverage-test : run test and profiling coverage</echo>
+        <echo>coverage            : run program and profiling coverage</echo>
+        <echo>coverage-class      : run single main class and profiling coverage</echo>
+        <echo>coverage-test       : run test and profiling coverage</echo>
         <echo>coverage-test-class : run single test and profiling coverage</echo>
     </target>
 

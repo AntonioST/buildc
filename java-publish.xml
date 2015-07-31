@@ -26,10 +26,10 @@
     Help Document Section
     ==================-->
     <target name="-help-publish" extensionOf="-help-extend">
-        <echo>release : release all</echo>
-        <echo>release-bin : release binary file</echo>
-        <echo>release-src : release source file</echo>
-        <echo>release-doc : release javadoc file</echo>
+        <echo>release       : release all</echo>
+        <echo>release-bin   : release binary file</echo>
+        <echo>release-src   : release source file</echo>
+        <echo>release-doc   : release javadoc file</echo>
         <echo>publish-local : local publish</echo>
     </target>
 

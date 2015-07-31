@@ -42,11 +42,12 @@
     Help Document Section
     ==================-->
     <target name="-help-test" extensionOf="-help-extend">
-        <echo>compile-test : compile test file under ${test.dir}</echo>
+        <echo>compile-test       : compile test file under ${test.dir}</echo>
         <echo>compile-test-class : compile test file under ${test.dir}</echo>
-        <echo>test : test project</echo>
-        <echo>test-class : run a test class, use property 'class' to set class</echo>
-        <echo>test-method : run a test method, use property 'class' and 'method' to set method</echo>
+        <echo>run-test-class     : run class file under ${test.dir}</echo>
+        <echo>test               : test project</echo>
+        <echo>test-class         : run a test class, use property 'class' to set class</echo>
+        <echo>test-method        : run a test method, use property 'class' and 'method' to set method</echo>
     </target>
 
     <!--==============
