@@ -65,6 +65,7 @@
             <fileset dir="${lib.test.dir}" if:set="exist.lib.test.dir">
                 <include name="*.jar"/>
             </fileset>
+            <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
     </target>
     <target name="-test-init" depends="-test-init-classpath,init-classpath">
