@@ -137,7 +137,7 @@
     <!--==============
     task define : run
     ===============-->
-    <target name="run-test-class" depends="compile-test">
+    <target name="run-test-class" depends="compile-test-class">
         <fail unless="class">Must set 'class'</fail>
         <java classname="${class}"
               fork="true"
