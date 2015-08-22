@@ -147,6 +147,7 @@
             <classpath path="${build.test.dir}"/>
             <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>
 
