@@ -141,6 +141,7 @@
         <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
         <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
         <path id="real.default.classpath">
+            <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${default.classpath}" if:set="default.classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
@@ -151,6 +152,7 @@
             <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
         <path id="real.compile.classpath">
+            <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
             <fileset dir="${lib.compile.dir}" if:set="exist.lib.compile.dir">
@@ -158,6 +160,7 @@
             </fileset>
         </path>
         <path id="real.runtime.classpath">
+            <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
             <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">

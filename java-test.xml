@@ -60,6 +60,7 @@
     <target name="-test-init-classpath" depends="-test-init-property">
         <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
         <path id="real.test.classpath">
+            <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${test.classpath}" if:set="test.classpath"/>
             <fileset dir="${lib.test.dir}" if:set="exist.lib.test.dir">
