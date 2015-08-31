@@ -17,7 +17,8 @@
                    includeantruntime="no"
                    includejavaruntime="no"
                    fork="true"
-                   failonerror="true">
+                   failonerror="true"
+                   debug="true">
                 <classpath path="@{classpath}"/>
             </javac>
             <taskdef name="@{name}" classname="@{class}" classpath="${build.dir}/gen/@{src}"/>
@@ -42,7 +43,8 @@
                    includeantruntime="no"
                    includejavaruntime="no"
                    fork="true"
-                   failonerror="true">
+                   failonerror="true"
+                   debug="true">
                 <classpath path="@{classpath}"/>
             </javac>
             <copy file="@{antlibpath}" tofile="${build.dir}/gen/@{src}/classes/antlib.xml"/>
