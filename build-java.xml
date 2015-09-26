@@ -3,6 +3,34 @@
          xmlns:if="ant:if"
          xmlns:unless="ant:unless">
 
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ build.xml
+    ├ ivy.xml
+    ├ src           ${src.dir}
+    ├ res           ${res.dir}
+    │ └ META-INF
+    ├ lib           ${lib.dir}
+    │ ├ default     ${lib.default.dir}
+    │ ├ master      ${lib.master.dir}
+    │ ├ compile     ${lib.compile.dir}
+    │ └ runtime     ${lib.runtime.dir}
+    └ build         ${build.dir}
+      ├ src         ${build.src.dir}
+      ├ classes     ${build.classes.dir}
+      ├ jar         ${build.jar.dir}
+      │ ├ ${jar.lib.dir}
+      │ └ ${jar.file}
+      └ META-INF    ${build.meta.dir}
+
+
+    MANIFEST.MF     ${manifest.file}
+    splash image    ${splash.file}
+    README          ${readme.file}
+    ================-->
+
     <!--========
     default task
     ==========-->
@@ -224,7 +252,7 @@
     </target>
     <target name="-compile-prepare" depends="init,-compile-init,-pre-compile"/>
     <target name="-compile" depends="-compile-prepare">
-        <fail if="compile.source">property 'compile.source' has beed defined</fail>
+        <fail if="compile.source">property 'compile.source' has need defined</fail>
         <available property="exist.build.src" file="${build.src.dir}" type="dir"/>
         <property name="compile.source" value="${src.dir}:${build.src.dir}" if:set="exist.build.src"/>
         <property name="compile.source" value="${src.dir}" unless:set="exist.build.src"/>

@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:if="ant:if"
          xmlns:unless="ant:unless">
+
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ test          ${test.dir}
+    ├ lib           ${lib.dir}
+    │ └ test        ${lib.test.dir}
+    └ build         ${build.dir}
+      ├ classes     ${build.classes.dir}
+      └ test
+        ├ classes   ${build.test.dir}
+        └ result    ${test.result.dir}
+
+    ================-->
+
     <!--==============
     dependence library
     ==================

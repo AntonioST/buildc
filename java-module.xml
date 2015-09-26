@@ -2,12 +2,36 @@
 <project xmlns:if="ant:if"
          xmlns:unless="ant:unless">
 
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ <module>      @{dir}
+    │ ├ src         @{src}
+    │ ├ test        @{test}
+    │ ├ res         @{res}
+    │ ├ META-INF
+    │ └ MANIFEST.MF
+    └ build         ${build.dir}
+      └ @{name}
+        ├ classes
+        ├ test
+        ├ result
+        └ @{jar}
+
+
+    ================-->
+
+
     <!--===========
     import checking
     ============-->
     <fail unless="define.java">should import 'build-java.xml'</fail>
     <property name="define.module" value=""/>
 
+    <!--========
+    macro define
+    =========-->
     <macrodef name="macro-module">
         <attribute name="dir"/>
         <attribute name="name" default="@{name}"/>
