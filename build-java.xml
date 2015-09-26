@@ -284,7 +284,7 @@
     </target>
     <target name="-manifest-init" depends="-jar-init">
         <touch file="${jar.manifest.file}" unless:set="exist.manifest.file"/>
-        <copy file="manifest.file" tofile="${jar.manifest.file}" if:set="exist.manifest.file"/>
+        <copy file="${manifest.file}" tofile="${jar.manifest.file}" if:set="exist.manifest.file"/>
     </target>
     <target name="-manifest-main-class" depends="-manifest-init" if="main.class">
         <manifest file="${jar.manifest.file}" mode="update">

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <property name="define.module" value=""/>
+
+    <macrodef name="macro-module">
+        <attribute name="dir"/>
+        <attribute name="name" default="@{name}"/>
+        <attribute name="jar" default="@{name}.jar"/>
+        <attribute name="src" default="@{dir}/src"/>
+        <attribute name="test" default="@{dir}/test"/>
+        <attribute name="res" default="@{dir}/res"/>
+        <attribute name="build" default="${build.dir}/@{name}"/>
+        <element name="customize" implicit="true" optional="true"/>
+        <sequential>
+            <available property="exist.@{src}" file="@{src}" type="dir"/>
+            <available property="exist.@{test}" file="@{test}" type="dir"/>
+            <available property="exist.@{res}" file="@{res}" type="dir"/>
+            <!--compile src-->
+            <mkdir dir="@{build}/classes" if:set="exist.@{src}"/>
+            <javac srcdir="@{src}"
+                   destdir="@{build}/classes"
+                   includes="**/*.java"
+                   excludes=""
+                   source="${javac.source}"
+                   target="${javac.target}"
+                   debug="${javac.debug}"
+                   verbose="${javac.verbose}"
+                   listfiles="${javac.list-file}"
+                   includeantruntime="no"
+                   includejavaruntime="no"
+                   fork="true"
+                   failonerror="true"
+                   if:set="exist.@{src}">
+                <classpath refid="real.compile.classpath"/>
+                <customize/>
+            </javac>
+            <!--compile test-->
+            <mkdir dir="@{build}/test" if:set="exist.@{test}"/>
+            <javac srcdir="@{src}"
+                   destdir="@{build}/test"
+                   includes="**/*.java"
+                   excludes=""
+                   source="${javac.source}"
+                   target="${javac.target}"
+                   debug="${javac.debug}"
+                   verbose="${javac.verbose}"
+                   listfiles="${javac.list-file}"
+                   includeantruntime="no"
+                   includejavaruntime="no"
+                   fork="true"
+                   failonerror="true"
+                   if:set="exist.@{test}">
+                <classpath refid="real.test.classpath"/>
+                <customize/>
+            </javac>
+            <!--test-->
+            <mkdir dir="@{build}/result" if:set="exist.@{test}"/>
+            <junit printsummary="withOutAndErr"
+                   haltonfailure="true"
+                   haltonerror="true"
+                   fork="true"
+                   if:set="exist.@{test}">
+                <formatter type="brief"/>
+                <classpath refid="real.test.classpath"/>
+                <classpath path="@{build}/classes"/>
+                <classpath path="@{build}/test"/>
+                <customize/>
+                <batchtest todir="@{build}/result">
+                    <fileset dir="@{test}"/>
+                </batchtest>
+            </junit>
+            <!--manifest-->
+            <available property="exist.@{dir}.manifest" file="@{dir}/MANIFEST.MF"/>
+            <touch file="@{build}/MANIFEST.MF" unless:set="exist.@{dir}.manifest"/>
+            <copy file="@{dir}/MANIFEST.MF" tofile="@{build}/MANIFEST.MF" if:set="exist.@{dir}.manifest"/>
+            <!--jar-->
+            <jar destfile="@{build}/@{jar}"
+                 manifest="@{build}/MANIFEST.MF">
+                <metainf dir="@{res}/META-INF" if:set="exist.@{res}"/>
+                <fileset dir="@{build}/classes"/>
+                <fileset dir="@{res}" if:set="exist.@{res}">
+                    <exclude name="META-INF/**/*"/>
+                </fileset>
+            </jar>
+        </sequential>
+    </macrodef>
+
+</project>
