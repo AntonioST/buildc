@@ -10,7 +10,7 @@
     │ ├ src         @{src}
     │ ├ test        @{test}
     │ ├ res         @{res}
-    │ ├ META-INF
+    │ │ └ META-INF
     │ └ MANIFEST.MF
     └ build         ${build.dir}
       └ @{name}
