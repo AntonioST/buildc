@@ -2,6 +2,28 @@
 <project xmlns:jacoco="antlib:org.jacoco.ant"
          xmlns:if="ant:if"
          xmlns:unless="ant:unless">
+
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ src           ${src.dir}
+    ├ res           ${res.dir}
+    ├ lib           ${lib.dir}
+    │ ├ runtime     ${lib.runtime.dir}
+    │ └ test        ${lib.test.dir}
+    └ build         ${build.dir}
+      ├ jacoco      ${build.coverage.dir}
+      │ ├ jacoco.exec   ${coverage.result.file}
+      │ └ report    ${coverage.report.dir}
+      ├ classes     ${build.classes.dir}
+      └ test
+        ├ classes   ${build.test.dir}
+        └ result    ${test.result.dir}
+
+
+    ================-->
+
     <!--==============
     dependence library
     ==================
@@ -44,17 +66,29 @@
     <target name="-coverage-main" depends="-run-config,-run-init,-coverage-init">
         <fail unless="main.class">Must set 'main.class'</fail>
         <jacoco:coverage destfile="${coverage.result.file}">
-            <macro-java>
+            <java classname="${main.class}"
+                  fork="true"
+                  failonerror="false">
+                <classpath refid="real.runtime.classpath"/>
+                <classpath path="${build.classes.dir}"/>
+                <classpath path="${res.dir}"/>
+                <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
                 <arg line="${program.args}" if:set="program.args"/>
-            </macro-java>
+            </java>
         </jacoco:coverage>
     </target>
     <target name="-coverage-class" depends="-run-init,-coverage-init">
         <fail unless="class">Must set 'class'</fail>
         <jacoco:coverage destfile="${coverage.result.file}">
-            <macro-java classname="${class}">
+            <java classname="${class}"
+                  fork="true"
+                  failonerror="false">
+                <classpath refid="real.runtime.classpath"/>
+                <classpath path="${build.classes.dir}"/>
+                <classpath path="${res.dir}"/>
+                <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
                 <arg line="${program.args}" if:set="program.args"/>
-            </macro-java>
+            </java>
         </jacoco:coverage>
     </target>
     <target name="-coverage-test" depends="-test-init,-coverage-init">
