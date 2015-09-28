@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ src           ${src.dir}
+    ├ lib           ${lib.dir}
+    │ └ javadoc     ${javadoc.doclet.classpath}
+    └ build         ${build.dir}
+      └ javadoc     ${build.javadoc.dir}
+
+
+    ================-->
+
     <!--==============
     dependence library
     ==================
@@ -36,7 +50,7 @@
     ========-->
     <target name="javadoc" depends="init,init-classpath">
         <!--check-->
-        <fail unless="javadoc.doclet">Must set 'javadoc.doclet'</fail>
+        <fail unless="javadoc.doclet.class">Must set 'javadoc.doclet.class'</fail>
         <!--default value-->
         <property name="src.include" value="**/*"/>
         <property name="src.exclude" value=""/>
@@ -51,7 +65,7 @@
         <property name="javadoc.splitindex" value="false"/>
         <!--initial-->
         <mkdir dir="${build.javadoc.dir}"/>
-        <pathconvert property="javadoc.doclet.path" refid="real.default.classpath"/>
+        <pathconvert property="tmp.javadoc.doclet.classpath" refid="javadoc.doclet.classpath"/>
         <!--javadoc-->
         <javadoc destdir="${build.javadoc.dir}"
                  windowtitle="${javadoc.title}"
@@ -65,7 +79,7 @@
                  splitindex="${javadoc.splitindex}"
                  failonerror="true">
             <classpath refid="real.default.classpath"/>
-            <doclet name="${javadoc.doclet.class}" path="${javadoc.doclet.path}"/>
+            <doclet name="${javadoc.doclet.class}" path="${tmp.javadoc.doclet.classpath}"/>
             <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
         </javadoc>
     </target>
