@@ -4,49 +4,61 @@
     <property name="build.dir" value="build"/>
 
     <macrodef name="gen-task">
+        <!--source directory-->
         <attribute name="src" default="."/>
+        <!--task name-->
         <attribute name="name"/>
+        <!--task class-->
         <attribute name="class"/>
-        <attribute name="classpath" default=""/>
+        <!--javac options-->
+        <element name="customize" implicit="true" optional="true"/>
         <sequential>
+            <!--compile-->
             <mkdir dir="${build.dir}/gen/@{src}"/>
             <javac srcdir="@{src}"
                    destdir="${build.dir}/gen/@{src}"
-                   includes="**/*"
+                   includes="**/*.java"
                    listfiles="true"
                    includeantruntime="no"
                    includejavaruntime="no"
                    fork="true"
                    failonerror="true"
                    debug="true">
-                <classpath path="@{classpath}"/>
+                <customize/>
             </javac>
+            <!--task define-->
             <taskdef name="@{name}" classname="@{class}" classpath="${build.dir}/gen/@{src}"/>
         </sequential>
     </macrodef>
 
     <macrodef name="gen-tasks">
+        <!--source directory-->
         <attribute name="src" default="."/>
+        <!--antlib file-->
         <attribute name="antlibfile" default="antlib.xml"/>
         <attribute name="antlibpath" default="@{src}/@{antlibfile}"/>
-        <attribute name="classpath" default=""/>
+        <!--task url-->
         <attribute name="uri" default=""/>
+        <!--javac options-->
+        <element name="customize" implicit="true" optional="true"/>
         <sequential>
+            <!--check antlib file-->
             <available property="exist.antlib.@{src}" file="@{antlibpath}"/>
             <fail unless="exist.antlib.@{src}">lost antlib.xml under @{src}</fail>
-            <mkdir dir="${build.dir}/gen/@{src}"/>
+            <!--compile-->
             <mkdir dir="${build.dir}/gen/@{src}/classes"/>
             <javac srcdir="@{src}"
                    destdir="${build.dir}/gen/@{src}/classes"
-                   includes="**/*"
+                   includes="**/*.java"
                    listfiles="true"
                    includeantruntime="no"
                    includejavaruntime="no"
                    fork="true"
                    failonerror="true"
                    debug="true">
-                <classpath path="@{classpath}"/>
+                <customize/>
             </javac>
+            <!--task define-->
             <copy file="@{antlibpath}" tofile="${build.dir}/gen/@{src}/classes/antlib.xml"/>
             <script language="javascript"><![CDATA[
                 var p = self.getProject();
