@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:if="ant:if" xmlns:unless="ant:unless">
+    <description>provide some file task</description>
+
+    <!--========
+    macro define
+    =========-->
+    <macrodef name="macro-cat">
+        <attribute name="srcfile"/>
+        <sequential>
+            <script language="javascript"><![CDATA[
+                var F = java.nio.file.Files;
+                var P = java.nio.file.Paths;
+                for each (var line in F.readAllLines(P.get('@{srcfile}'))){
+                    print(line);
+                }
+            ]]></script>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="macro-cat-dir">
+        <attribute name="srcdir"/>
+        <sequential>
+            <script language="javascript"><![CDATA[
+                var F = java.nio.file.Files;
+                var P = java.nio.file.Paths;
+                var s = F.walk(P.get('@{srcdir}'));
+                try {
+                    s.filter(function(p) F.isRegularFile(p))
+                     .forEach(function(p) {
+                        print(p);
+                        for each (var line in F.readAllLines(p)){
+                            print(line);
+                        }
+                     });
+                } finally {
+                    s.close();
+                }
+            ]]></script>
+        </sequential>
+    </macrodef>
+</project>
