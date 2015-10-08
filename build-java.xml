@@ -29,6 +29,7 @@
     MANIFEST.MF     ${manifest.file}
     splash image    ${splash.file}
     README          ${readme.file}
+                    ${jar.resource.fileset}
     ================-->
 
     <!--========
@@ -80,17 +81,17 @@
         <echo>task are listed below for each task module</echo>
     </target>
     <target name="-help-build-java" depends="init">
-        <echo>help           : list task and help document</echo>
-        <echo>init           : initialize task</echo>
-        <echo>retrieve       : retrieve library at ${lib.dir}</echo>
+        <echo>help : list task and help document</echo>
+        <echo>init : initialize task</echo>
+        <echo>retrieve : retrieve library at ${lib.dir}</echo>
         <echo>echo-classpath : echo classpath</echo>
         <echo/>
-        <echo>compile        : compile source file under ${src.dir}/ to ${build.dir}/</echo>
-        <echo>compile-class  : compile source file, use property 'class' to set included files</echo>
-        <echo>jar            : generate jar file</echo>
+        <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
+        <echo>compile-class : compile source file, use property 'class' to set included files</echo>
+        <echo>jar : generate jar file</echo>
         <echo/>
-        <echo>clean          : clean</echo>
-        <echo>clean-all      : clean</echo>
+        <echo>clean : clean</echo>
+        <echo>clean-all : clean</echo>
     </target>
     <target name="help" depends="-help-general,-help-build-java,-help-extend"/>
 
@@ -143,8 +144,6 @@
         <property name="build.jar.dir" value="${build.dir}/jar"/>
         <property name="build.meta.dir" value="${build.dir}/META-INF"/>
         <property name="jar.lib.dir" value="lib"/>
-        <!--exist property-->
-        <available property="exist.res" file="${res.dir}" type="dir"/>
         <!--default value-->
         <property name="javac.source" value="1.8"/>
         <property name="javac.target" value="1.8"/>
@@ -152,7 +151,7 @@
         <property name="javac.verbose" value="false"/>
         <property name="javac.list-file" value="true"/>
         <property name="javac.jvmargs" value=""/>
-        <property name="src.include" value="**"/>
+        <property name="src.include" value="**/*.java"/>
         <property name="src.exclude" value=""/>
         <property name="jar.lib.copy" value="true"/>
         <!--verbose-->
@@ -177,7 +176,6 @@
             <fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">
                 <include name="*.jar"/>
             </fileset>
-            <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
         <path id="real.compile.classpath">
             <pathelement path="${classpath}" if:set="classpath"/>
@@ -194,7 +192,6 @@
             <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
                 <include name="*.jar"/>
             </fileset>
-            <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
@@ -260,6 +257,12 @@
                      dest="${build.classes.dir}">
             <classpath refid="real.compile.classpath"/>
         </macro-javac>
+        <!-- copy un-java-source file-->
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${src.dir}">
+                <exclude name="${src.include}"/>
+            </fileset>
+        </copy>
     </target>
     <target name="-compile-class-clean">
         <fail unless="class">Must set 'class'</fail>
@@ -348,7 +351,6 @@
     </target>
     <target name="-manifest-splash" depends="-manifest-init" if="exist.splash.image">
         <basename file="${splash.image}" property="splash.image.basename"/>
-        <mkdir dir="${build.meta.dir}"/>
         <copy failonerror="false" file="${splash.image}" todir="${build.meta.dir}"/>
         <manifest file="${jar.manifest.file}" mode="update">
             <attribute name="SplashScreen-Image" value="META-INF/${splash.image.basename}"/>
@@ -363,15 +365,16 @@
     <target name="-jar-readme" depends="-jar-init" if="exist.readme.file">
         <copy file="${readme.file}" todir="${build.jar.dir}"/>
     </target>
-    <target name="-jar" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-pre-jar">
+    <target name="-jar-resource" depends="-jar-init" if="jar.resource.fileset">
+        <copy todir="${build.jar.dir}/${res.dir}">
+            <fileset refid="jar.resource.fileset"/>
+        </copy>
+    </target>
+    <target name="-jar" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-jar-resource,-pre-jar">
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
             <fileset dir="${build.classes.dir}"/>
-            <fileset dir="${res.dir}" if:set="exist.res">
-                <exclude name="META-INF/**/*"/>
-            </fileset>
-            <fileset refid="jar.resource.fileset" if:set="jar.resource.fileset"/>
         </jar>
     </target>
     <target name="jar" depends="-jar,-post-jar"/>
