@@ -75,23 +75,23 @@
     help document section
     ===================-->
     <target name="-help-general" depends="init">
-        <echo>Usage:</echo>
-        <echo>ant TASK [-DKEY=VALUE...]</echo>
+        <echo>Usage : ant TASK [-DKEY=VALUE...]</echo>
         <echo/>
         <echo>task are listed below for each task module</echo>
     </target>
     <target name="-help-build-java" depends="init">
-        <echo>help : list task and help document</echo>
-        <echo>init : initialize task</echo>
-        <echo>retrieve : retrieve library at ${lib.dir}</echo>
+        <echo>help           : list task and help document</echo>
+        <echo>init           : initialize task</echo>
+        <echo>retrieve       : retrieve lost library at ${lib.dir}</echo>
+        <echo>clean-retrieve : redo retrieve library at ${lib.dir}</echo>
         <echo>echo-classpath : echo classpath</echo>
         <echo/>
-        <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
-        <echo>compile-class : compile source file, use property 'class' to set included files</echo>
-        <echo>jar : generate jar file</echo>
+        <echo>compile        : compile source file under ${src.dir}/ to ${build.dir}/</echo>
+        <echo>compile-class  : compile source file, use property 'class' to set included files</echo>
+        <echo>jar            : generate jar file</echo>
         <echo/>
-        <echo>clean : clean</echo>
-        <echo>clean-all : clean</echo>
+        <echo>clean          : clean</echo>
+        <echo>clean-all      : clean</echo>
     </target>
     <target name="help" depends="-help-general,-help-build-java,-help-extend"/>
 
@@ -211,6 +211,10 @@
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
     <target name="retrieve" if="exist.ivy">
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
+    </target>
+    <target name="clean-retrieve" if="exist.ivy">
+        <delete dir="${lib.dir}"/>
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
 
