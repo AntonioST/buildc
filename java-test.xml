@@ -79,6 +79,8 @@
         <path id="real.test.classpath">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
+            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
+            <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
             <pathelement path="${test.classpath}" if:set="test.classpath"/>
             <fileset dir="${lib.test.dir}" if:set="exist.lib.test.dir">
                 <include name="*.jar"/>

@@ -164,19 +164,19 @@
         <echo message="[jar] lib copy=${jar.lib.copy}" level="verbose"/>
     </target>
     <target name="init-classpath" depends="-init,-try-retrieve">
-        <available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>
+        <!--<available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>-->
         <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
         <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
-        <path id="real.default.classpath">
-            <pathelement path="${classpath}" if:set="classpath"/>
-            <pathelement path="${default.classpath}" if:set="default.classpath"/>
-            <pathelement path="${master.classpath}" if:set="master.classpath"/>
-            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
-            <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
-            <fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">
-                <include name="*.jar"/>
-            </fileset>
-        </path>
+        <!--<path id="real.default.classpath">-->
+            <!--<pathelement path="${classpath}" if:set="classpath"/>-->
+            <!--<pathelement path="${default.classpath}" if:set="default.classpath"/>-->
+            <!--<pathelement path="${master.classpath}" if:set="master.classpath"/>-->
+            <!--<pathelement path="${compile.classpath}" if:set="compile.classpath"/>-->
+            <!--<pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>-->
+            <!--<fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">-->
+                <!--<include name="*.jar"/>-->
+            <!--</fileset>-->
+        <!--</path>-->
         <path id="real.compile.classpath">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
@@ -188,6 +188,7 @@
         <path id="real.runtime.classpath">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
+            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
             <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
             <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
                 <include name="*.jar"/>
