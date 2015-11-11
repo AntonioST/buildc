@@ -32,7 +32,7 @@
     <!--========
     macro define
     =========-->
-    <macrodef name="macro-module">
+    <macrodef name="module">
         <attribute name="dir"/>
         <attribute name="name" default="@{name}"/>
         <attribute name="jar" default="@{name}.jar"/>
@@ -114,5 +114,4 @@
             </jar>
         </sequential>
     </macrodef>
-
 </project>

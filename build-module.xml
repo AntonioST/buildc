@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <fail if="define.module">'module' has been imported</fail>
+    <property name="define.module" value=""/>
+
+    <property name="ant.root" value=".ant"/>
+    <property name="build.dir" value="build"/>
+
+
+    <macrodef name="module">
+        <attribute name="name"/>
+        <attribute name="antfile" default="build.xml"/>
+        <attribute name="antroot" default="${ant.root}"/>
+        <attribute name="target" default="jar"/>
+        <sequential>
+            <ant antfile="@{antfile}" dir="@{name}" target="@{target}">
+                <property name="ant.root" value="../@{antroot}"/>
+                <property name="build.dir" value="../${build.dir}/@{name}"/>
+            </ant>
+        </sequential>
+    </macrodef>
+</project>

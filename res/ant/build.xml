@@ -7,6 +7,9 @@
     <import file=""/>
     ===-->
 
+    <property name="ant.root" value=".ant"/>
+    <import file="${ant.root}/build-java.xml"/>
+
     <!--====
     property
     ========
