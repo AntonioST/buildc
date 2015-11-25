@@ -367,15 +367,12 @@
             <fileset dir="${res.dir}/META-INF"/>
         </copy>
     </target>
-    <target name="-jar-readme" depends="-jar-init" if="exist.readme.file">
-        <copy file="${readme.file}" todir="${build.jar.dir}"/>
-    </target>
     <target name="-jar-resource" depends="-jar-init" if="jar.resource.fileset">
         <copy todir="${build.jar.dir}/${res.dir}">
             <fileset refid="jar.resource.fileset"/>
         </copy>
     </target>
-    <target name="-jar" depends="-jar-init,-manifest,-jar-meta,-jar-readme,-jar-resource,-pre-jar">
+    <target name="-jar" depends="-jar-init,-manifest,-jar-meta,-jar-resource,-pre-jar">
         <jar destfile="${build.jar.dir}/${jar.file}"
              manifest="${jar.manifest.file}">
             <metainf dir="${build.meta.dir}"/>
