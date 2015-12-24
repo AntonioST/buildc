@@ -41,59 +41,28 @@
     global define
     ==========-->
     <property name="define.java" value=""/>
-    <property name="src.dir" value="src"/>
-    <property name="build.dir" value="build"/>
-    <property name="res.dir" value="res"/>
-    <property name="lib.dir" value="lib"/>
-    <property name="lib.default.dir" value="${lib.dir}/default"/>
-    <property name="lib.master.dir" value="${lib.dir}/master"/>
-    <property name="lib.compile.dir" value="${lib.dir}/compile"/>
-    <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
-    <available property="exist.ivy" file="ivy.xml" type="file"/>
-    <available property="exist.lib" file="${lib.dir}" type="dir"/>
 
     <!--==
     import
     ===-->
-    <import file="ant-git.xml"/>
+    <import file="build-base.xml"/>
 
     <!--====================
     custom extension section
     =====================-->
-    <extension-point name="-pre-init"/>
-    <extension-point name="-post-init"/>
-    <extension-point name="-pre-compile"/>
-    <extension-point name="-post-compile"/>
     <extension-point name="-pre-jar"/>
     <extension-point name="-post-jar"/>
-    <extension-point name="-post-clean"/>
-    <extension-point name="-post-clean-all"/>
-    <extension-point name="-help-extend"/>
-    <extension-point name="-echo-classpath-extend"/>
 
     <!--=================
     help document section
     ===================-->
-    <target name="-help-general" depends="init">
-        <echo>Usage : ant TASK [-DKEY=VALUE...]</echo>
-        <echo/>
-        <echo>task are listed below for each task module</echo>
-    </target>
-    <target name="-help-build-java" depends="init">
-        <echo>help           : list task and help document</echo>
-        <echo>init           : initialize task</echo>
-        <echo>retrieve       : retrieve lost library at ${lib.dir}</echo>
-        <echo>clean-retrieve : redo retrieve library at ${lib.dir}</echo>
+    <target name="-help-build-java" extensionOf="-help-extend">
         <echo>echo-classpath : echo classpath</echo>
         <echo/>
-        <echo>compile        : compile source file under ${src.dir}/ to ${build.dir}/</echo>
         <echo>compile-class  : compile source file, use property 'class' to set included files</echo>
         <echo>jar            : generate jar file</echo>
         <echo/>
-        <echo>clean          : clean</echo>
-        <echo>clean-all      : clean</echo>
     </target>
-    <target name="help" depends="-help-general,-help-build-java,-help-extend"/>
 
     <!--================
     Utility Macro define
@@ -124,18 +93,7 @@
     <!--===========
     initial section
     ============-->
-    <target name="-init-properties" depends="-pre-init">
-        <property file="${basedir}/build.properties"/>
-    </target>
-    <target name="-init-version" depends="-init-properties" unless="project.version">
-        <available property="exist.git" file=".git" type="dir"/>
-        <git-describe property="project.version" unless:set="project.version" if:set="exist.git"/>
-        <tstamp unless:set="project.version">
-            <format property="time.stamp" pattern="yyyyMMdd"/>
-        </tstamp>
-        <property name="project.version" value="snapshot-${time.stamp}" unless:set="project.version"/>
-    </target>
-    <target name="-init" depends="-init-properties,-init-version">
+    <target name="-init" depends="-init-prepare">
         <property name="project.name" value="${ant.project.name}"/>
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--default directory-->
@@ -162,61 +120,6 @@
         <echo message="[javac] debug=${javac.debug}" level="verbose"/>
         <echo message="[javac] verbose=${javac.verbose}" level="verbose"/>
         <echo message="[jar] lib copy=${jar.lib.copy}" level="verbose"/>
-    </target>
-    <target name="init-classpath" depends="-init,-try-retrieve">
-        <!--<available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>-->
-        <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
-        <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
-        <!--<path id="real.default.classpath">-->
-            <!--<pathelement path="${classpath}" if:set="classpath"/>-->
-            <!--<pathelement path="${default.classpath}" if:set="default.classpath"/>-->
-            <!--<pathelement path="${master.classpath}" if:set="master.classpath"/>-->
-            <!--<pathelement path="${compile.classpath}" if:set="compile.classpath"/>-->
-            <!--<pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>-->
-            <!--<fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">-->
-                <!--<include name="*.jar"/>-->
-            <!--</fileset>-->
-        <!--</path>-->
-        <path id="real.compile.classpath">
-            <pathelement path="${classpath}" if:set="classpath"/>
-            <pathelement path="${master.classpath}" if:set="master.classpath"/>
-            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
-            <fileset dir="${lib.compile.dir}" if:set="exist.lib.compile.dir">
-                <include name="*.jar"/>
-            </fileset>
-        </path>
-        <path id="real.runtime.classpath">
-            <pathelement path="${classpath}" if:set="classpath"/>
-            <pathelement path="${master.classpath}" if:set="master.classpath"/>
-            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
-            <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
-            <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
-                <include name="*.jar"/>
-            </fileset>
-        </path>
-    </target>
-    <target name="init" depends="-init,-post-init" description="init project"/>
-    <target name="-echo-classpath" depends="init-classpath">
-        <pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>
-        <pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>
-        <echo>real.compile.classpath=${temp.real.compile.classpath}</echo>
-        <echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>
-    </target>
-    <target name="echo-classpath" depends="init-classpath,-echo-classpath,-echo-classpath-extend"/>
-
-
-    <!--===================
-    task (retrieve) section
-    ====================-->
-    <target name="-try-retrieve" if="exist.ivy" unless="exist.lib">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
-    <target name="retrieve" if="exist.ivy">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
-    <target name="clean-retrieve" if="exist.ivy">
-        <delete dir="${lib.dir}"/>
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
 
     <!--===========
@@ -248,13 +151,9 @@
             </sequential>
         </macrodef>
     </target>
-    <target name="-compile-init" depends="init,init-classpath,-def-macro-javac">
-        <mkdir dir="${build.dir}"/>
+    <target name="-compile" depends="-compile-prepare,-def-macro-javac">
         <mkdir dir="${build.classes.dir}"/>
-    </target>
-    <target name="-compile-prepare" depends="init,-compile-init,-pre-compile"/>
-    <target name="-compile" depends="-compile-prepare">
-        <fail if="compile.source">property 'compile.source' has need defined</fail>
+        <fail if="compile.source">property 'compile.source' has been defined</fail>
         <available property="exist.build.src" file="${build.src.dir}" type="dir"/>
         <property name="compile.source" value="${src.dir}:${build.src.dir}" if:set="exist.build.src"/>
         <property name="compile.source" value="${src.dir}" unless:set="exist.build.src"/>
@@ -300,7 +199,6 @@
             <classpath refid="real.compile.classpath"/>
         </macro-javac>
     </target>
-    <target name="compile" depends="-compile,-post-compile"/>
     <target name="compile-class" depends="-compile-class,-post-compile"/>
 
     <!--=======
@@ -380,16 +278,4 @@
         </jar>
     </target>
     <target name="jar" depends="-jar,-post-jar"/>
-
-    <!--=========
-    clean section
-    ==========-->
-    <target name="-clean" depends="init">
-        <delete dir="${build.dir}"/>
-    </target>
-    <target name="-clean-all" depends="-clean">
-        <delete dir="${lib.dir}"/>
-    </target>
-    <target name="clean" depends="-clean,-post-clean"/>
-    <target name="clean-all" depends="-clean-all,-post-clean,-post-clean-all"/>
 </project>
