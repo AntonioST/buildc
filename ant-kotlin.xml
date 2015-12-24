@@ -31,6 +31,6 @@
              onerror="failall"
              if:set="exist.kotlin.lib">
         <!--XXX maven source not found-->
-        <classpath path="${kotlin.lib}/kotlin-ant.jar"/>
+        <classpath path="${kotlin.lib}/kotlin-compiler.jar"/>
     </taskdef>
 </project>

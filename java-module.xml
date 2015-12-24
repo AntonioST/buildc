@@ -61,7 +61,7 @@
                    fork="true"
                    failonerror="true"
                    if:set="exist.@{src}">
-                <classpath refid="real.compile.classpath"/>
+                <classpath refid="real.compile.classpath.ref"/>
                 <customize/>
             </javac>
             <!--compile test-->
@@ -80,7 +80,7 @@
                    fork="true"
                    failonerror="true"
                    if:set="exist.@{test}">
-                <classpath refid="real.test.classpath"/>
+                <classpath refid="real.test.classpath.ref"/>
                 <customize/>
             </javac>
             <!--test-->
@@ -91,7 +91,7 @@
                    fork="true"
                    if:set="exist.@{test}">
                 <formatter type="brief"/>
-                <classpath refid="real.test.classpath"/>
+                <classpath refid="real.test.classpath.ref"/>
                 <classpath path="@{build}/classes"/>
                 <classpath path="@{build}/test"/>
                 <customize/>

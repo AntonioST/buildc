@@ -113,7 +113,7 @@
         <!--<include name="*.jar"/>-->
         <!--</fileset>-->
         <!--</path>-->
-        <path id="real.compile.classpath">
+        <path id="real.compile.classpath.ref">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
@@ -121,7 +121,7 @@
                 <include name="*.jar"/>
             </fileset>
         </path>
-        <path id="real.runtime.classpath">
+        <path id="real.runtime.classpath.ref">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
@@ -130,13 +130,13 @@
                 <include name="*.jar"/>
             </fileset>
         </path>
+        <pathconvert property="real.compile.classpath" refid="real.compile.classpath.ref"/>
+        <pathconvert property="real.runtime.classpath" refid="real.runtime.classpath.ref"/>
     </target>
     <target name="init" depends="-init,-post-init" description="init project"/>
     <target name="-echo-classpath" depends="init-classpath">
-        <pathconvert property="temp.real.compile.classpath" refid="real.compile.classpath"/>
-        <pathconvert property="temp.real.runtime.classpath" refid="real.runtime.classpath"/>
-        <echo>real.compile.classpath=${temp.real.compile.classpath}</echo>
-        <echo>real.runtime.classpath=${temp.real.runtime.classpath}</echo>
+        <echo>real.compile.classpath=${real.compile.classpath}</echo>
+        <echo>real.runtime.classpath=${real.runtime.classpath}</echo>
     </target>
     <target name="echo-classpath" depends="init-classpath,-echo-classpath,-echo-classpath-extend"/>
 

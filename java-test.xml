@@ -103,7 +103,7 @@
                        fork="true"
                        failureproperty="test.fail">
                     <formatter type="brief"/>
-                    <classpath refid="real.test.classpath"/>
+                    <classpath refid="real.test.classpath.ref"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
                     <customize/>
@@ -112,8 +112,8 @@
         </macrodef>
     </target>
     <target name="-echo-test-classpath" depends="-test-init-classpath" extensionOf="-echo-classpath-extend">
-        <pathconvert property="temp.real.test.classpath" refid="real.test.classpath"/>
-        <echo>real.test.classpath=${temp.real.test.classpath}</echo>
+        <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
+        <echo>real.test.classpath=${real.test.classpath}</echo>
     </target>
 
     <!--======================
@@ -123,7 +123,7 @@
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
-            <classpath refid="real.test.classpath"/>
+            <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
     </target>
     <target name="-compile-test-class" depends="-compile-prepare,-test-init,-pre-compile-test">
@@ -142,13 +142,13 @@
                      includes="${tmp.compile.src.class}"
                      if:set="tmp.compile.src.class">
             <classpath path="${build.classes.dir}"/>
-            <classpath refid="real.compile.classpath"/>
+            <classpath refid="real.compile.classpath.ref"/>
         </macro-javac>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}"
                      includes="${tmp.compile.test.class}">
             <classpath path="${build.classes.dir}"/>
-            <classpath refid="real.test.classpath"/>
+            <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
     </target>
     <target name="compile-test" depends="-compile-test,-post-compile-test"/>

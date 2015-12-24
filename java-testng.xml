@@ -94,7 +94,7 @@
                 <mkdir dir="${test.result.dir}"/>
                 <testng outputdir="${test.result.dir}"
                         failureProperty="test.fail">
-                    <classpath refid="real.test.classpath"/>
+                    <classpath refid="real.test.classpath.ref"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${build.test.dir}"/>
                     <customize/>
@@ -106,7 +106,7 @@
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
-            <classpath refid="real.test.classpath"/>
+            <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
     </target>
     <target name="-compile-test-class" depends="-compile-prepare,-test-init,-pre-compile-test">
@@ -125,13 +125,13 @@
                      includes="${tmp.compile.src.class}"
                      if:set="tmp.compile.src.class">
             <classpath path="${build.classes.dir}"/>
-            <classpath refid="real.compile.classpath"/>
+            <classpath refid="real.compile.classpath.ref"/>
         </macro-javac>
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}"
                      includes="${tmp.compile.test.class}">
             <classpath path="${build.classes.dir}"/>
-            <classpath refid="real.test.classpath"/>
+            <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
     </target>
     <target name="compile-test" depends="-compile-test,-post-compile-test"/>

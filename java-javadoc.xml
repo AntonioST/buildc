@@ -52,7 +52,7 @@
                  private="${javadoc.private}"
                  splitindex="${javadoc.splitindex}"
                  failonerror="true">
-            <classpath refid="real.compile.classpath"/>
+            <classpath refid="real.compile.classpath.ref"/>
             <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
         </javadoc>
     </target>

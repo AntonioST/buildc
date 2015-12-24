@@ -34,7 +34,7 @@
         <java classname="${main.class}"
               fork="true"
               failonerror="false">
-            <classpath refid="real.runtime.classpath"/>
+            <classpath refid="real.runtime.classpath.ref"/>
             <classpath path="${build.classes.dir}"/>
             <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
@@ -46,7 +46,7 @@
         <java classname="${class}"
               fork="true"
               failonerror="false">
-            <classpath refid="real.runtime.classpath"/>
+            <classpath refid="real.runtime.classpath.ref"/>
             <classpath path="${build.classes.dir}"/>
             <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>

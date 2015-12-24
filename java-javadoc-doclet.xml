@@ -65,7 +65,7 @@
         <property name="javadoc.splitindex" value="false"/>
         <!--initial-->
         <mkdir dir="${build.javadoc.dir}"/>
-        <pathconvert property="tmp.javadoc.doclet.classpath" refid="javadoc.doclet.classpath"/>
+        <pathconvert property="javadoc.doclet.classpath" refid="javadoc.doclet.classpath.ref"/>
         <!--javadoc-->
         <javadoc destdir="${build.javadoc.dir}"
                  windowtitle="${javadoc.title}"
@@ -78,8 +78,8 @@
                  private="${javadoc.private}"
                  splitindex="${javadoc.splitindex}"
                  failonerror="true">
-            <classpath refid="real.default.classpath"/>
-            <doclet name="${javadoc.doclet.class}" path="${tmp.javadoc.doclet.classpath}"/>
+            <classpath refid="real.default.classpath.ref"/>
+            <doclet name="${javadoc.doclet.class}" path="${javadoc.doclet.classpath}"/>
             <fileset dir="${src.dir}" includes="${src.include}" excludes="${src.exclude}"/>
         </javadoc>
     </target>

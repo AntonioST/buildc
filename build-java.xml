@@ -159,7 +159,7 @@
         <property name="compile.source" value="${src.dir}" unless:set="exist.build.src"/>
         <macro-javac src="${compile.source}"
                      dest="${build.classes.dir}">
-            <classpath refid="real.compile.classpath"/>
+            <classpath refid="real.compile.classpath.ref"/>
         </macro-javac>
         <!-- copy un-java-source file-->
         <copy todir="${build.classes.dir}">
@@ -196,7 +196,7 @@
         <macro-javac src="${src.dir}"
                      dest="${build.classes.dir}"
                      includes="${tmp.compile.class}">
-            <classpath refid="real.compile.classpath"/>
+            <classpath refid="real.compile.classpath.ref"/>
         </macro-javac>
     </target>
     <target name="compile-class" depends="-compile-class,-post-compile"/>
@@ -237,7 +237,7 @@
     <target name="-manifest-classpath" depends="init-classpath,-manifest-init" if="jar.lib.copy.test">
         <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
         <copy todir="${build.jar.dir}/${jar.lib.dir}" flatten="true">
-            <path refid="real.runtime.classpath"/>
+            <path refid="real.runtime.classpath.ref"/>
         </copy>
         <fileset id="jar.classpath.fileset" dir="${build.jar.dir}" unless:set="jar.lib.dir.empty">
             <include name="${jar.lib.dir}/*"/>
@@ -245,7 +245,7 @@
         <pathconvert property="jar.classpath" pathsep=" " refid="jar.classpath.fileset" unless:set="jar.lib.dir.empty">
             <mapper type="regexp" from=".*${build.jar.dir}/(.*\.jar)" to="\1"/>
         </pathconvert>
-        <pathconvert property="jar.classpath" pathsep=" " refid="real.runtime.classpath" if:set="jar.lib.dir.empty">
+        <pathconvert property="jar.classpath" pathsep=" " refid="real.runtime.classpath.ref" if:set="jar.lib.dir.empty">
             <mapper type="regexp" from=".*/(.*\.jar)" to="\1"/>
         </pathconvert>
         <manifest file="${jar.manifest.file}" mode="update">
