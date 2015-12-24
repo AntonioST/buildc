@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns:if="ant:if"
+>
+    <!--=====
+    Reference
+    * http://kotlinlang.org/docs/reference/using-ant.html
+      XXX above url doesn't be used in this ant build
+      I cannot found 'antlib.xml' file in the kotlin-compiler.jar,
+      so I use the traditional way by invoking kotlinc through java task
+    ======-->
+
+    <!--==============
+    dependency library
+    ==================
+
+    ==Kotlin Compiler==
+    http://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-compiler
+
+    ==Kotlin Runtime==
+    http://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-runtime
+
+    ===============-->
+
+    <!--===========
+    initial section
+    ============-->
+    <fail unless="kotlin.compiler">properties 'kotlin.lib' not defined</fail>
+
+    <!--========
+    default task
+    ==========-->
+    <target name="default" depends="init,compile"/>
+
+    <!--=========
+    global define
+    ==========-->
+    <property name="define.kotlin" value=""/>
+
+    <!--==
+    import
+    ===-->
+    <import file="build-base.xml"/>
+
+    <!--=======
+    macro define
+    ========-->
+    <macrodef name="kotlinc">
+        <attribute name="dest"/>
+        <attribute name="classpath"/>
+        <attribute name="includeruntime" default="true"/>
+        <attribute name="nojdk" default="false"/>
+        <attribute name="nostdlib" default="false"/>
+        <!--<attribute name="module"/>-->
+        <attribute name="nowarn" default="false"/>
+        <attribute name="verbose" default="false"/>
+        <element name="source" implicit="true"/>
+        <sequential>
+            <java jar="${kotlin.compiler}"
+                  fork="true">
+                <arg value="-d"/>
+                <arg path="@{dest}"/>
+                <arg value="-cp"/>
+                <arg value="@{classpath}"/>
+                <arg value="-no-jdk" if:true="@{nojdk}"/>
+                <arg value="-no-stdlib" if:true="@{nostdlib}"/>
+                <arg value="-nowarn" if:true="@{nowarn}"/>
+                <arg value="-verbose" if:true="@{verbose}"/>
+                <source/>
+            </java>
+        </sequential>
+    </macrodef>
+    <target name="-compile" depends="-compile-prepare">
+        <kotlinc dest="${build.dir}"
+                 classpath="${real.compile.classpath}">
+            <arg line="${src.dir}"/>
+        </kotlinc>
+    </target>
+
+
+</project>
