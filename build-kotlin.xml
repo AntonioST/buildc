@@ -32,15 +32,24 @@
     ==========-->
     <target name="default" depends="init,compile"/>
 
-    <!--=========
-    global define
-    ==========-->
-    <property name="define.kotlin" value=""/>
-
     <!--==
     import
     ===-->
     <import file="build-base.xml"/>
+
+    <!--=========
+    global define
+    ==========-->
+    <property name="define.kotlin" value=""/>
+    <property name="build.kotlin.dir" value="${build.dir}/kotlin"/>
+    <property name="build.jar.dir" value="${build.dir}/jar"/>
+    <property name="jar.lib.dir" value="lib"/>
+
+    <!--====================
+    custom extension section
+    =====================-->
+    <extension-point name="-pre-jar"/>
+    <extension-point name="-post-jar"/>
 
     <!--=======
     macro define
@@ -70,12 +79,38 @@
             </java>
         </sequential>
     </macrodef>
+
+    <!--===========
+   initial section
+   ============-->
+    <target name="-init" depends="-init-prepare">
+        <property name="project.name" value="${ant.project.name}"/>
+        <property name="jar.file" value="${project.name}-${project.version}.jar"/>
+    </target>
+
+    <!--===========
+    compile section
+    ============-->
     <target name="-compile" depends="-compile-prepare">
-        <kotlinc dest="${build.dir}"
+        <kotlinc dest="${build.kotlin.dir}"
                  classpath="${real.compile.classpath}">
             <arg line="${src.dir}"/>
         </kotlinc>
     </target>
+
+    <!--=======
+    jar section
+    ========-->
+    <target name="-jar-init" depends="init,init-classpath">
+        <mkdir dir="${build.jar.dir}"/>
+    </target>
+    <target name="-jar" depends="-jar-init">
+        <kotlinc dest="${build.jar.dir}/${jar.file}"
+                 classpath="${real.compile.classpath}">
+            <arg line="${src.dir}"/>
+        </kotlinc>
+    </target>
+    <target name="jar" depends="-jar,-post-jar"/>
 
 
 </project>
