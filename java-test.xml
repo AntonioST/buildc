@@ -74,9 +74,9 @@
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
     </target>
-    <target name="-test-init-classpath" depends="-test-init-property">
+    <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
         <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
-        <path id="real.test.classpath">
+        <path id="real.test.classpath.ref">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
@@ -87,8 +87,9 @@
             </fileset>
             <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
+        <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
     </target>
-    <target name="-test-init" depends="-test-init-classpath,init-classpath">
+    <target name="-test-init" depends="-test-init-classpath">
         <!--initial classpath for testing-->
         <mkdir dir="${build.test.dir}"/>
         <!--macro define-->
@@ -119,14 +120,15 @@
     <!--======================
     task define : compile test
     =======================-->
-    <target name="-compile-test" depends="compile,-test-init,-pre-compile-test">
+    <target name="-compile-test-prepare" depends="-compile-prepare,-def-macro-javac,-test-init,-pre-compile-test"/>
+    <target name="-compile-test" depends="compile,-compile-test-prepare">
         <macro-javac src="${test.dir}"
                      dest="${build.test.dir}">
             <classpath path="${build.classes.dir}"/>
             <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
     </target>
-    <target name="-compile-test-class" depends="-compile-prepare,-test-init,-pre-compile-test">
+    <target name="-compile-test-class" depends="-compile-test-prepare">
         <fail unless="class">Must set 'class'</fail>
         <script language="javascript" unless:set="class.src"><![CDATA[
             var p = self.getProject();
