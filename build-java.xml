@@ -190,7 +190,7 @@
             </fileset>
         </delete>
     </target>
-    <target name="-compile-class" depends="-compile-prepare,-compile-class-clean">
+    <target name="-compile-class" depends="-compile-prepare,-def-macro-javac,-compile-class-clean">
         <fail unless="class">Must set 'class'</fail>
         <to-file-path property="tmp.compile.class" value="${class}"/>
         <macro-javac src="${src.dir}"
