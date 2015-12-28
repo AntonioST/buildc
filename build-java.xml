@@ -168,6 +168,7 @@
             }
             p.setProperty('tmp.compile.class.clean', c);
         ]]></script>
+        <mkdir dir="${build.classes.dir}"/>
         <delete>
             <fileset dir="${build.classes.dir}">
                 <include name="${tmp.compile.class.clean}"/>
