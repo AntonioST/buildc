@@ -46,7 +46,6 @@
     <property name="build.classes.dir" value="${build.dir}/classes"/>
     <property name="build.jar.dir" value="${build.dir}/jar"/>
     <property name="build.meta.dir" value="${build.dir}/META-INF"/>
-    <property name="jar.lib.dir" value="lib"/>
     <!--default value-->
     <property name="javac.source" value="1.8"/>
     <property name="javac.target" value="1.8"/>
@@ -204,6 +203,8 @@
         <condition property="jar.lib.copy.test">
             <equals arg1="${jar.lib.copy}" arg2="true" trim="true"/>
         </condition>
+        <property name="jar.lib.dir" value="lib"/>
+        <echo>jar.lib.dir=${jar.lib.dir}</echo>
         <condition property="jar.lib.dir.empty">
             <or>
                 <equals arg1="${jar.lib.dir}" arg2="" trim="true"/>
