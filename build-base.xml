@@ -23,27 +23,15 @@
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
     <property name="res.dir" value="res"/>
-    <property name="lib.dir" value="lib"/>
-    <property name="lib.default.dir" value="${lib.dir}/default"/>
-    <property name="lib.master.dir" value="${lib.dir}/master"/>
-    <property name="lib.compile.dir" value="${lib.dir}/compile"/>
-    <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
-
-    <!--special file or directory-->
-    <available property="exist.ivy" file="ivy.xml" type="file"/>
-    <available property="exist.lib" file="${lib.dir}" type="dir"/>
 
     <!--==
     import
     ===-->
     <include file="ant-git.xml"/>
+    <import file="java-ivy.xml"/>
 
-    <!--====================
-    custom extension section
-    =====================-->
     <extension-point name="-pre-init"/>
     <extension-point name="-post-init"/>
-    <extension-point name="-post-retrieve"/>
     <extension-point name="-pre-compile"/>
     <extension-point name="-post-compile"/>
     <extension-point name="-post-clean"/>
@@ -145,20 +133,6 @@
     <target name="echo-classpath" depends="init-classpath,-echo-classpath,-echo-classpath-extend"
             description="print classpath"/>
 
-    <!--===================
-    task (retrieve) section
-    ====================-->
-    <target name="-retrieve" if="exist.ivy">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
-    <target name="-try-retrieve" if="exist.ivy" unless="exist.lib">
-        <antcall target="-retrieve" inheritAll="true"/>
-        <antcall target="-post-retrieve" inheritAll="true"/>
-    </target>
-    <target name="retrieve" depends="-retrieve,-post-retrieve" description="retrieve lost library file"/>
-    <target name="retrieve-all" if="exist.ivy" depends="-clean-lib,-retrieve" description="retrieve all library file"/>
-
-
     <!--===========
     compile section
     ============-->
@@ -178,9 +152,6 @@
     ==========-->
     <target name="-clean" depends="init">
         <delete dir="${build.dir}"/>
-    </target>
-    <target name="-clean-lib">
-        <delete dir="${lib.dir}"/>
     </target>
     <target name="clean" depends="-clean,-post-clean" description="clean build result"/>
     <target name="clean-all" depends="-clean,-clean-lib,-post-clean" description="clean all"/>
