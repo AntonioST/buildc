@@ -47,7 +47,6 @@
     <extension-point name="-pre-compile"/>
     <extension-point name="-post-compile"/>
     <extension-point name="-post-clean"/>
-    <extension-point name="-post-clean-all"/>
     <extension-point name="-help-extend"/>
     <extension-point name="-echo-classpath-extend"/>
 
@@ -59,19 +58,30 @@
         <echo/>
         <echo>task are listed below for each task module</echo>
     </target>
-    <target name="-help-build">
-        <echo>help : list task and help document</echo>
-        <echo>init : initialize task</echo>
-        <echo>retrieve : retrieve lost library at ${lib.dir}</echo>
-        <echo>clean-retrieve : redo retrieve library at ${lib.dir}</echo>
-        <echo>echo-classpath : echo classpath</echo>
-        <echo/>
-        <echo>compile : compile source file under ${src.dir}/ to ${build.dir}/</echo>
-        <echo/>
-        <echo>clean : clean</echo>
-        <echo>clean-all : clean</echo>
+    <target name="-help-task">
+        <script language="javascript"><![CDATA[
+            var p = self.getProject();
+            var targets = p.getTargets(); //HashTable String -> Target
+            var map = new java.util.HashMap();
+            print ('TARGETS');
+            for (var target in targets) {
+                if (target.isEmpty()) continue;
+                var name = target;
+                if (name.contains('.')) {
+                    name = name.substring(name.indexOf('.') + 1);
+                    if (name.startsWith('-')) continue;
+                    if (map.containsKey(name)) continue;
+                } else {
+                    if (name.startsWith('-')) continue;
+                }
+                map.put(name, targets[target].getDescription());
+            }
+            var list = new java.util.ArrayList(map.keySet());
+            list.sort(null);
+            for each (var name in list) print (name + ' \t: ' + map[name]);
+        ]]></script>
     </target>
-    <target name="help" depends="-help-general,-help-build,-help-extend"/>
+    <target name="help" depends="-help-general,-help-task,-help-extend" description="list task and help document"/>
 
     <!--===========
     initial section
@@ -93,7 +103,7 @@
         implement site
         ===========-->
     </target>
-    <target name="init-classpath" depends="-init,-try-retrieve">
+    <target name="init-classpath" depends="-init,-try-retrieve" description="initialize classpath">
         <!--<available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>-->
         <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
         <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
@@ -127,12 +137,13 @@
         <pathconvert property="real.compile.classpath" refid="real.compile.classpath.ref"/>
         <pathconvert property="real.runtime.classpath" refid="real.runtime.classpath.ref"/>
     </target>
-    <target name="init" depends="-init,-post-init" description="init project"/>
+    <target name="init" depends="-init,-post-init" description="initialize task"/>
     <target name="-echo-classpath" depends="init-classpath">
         <echo>real.compile.classpath=${real.compile.classpath}</echo>
         <echo>real.runtime.classpath=${real.runtime.classpath}</echo>
     </target>
-    <target name="echo-classpath" depends="init-classpath,-echo-classpath,-echo-classpath-extend"/>
+    <target name="echo-classpath" depends="init-classpath,-echo-classpath,-echo-classpath-extend"
+            description="print classpath"/>
 
     <!--===================
     task (retrieve) section
@@ -144,11 +155,9 @@
         <antcall target="-retrieve" inheritAll="true"/>
         <antcall target="-post-retrieve" inheritAll="true"/>
     </target>
-    <target name="retrieve" depends="-retrieve,-post-retrieve"/>
-    <target name="clean-retrieve" if="exist.ivy">
-        <delete dir="${lib.dir}"/>
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
-    </target>
+    <target name="retrieve" depends="-retrieve,-post-retrieve" description="retrieve lost library file"/>
+    <target name="retrieve-all" if="exist.ivy" depends="-clean-lib,-retrieve" description="retrieve all library file"/>
+
 
     <!--===========
     compile section
@@ -162,7 +171,7 @@
         implement site
         ===========-->
     </target>
-    <target name="compile" depends="-compile,-post-compile"/>
+    <target name="compile" depends="-compile,-post-compile" description="compile source file"/>
 
     <!--=========
     clean section
@@ -170,10 +179,10 @@
     <target name="-clean" depends="init">
         <delete dir="${build.dir}"/>
     </target>
-    <target name="-clean-all" depends="-clean">
+    <target name="-clean-lib">
         <delete dir="${lib.dir}"/>
     </target>
-    <target name="clean" depends="-clean,-post-clean"/>
-    <target name="clean-all" depends="-clean-all,-post-clean,-post-clean-all"/>
+    <target name="clean" depends="-clean,-post-clean" description="clean build result"/>
+    <target name="clean-all" depends="-clean,-clean-lib,-post-clean" description="clean all"/>
 
 </project>

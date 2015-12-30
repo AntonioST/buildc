@@ -64,17 +64,6 @@
     <extension-point name="-pre-jar"/>
     <extension-point name="-post-jar"/>
 
-    <!--=================
-    help document section
-    ===================-->
-    <target name="-help-build-java" extensionOf="-help-extend">
-        <echo>echo-classpath : echo classpath</echo>
-        <echo/>
-        <echo>compile-class  : compile source file, use property 'class' to set included files</echo>
-        <echo>jar            : generate jar file</echo>
-        <echo/>
-    </target>
-
     <!--================
     Utility Macro define
     =================-->
@@ -194,7 +183,8 @@
             <classpath refid="real.compile.classpath.ref"/>
         </macro-javac>
     </target>
-    <target name="compile-class" depends="-compile-class,-post-compile"/>
+    <target name="compile-class" depends="-compile-class,-post-compile"
+            description="compile single source file or a package"/>
 
     <!--=======
     jar section
@@ -272,5 +262,5 @@
             <fileset dir="${build.classes.dir}"/>
         </jar>
     </target>
-    <target name="jar" depends="-jar,-post-jar"/>
+    <target name="jar" depends="-jar,-post-jar" description="generate jar file"/>
 </project>
