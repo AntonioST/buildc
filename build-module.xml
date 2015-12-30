@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns:unless="ant:unless">
 
     <fail if="define.module">'module' has been imported</fail>
     <property name="define.module" value=""/>
@@ -38,37 +38,47 @@
         <attribute name="antroot" default="${ant.root}"/>
         <attribute name="target" default="jar"/>
         <attribute name="jarfile" default="@{name}.jar"/>
-        <attribute name="depends" default=""/>
+        <attribute name="depends" default="" description="addition dependency"/>
+        <attribute name="propertyfile" default=""/>
         <element name="properties" optional="true" implicit="true"/>
         <sequential>
             <echo>Build module @{name}</echo>
             <property name="module.@{name}.jar" value="${build.dir}/@{name}/jar/@{jarfile}"/>
             <script language="javascript"><![CDATA[
                 var p = self.getProject();
-                var builder = new java.lang.StringBuilder();
+                var target = self.getOwningTarget();
+                var set = new java.util.HashSet();
+                for (var e = target.getDependencies(); e.hasMoreElements();) {
+                    var dep = e.nextElement();
+                    var cp = p.getProperty('module.' + dep + '.classpath');
+                    var jar = p.getProperty('module.' + dep + '.jar');
+                    if (cp != null) set.add(cp);
+                    if (jar != null) set.add('../' + jar);
+                }
                 for each (var dep in '@{depends}'.split(',')) {
                     if (dep.isEmpty()) continue;
                     var cp = p.getProperty('module.' + dep + '.classpath');
                     var jar = p.getProperty('module.' + dep + '.jar');
-                    if (cp != null) builder.append(':').append(cp);
+                    if (cp != null) set.add(cp);
                     if (jar != null) {
-                        builder.append(':../').append(jar);
+                        set.add('../' + jar);
                     } else {
                         var fail = p.createTask('fail');
-                        fail.setMessage('module @{name} require ' + dep + ', but not complete, please check target depends');
+                        fail.setMessage('module @{name} require ' + dep + ' should be a module');
                         fail.perform();
                     }
                 }
-                if (builder.length() > 0) {
-                    while (builder.substring(0, 1) == ':') builder.delete(0, 1);
-                }
-                p.setProperty('module.@{name}.classpath', builder.toString());
+                p.setProperty('module.@{name}.classpath', java.lang.String.join(':', set));
             ]]></script>
+            <condition property="module.@{name}.propertyfile.empty">
+                <equals arg1="@{propertyfile}" arg2="" trim=""/>
+            </condition>
             <ant antfile="@{antfile}" dir="@{dir}" target="@{target}">
                 <property name="ant.root" value="../@{antroot}"/>
                 <property name="build.dir" value="../${build.dir}/@{name}"/>
                 <property name="jar.file" value="@{jarfile}"/>
                 <property name="compile.classpath" value="${module.@{name}.classpath}"/>
+                <property file="@{propertyfile}" unless:set="module.@{name}.propertyfile.empty"/>
                 <properties/>
             </ant>
         </sequential>
