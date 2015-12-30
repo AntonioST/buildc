@@ -13,7 +13,7 @@
         <attribute name="dir" default="@{name}"/>
         <attribute name="antfile" default="build.xml"/>
         <attribute name="antroot" default="${ant.root}"/>
-        <attribute name="target" default="jar"/>
+        <attribute name="target"/>
         <element name="properties" optional="true" implicit="true"/>
         <sequential>
             <echo>Build module @{name}</echo>
@@ -41,10 +41,17 @@
                 var p = self.getProject();
                 var builder = new java.lang.StringBuilder();
                 for each (var dep in '@{depends}'.split(',')) {
+                    if (dep.isEmpty()) continue;
                     var cp = p.getProperty('module.' + dep + '.classpath');
                     var jar = p.getProperty('module.' + dep + '.jar');
                     if (cp != null) builder.append(':').append(cp);
-                    if (jar != null) builder.append(':../').append(jar);
+                    if (jar != null) {
+                        builder.append(':../').append(jar);
+                    } else {
+                        var fail = p.createTask('fail');
+                        fail.setMessage('module @{name} require ' + dep + ', but not complete, please check target depends');
+                        fail.perform();
+                    }
                 }
                 if (builder.length() > 0) {
                     while (builder.substring(0, 1) == ':') builder.delete(0, 1);
