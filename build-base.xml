@@ -20,11 +20,6 @@
 
     ================-->
 
-    <!--========
-    default task
-    ==========-->
-    <target name="default"/>
-
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
     <property name="res.dir" value="res"/>
@@ -35,7 +30,6 @@
     <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
 
     <!--special file or directory-->
-    <available property="exist.git" file=".git" type="dir"/>
     <available property="exist.ivy" file="ivy.xml" type="file"/>
     <available property="exist.lib" file="${lib.dir}" type="dir"/>
 

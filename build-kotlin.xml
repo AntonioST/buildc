@@ -27,11 +27,6 @@
     ============-->
     <fail unless="kotlin.compiler">properties 'kotlin.lib' not defined</fail>
 
-    <!--========
-    default task
-    ==========-->
-    <target name="default" depends="init,compile"/>
-
     <!--==
     import
     ===-->

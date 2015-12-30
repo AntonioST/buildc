@@ -37,11 +37,6 @@
     ===-->
     <import file="build-base.xml"/>
 
-    <!--========
-    default task
-    ==========-->
-    <target name="default" depends="init,compile,jar"/>
-
     <!--=========
     global define
     ==========-->
