@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <macrodef name="property-arch">
+        <attribute name="property"/>
+        <sequential>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                var arch = p.getProperty('os.arch');
+                if (arch.endsWith('64')){
+                    p.setProperty('@{property}', '64');
+                } else {
+                    p.setProperty('@{property}', '32');
+                }
+            ]]></script>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="property-os">
+        <attribute name="property"/>
+        <attribute name="windos" default="windows"/>
+        <attribute name="linux" default="linux"/>
+        <attribute name="macos" default="macos"/>
+        <sequential>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                var os = p.getProperty('os.name');
+                if (os.contains('win')) {
+                    p.setProperty('@{windos}', '@{windows}');
+                } else if (os.contains('nux') || os.contains('nix')) {
+                    p.setProperty('@{windos}', '@{linux}');
+                } else if (os.contains('mac')) {
+                    p.setProperty('@{windos}', '@{macos}');
+                }
+            ]]></script>
+        </sequential>
+    </macrodef>
+</project>
