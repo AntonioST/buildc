@@ -10,14 +10,55 @@
 
     <macrodef name="module">
         <attribute name="name"/>
+        <attribute name="dir" default="@{name}"/>
         <attribute name="antfile" default="build.xml"/>
         <attribute name="antroot" default="${ant.root}"/>
         <attribute name="target" default="jar"/>
+        <element name="properties" optional="true" implicit="true"/>
         <sequential>
-            <ant antfile="@{antfile}" dir="@{name}" target="@{target}">
+            <echo>Build module @{name}</echo>
+            <ant antfile="@{antfile}" dir="@{dir}" target="@{target}">
                 <property name="ant.root" value="../@{antroot}"/>
                 <property name="build.dir" value="../${build.dir}/@{name}"/>
+                <properties/>
             </ant>
         </sequential>
     </macrodef>
+
+    <macrodef name="module-jar">
+        <attribute name="name"/>
+        <attribute name="dir" default="@{name}"/>
+        <attribute name="antfile" default="build.xml"/>
+        <attribute name="antroot" default="${ant.root}"/>
+        <attribute name="target" default="jar"/>
+        <attribute name="jarfile" default="@{name}.jar"/>
+        <attribute name="depends" default=""/>
+        <element name="properties" optional="true" implicit="true"/>
+        <sequential>
+            <echo>Build module @{name}</echo>
+            <property name="module.@{name}.jar" value="${build.dir}/@{name}/jar/@{jarfile}"/>
+            <script language="javascript"><![CDATA[
+                var p = self.getProject();
+                var builder = new java.lang.StringBuilder();
+                for each (var dep in '@{depends}'.split(',')) {
+                    var cp = p.getProperty('module.' + dep + '.classpath');
+                    var jar = p.getProperty('module.' + dep + '.jar');
+                    if (cp != null) builder.append(':').append(cp);
+                    if (jar != null) builder.append(':../').append(jar);
+                }
+                if (builder.length() > 0) {
+                    while (builder.substring(0, 1) == ':') builder.delete(0, 1);
+                }
+                p.setProperty('module.@{name}.classpath', builder.toString());
+            ]]></script>
+            <ant antfile="@{antfile}" dir="@{dir}" target="@{target}">
+                <property name="ant.root" value="../@{antroot}"/>
+                <property name="build.dir" value="../${build.dir}/@{name}"/>
+                <property name="jar.file" value="@{jarfile}"/>
+                <property name="compile.classpath" value="${module.@{name}.classpath}"/>
+                <properties/>
+            </ant>
+        </sequential>
+    </macrodef>
+
 </project>
