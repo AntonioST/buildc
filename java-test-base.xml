@@ -39,6 +39,8 @@
         <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
+        <echo level="verbose">build.test.dir=${build.test.dir}</echo>
+        <echo level="verbose">test.result.dir=${test.result.dir}</echo>
     </target>
     <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
         <property name="lib.test.dir" value="${lib.dir}/test"/>

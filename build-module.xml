@@ -75,8 +75,8 @@
             <echo level="verbose">module.@{name}.classpath = ${module.@{name}.classpath}</echo>
             <ant antfile="@{antfile}" dir="@{dir}">
                 <target name="@{target}" unless:blank="@{target}"/>
-                <property name="ant.root" value="../@{antroot}"/>
-                <property name="build.dir" value="../${build.dir}/@{name}"/>
+                <property name="ant.root" value="${basedir}/@{antroot}"/>
+                <property name="build.dir" value="${basedir}/${build.dir}/@{name}"/>
                 <property name="jar.file" value="@{jarfile}"/>
                 <property name="compile.classpath" value="${module.@{name}.classpath}"/>
                 <property file="@{propertyfile}" unless:blank="@{propertyfile}"/>
