@@ -37,7 +37,7 @@
         <attribute name="dir" default="@{name}"/>
         <attribute name="antfile" default="build.xml"/>
         <attribute name="antroot" default="${ant.root}"/>
-        <attribute name="target" default="jar"/>
+        <attribute name="target" default=""/>
         <attribute name="jarfile" default="@{name}.jar"/>
         <attribute name="depends" default="" description="addition dependency"/>
         <attribute name="propertyfile" default=""/>
@@ -73,7 +73,8 @@
                 p.setProperty('module.@{name}.classpath', java.lang.String.join(':', set));
             ]]></script>
             <echo level="verbose">module.@{name}.classpath = ${module.@{name}.classpath}</echo>
-            <ant antfile="@{antfile}" dir="@{dir}" target="@{target}">
+            <ant antfile="@{antfile}" dir="@{dir}">
+                <target name="@{target}" unless:blank="@{target}"/>
                 <property name="ant.root" value="../@{antroot}"/>
                 <property name="build.dir" value="../${build.dir}/@{name}"/>
                 <property name="jar.file" value="@{jarfile}"/>
