@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ test          ${test.dir}
+    ├ lib           ${lib.dir}
+    │ └ test        ${lib.test.dir}
+    └ build         ${build.dir}
+      └ classes     ${build.classes.dir}
+
+    ================-->
+
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <fail if="define.test">'test' has imported</fail>
+    <property name="define.test" value=""/>
+
+    <!--====================
+    custom extension section
+    =====================-->
+    <extension-point name="-post-test-init"/>
+    <extension-point name="-pre-compile-test"/>
+    <extension-point name="-post-compile-test"/>
+    <extension-point name="-pre-test"/>
+    <extension-point name="-post-test"/>
+
+    <!--==============
+    task define : init
+    ===============-->
+    <target name="-test-init-property" depends="init">
+        <property name="test.dir" value="test"/>
+        <available property="exist.test" file="${test.dir}" type="dir"/>
+        <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
+        <property name="build.test.dir" value="${build.dir}/test/classes"/>
+        <property name="test.result.dir" value="${build.dir}/test/result"/>
+    </target>
+    <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
+        <property name="lib.test.dir" value="${lib.dir}/test"/>
+        <echo level="verbose">lib.test.dir=${lib.test.dir}</echo>
+        <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
+        <path id="real.test.classpath.ref">
+            <pathelement path="${classpath}" if:set="classpath"/>
+            <pathelement path="${master.classpath}" if:set="master.classpath"/>
+            <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
+            <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
+            <pathelement path="${test.classpath}" if:set="test.classpath"/>
+            <fileset dir="${lib.test.dir}" if:set="exist.lib.test.dir">
+                <include name="*.jar"/>
+            </fileset>
+            <pathelement path="${res.dir}" if:set="exist.res"/>
+        </path>
+        <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
+        <echo level="verbose">real.test.classpath=${real.test.classpath}</echo>
+    </target>
+    <target name="-test-init" depends="-test-init-classpath,-post-test-init"/>
+    <target name="-echo-test-classpath" depends="-test-init-classpath" extensionOf="-echo-classpath-extend">
+        <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
+        <echo>real.test.classpath=${real.test.classpath}</echo>
+    </target>
+
+    <!--======================
+    task define : compile test
+    =======================-->
+    <target name="-compile-test-prepare" depends="-compile-prepare,-def-macro-javac,-test-init,-pre-compile-test"/>
+    <target name="-compile-test" depends="compile,-compile-test-prepare">
+        <macro-javac src="${test.dir}"
+                     dest="${build.test.dir}">
+            <classpath path="${build.classes.dir}"/>
+            <classpath refid="real.test.classpath.ref"/>
+        </macro-javac>
+    </target>
+    <target name="-compile-test-class" depends="-compile-test-prepare">
+        <fail unless="class">Must set 'class'</fail>
+        <script language="javascript" unless:set="class.src"><![CDATA[
+            var p = self.getProject();
+            var c = p.getProperty('class');
+            if (c.endsWith('Test')) {
+                p.setProperty('class.src', c.substring(0, c.length() - 4));
+            }
+        ]]></script>
+        <to-file-path property="tmp.compile.src.class" value="${class.src}" if:set="class.src"/>
+        <to-file-path property="tmp.compile.test.class" value="${class}"/>
+        <macro-javac src="${src.dir}"
+                     dest="${build.classes.dir}"
+                     includes="${tmp.compile.src.class}"
+                     if:set="tmp.compile.src.class">
+            <classpath path="${build.classes.dir}"/>
+            <classpath refid="real.compile.classpath.ref"/>
+        </macro-javac>
+        <macro-javac src="${test.dir}"
+                     dest="${build.test.dir}"
+                     includes="${tmp.compile.test.class}">
+            <classpath path="${build.classes.dir}"/>
+            <classpath refid="real.test.classpath.ref"/>
+        </macro-javac>
+    </target>
+    <target name="compile-test" depends="-compile-test,-post-compile-test"
+            description="compile test class"/>
+    <target name="compile-test-class" depends="-compile-test-class,-post-compile-test"
+            description="compile single test class or a package"/>
+
+    <!--==============
+    task define : run
+    ===============-->
+    <target name="run-test-class" depends="compile-test-class"
+            description="run test class">
+        <fail unless="class">Must set 'class'</fail>
+        <java classname="${class}"
+              fork="true"
+              failonerror="flase">
+            <classpath path="${real.test.classpath}"/>
+            <classpath path="${build.classes.dir}"/>
+            <classpath path="${build.test.dir}"/>
+            <classpath path="${res.dir}"/>
+            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <arg line="${program.args}" if:set="program.args"/>
+        </java>
+    </target>
+
+
+</project>

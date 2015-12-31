@@ -24,12 +24,15 @@
     <property name="build.dir" value="build"/>
     <property name="res.dir" value="res"/>
 
-    <!--==
-    import
-    ===-->
+    <!--==============
+    import and include
+    ===============-->
     <include file="ant-git.xml"/>
     <import file="java-ivy.xml"/>
 
+    <!--====================
+    custom extension section
+    =====================-->
     <extension-point name="-pre-init"/>
     <extension-point name="-post-init"/>
     <extension-point name="-pre-compile"/>
