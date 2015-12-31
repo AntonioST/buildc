@@ -35,18 +35,6 @@
     <property name="define.test" value=""/>
     <property name="define.test.junit" value=""/>
 
-    <!--=========
-    global define
-    ==========-->
-    <property name="test.dir" value="test"/>
-    <property name="lib.test.dir" value="${lib.dir}/test"/>
-
-    <!--============
-    initial checking
-    =============-->
-    <available property="exist.test" file="${test.dir}" type="dir"/>
-    <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
-
     <!--====================
     custom extension section
     =====================-->
@@ -55,26 +43,19 @@
     <extension-point name="-pre-test"/>
     <extension-point name="-post-test"/>
 
-    <!--=================
-    Help Document Section
-    ==================-->
-    <target name="-help-test" extensionOf="-help-extend">
-        <echo>compile-test : compile test file under ${test.dir}</echo>
-        <echo>compile-test-class : compile test file under ${test.dir}</echo>
-        <echo>run-test-class : run class file under ${test.dir}</echo>
-        <echo>test : test project</echo>
-        <echo>test-class : run a test class, use property 'class' to set class</echo>
-        <echo>test-method : run a test method, use property 'class' and 'method' to set method</echo>
-    </target>
-
     <!--==============
     task define : init
     ===============-->
     <target name="-test-init-property" depends="init">
+        <property name="test.dir" value="test"/>
+        <available property="exist.test" file="${test.dir}" type="dir"/>
+        <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
     </target>
     <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
+        <property name="lib.test.dir" value="${lib.dir}/test"/>
+        <echo level="verbose">lib.test.dir=${lib.test.dir}</echo>
         <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
         <path id="real.test.classpath.ref">
             <pathelement path="${classpath}" if:set="classpath"/>
@@ -88,6 +69,7 @@
             <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
         <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
+        <echo level="verbose">real.test.classpath=${real.test.classpath}</echo>
     </target>
     <target name="-test-init" depends="-test-init-classpath">
         <!--initial classpath for testing-->
@@ -153,13 +135,16 @@
             <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
     </target>
-    <target name="compile-test" depends="-compile-test,-post-compile-test"/>
-    <target name="compile-test-class" depends="-compile-test-class,-post-compile-test"/>
+    <target name="compile-test" depends="-compile-test,-post-compile-test"
+            description="compile test class"/>
+    <target name="compile-test-class" depends="-compile-test-class,-post-compile-test"
+            description="compile single test class or a package"/>
 
     <!--==============
     task define : run
     ===============-->
-    <target name="run-test-class" depends="compile-test-class">
+    <target name="run-test-class" depends="compile-test-class"
+            description="run test class">
         <fail unless="class">Must set 'class'</fail>
         <java classname="${class}"
               fork="true"
@@ -209,7 +194,10 @@
     <!--=======
     task define
     ========-->
-    <target name="test" depends="-test,-post-test,-test-check"/>
-    <target name="test-class" depends="-test-class,-post-test,-test-check"/>
-    <target name="test-method" depends="-test-method,-post-test,-test-check"/>
+    <target name="test" depends="-test,-post-test,-test-check"
+            description="test all testing"/>
+    <target name="test-class" depends="-test-class,-post-test,-test-check"
+            description="test single class"/>
+    <target name="test-method" depends="-test-method,-post-test,-test-check"
+            description="test method in a test claass"/>
 </project>

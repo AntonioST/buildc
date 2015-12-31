@@ -91,7 +91,15 @@
         implement site
         ===========-->
     </target>
-    <target name="init-classpath" depends="-init,-try-retrieve" description="initialize classpath">
+    <target name="init-classpath" depends="-init,-init-lib,try-retrieve" description="initialize classpath">
+        <property name="lib.default.dir" value="${lib.dir}/default"/>
+        <property name="lib.master.dir" value="${lib.dir}/master"/>
+        <property name="lib.compile.dir" value="${lib.dir}/compile"/>
+        <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
+        <echo level="verbose">lib.default.dir=${lib.default.dir}</echo>
+        <echo level="verbose">lib.master.dir=${lib.master.dir}</echo>
+        <echo level="verbose">lib.compile.dir=${lib.compile.dir}</echo>
+        <echo level="verbose">lib.runtime.dir=${lib.runtime.dir}</echo>
         <!--<available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>-->
         <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
         <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
@@ -124,6 +132,8 @@
         </path>
         <pathconvert property="real.compile.classpath" refid="real.compile.classpath.ref"/>
         <pathconvert property="real.runtime.classpath" refid="real.runtime.classpath.ref"/>
+        <echo level="verbose">real.compile.classpath=${real.compile.classpath}</echo>
+        <echo level="verbose">real.runtime.classpath=${real.runtime.classpath}</echo>
     </target>
     <target name="init" depends="-init,-post-init" description="initialize task"/>
     <target name="-echo-classpath" depends="init-classpath">
@@ -154,6 +164,6 @@
         <delete dir="${build.dir}"/>
     </target>
     <target name="clean" depends="-clean,-post-clean" description="clean build result"/>
-    <target name="clean-all" depends="-clean,-clean-lib,-post-clean" description="clean all"/>
+    <target name="clean-all" depends="-clean,clean-lib,-post-clean" description="clean all"/>
 
 </project>

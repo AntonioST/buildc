@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:unless="ant:unless">
+<project xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
 
     <fail if="define.module">'module' has been imported</fail>
     <property name="define.module" value=""/>
@@ -44,6 +45,7 @@
         <sequential>
             <echo>Build module @{name}</echo>
             <property name="module.@{name}.jar" value="${build.dir}/@{name}/jar/@{jarfile}"/>
+            <echo level="verbose">module.@{name}.jar = ${module.@{name}.jar}</echo>
             <script language="javascript"><![CDATA[
                 var p = self.getProject();
                 var target = self.getOwningTarget();
@@ -70,15 +72,13 @@
                 }
                 p.setProperty('module.@{name}.classpath', java.lang.String.join(':', set));
             ]]></script>
-            <condition property="module.@{name}.propertyfile.empty">
-                <equals arg1="@{propertyfile}" arg2="" trim=""/>
-            </condition>
+            <echo level="verbose">module.@{name}.classpath = ${module.@{name}.classpath}</echo>
             <ant antfile="@{antfile}" dir="@{dir}" target="@{target}">
                 <property name="ant.root" value="../@{antroot}"/>
                 <property name="build.dir" value="../${build.dir}/@{name}"/>
                 <property name="jar.file" value="@{jarfile}"/>
                 <property name="compile.classpath" value="${module.@{name}.classpath}"/>
-                <property file="@{propertyfile}" unless:set="module.@{name}.propertyfile.empty"/>
+                <property file="@{propertyfile}" unless:blank="@{propertyfile}"/>
                 <properties/>
             </ant>
         </sequential>

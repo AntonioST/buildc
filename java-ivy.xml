@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:ivy="antlib:org.apache.ivy.ant"
-         xmlns:if="ant:if"
          xmlns:unless="ant:unless">
 
     <!--====================
     global properties define
     =====================-->
-    <property name="lib.dir" value="lib"/>
-    <property name="lib.default.dir" value="${lib.dir}/default"/>
-    <property name="lib.master.dir" value="${lib.dir}/master"/>
-    <property name="lib.compile.dir" value="${lib.dir}/compile"/>
-    <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
-
-    <!--special file or directory-->
     <available property="exist.ivy" file="ivy.xml" type="file"/>
-    <available property="exist.lib" file="${lib.dir}" type="dir"/>
 
     <!--====================
     custom extension section
@@ -24,17 +15,24 @@
     <!--===================
     task (retrieve) section
     ====================-->
-    <target name="-retrieve" if="exist.ivy">
+    <target name="-init-lib" description="initial library property">
+        <property name="lib.dir" value="lib"/>
+        <echo level="verbose">lib.dir=${lib.dir}</echo>
+    </target>
+    <target name="-retrieve" depends="-init-lib" if="exist.ivy">
+        <echo level="verbose">lib.dir = ${lib.dir}</echo>
         <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
-    <target name="-try-retrieve" if="exist.ivy" unless="exist.lib">
-        <antcall target="-retrieve" inheritAll="true"/>
-        <antcall target="-post-retrieve" inheritAll="true"/>
+    <target name="-try-retrieve" depends="-init-lib" if="exist.ivy">
+        <echo level="verbose">lib.dir = ${lib.dir}</echo>
+        <available property="exist.lib" file="${lib.dir}" type="dir"/>
+        <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact].[ext]" unless:set="exist.lib"/>
     </target>
+    <target name="try-retrieve" depends="-try-retrieve,-post-retrieve"  description="retrieve lost library dir"/>
     <target name="retrieve" depends="-retrieve,-post-retrieve" description="retrieve lost library file"/>
-    <target name="retrieve-all" if="exist.ivy" depends="-clean-lib,-retrieve" description="retrieve all library file"/>
+    <target name="retrieve-all" if="exist.ivy" depends="clean-lib,-retrieve" description="retrieve all library file"/>
 
-    <target name="-clean-lib">
+    <target name="clean-lib" description="clean library directory">
         <delete dir="${lib.dir}"/>
     </target>
 </project>

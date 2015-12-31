@@ -34,18 +34,6 @@
     <property name="define.test" value=""/>
     <property name="define.test.testng" value=""/>
 
-    <!--=========
-    global define
-    ==========-->
-    <property name="test.dir" value="test"/>
-    <property name="lib.test.dir" value="${lib.dir}/test"/>
-
-    <!--============
-    initial checking
-    =============-->
-    <available property="exist.test" file="${test.dir}" type="dir"/>
-    <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
-
     <!--====================
     custom extension section
     =====================-->
@@ -67,16 +55,16 @@
     <!--==============
     task define : init
     ===============-->
-    <target name="-test-task-define" depends="init">
-        <taskdef classpath="${lib.test.dir}/testng.jar"
-                 resource="testngtasks"
-                 onerror="failall"/>
-    </target>
-    <target name="-test-init-property" depends="-test-task-define">
+    <target name="-test-init-property" depends="init">
+        <property name="test.dir" value="test"/>
+        <available property="exist.test" file="${test.dir}" type="dir"/>
+        <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
         <property name="build.test.dir" value="${build.dir}/test/classes"/>
         <property name="test.result.dir" value="${build.dir}/test/result"/>
     </target>
     <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
+        <property name="lib.test.dir" value="${lib.dir}/test"/>
+        <echo level="verbose">lib.test.dir=${lib.test.dir}</echo>
         <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
         <path id="real.test.classpath.ref">
             <pathelement path="${classpath}" if:set="classpath"/>
@@ -90,8 +78,14 @@
             <pathelement path="${res.dir}" if:set="exist.res"/>
         </path>
         <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
+        <echo level="verbose">real.test.classpath=${real.test.classpath}</echo>
     </target>
-    <target name="-test-init" depends="-test-init-classpath">
+    <target name="-test-task-define" depends="-test-init-classpath">
+        <taskdef classpath="${lib.test.dir}/testng.jar"
+                 resource="testngtasks"
+                 onerror="failall"/>
+    </target>
+    <target name="-test-init" depends="-test-task-define">
         <!--initial classpath for testing-->
         <mkdir dir="${build.test.dir}"/>
         <!--macro define-->

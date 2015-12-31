@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:ivy="antlib:org.apache.ivy.ant"
-         xmlns:if="ant:if"
-         xmlns:unless="ant:unless">
+<project
+        xmlns:if="ant:if"
+        xmlns:unless="ant:unless">
 
     <!--===============
     Directory Structure
@@ -96,13 +96,13 @@
         <property name="project.name" value="${ant.project.name}"/>
         <property name="jar.file" value="${project.name}-${project.version}.jar"/>
         <!--verbose-->
-        <echo message="[source] include=${src.include}" level="verbose"/>
-        <echo message="[source] exclude=${src.exclude}" level="verbose"/>
-        <echo message="[javac] source=${javac.source}" level="verbose"/>
-        <echo message="[javac] target=${javac.target}" level="verbose"/>
-        <echo message="[javac] debug=${javac.debug}" level="verbose"/>
-        <echo message="[javac] verbose=${javac.verbose}" level="verbose"/>
-        <echo message="[jar] lib copy=${jar.lib.copy}" level="verbose"/>
+        <echo level="verbose">[source] include=${src.include}</echo>
+        <echo level="verbose">[source] exclude=${src.exclude}</echo>
+        <echo level="verbose">[javac]  source=${javac.source}</echo>
+        <echo level="verbose">[javac]  target=${javac.target}</echo>
+        <echo level="verbose">[javac]  debug=${javac.debug}</echo>
+        <echo level="verbose">[javac]  verbose=${javac.verbose}</echo>
+        <echo level="verbose">[jar]    lib copy=${jar.lib.copy}</echo>
     </target>
 
     <!--===========
@@ -204,7 +204,7 @@
             <equals arg1="${jar.lib.copy}" arg2="true" trim="true"/>
         </condition>
         <property name="jar.lib.dir" value="lib"/>
-        <echo>jar.lib.dir=${jar.lib.dir}</echo>
+        <echo level="verbose">jar.lib.dir=${jar.lib.dir}</echo>
         <condition property="jar.lib.dir.empty">
             <or>
                 <equals arg1="${jar.lib.dir}" arg2="" trim="true"/>
@@ -222,7 +222,7 @@
         </manifest>
     </target>
     <target name="-manifest-classpath" depends="init-classpath,-manifest-init" if="jar.lib.copy.test">
-        <mkdir dir="${build.jar.dir}/${jar.lib.dir}"/>
+        <mkdir dir="${build.jar.dir}/${jar.lib.dir}" unless:set="jar.lib.dir.empty"/>
         <copy todir="${build.jar.dir}/${jar.lib.dir}" flatten="true">
             <path refid="real.runtime.classpath.ref"/>
         </copy>
