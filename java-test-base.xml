@@ -24,6 +24,8 @@
     <fail if="define.test">'test' has imported</fail>
     <property name="define.test" value=""/>
 
+    <include file="ant-classpath.xml"/>
+
     <!--====================
     custom extension section
     =====================-->
@@ -55,21 +57,13 @@
     </target>
     <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
         <property name="lib.test.dir" value="${lib.dir}/test"/>
-        <echo level="verbose">lib.test.dir=${lib.test.dir}</echo>
-        <available property="exist.lib.test.dir" file="${lib.test.dir}" type="dir"/>
-        <path id="real.test.classpath.ref">
+        <resolve-classpath property="real.test.classpath" dir="${lib.test.dir}">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
             <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
             <pathelement path="${test.classpath}" if:set="test.classpath"/>
-            <fileset dir="${lib.test.dir}" if:set="exist.lib.test.dir">
-                <include name="*.jar"/>
-            </fileset>
-            <pathelement path="${res.dir}" if:set="exist.res"/>
-        </path>
-        <pathconvert property="real.test.classpath" refid="real.test.classpath.ref"/>
-        <echo level="verbose">real.test.classpath=${real.test.classpath}</echo>
+        </resolve-classpath>
     </target>
     <target name="-test-init" depends="-test-init-classpath,-post-test-init"/>
     <target name="-echo-test-classpath" depends="-test-init-classpath" extensionOf="-echo-classpath-extend">

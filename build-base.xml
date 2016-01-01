@@ -28,6 +28,7 @@
     import and include
     ===============-->
     <include file="ant-git.xml"/>
+    <include file="ant-classpath.xml"/>
     <import file="java-ivy.xml"/>
 
     <!--====================
@@ -95,48 +96,19 @@
         ===========-->
     </target>
     <target name="init-classpath" depends="-init,-init-lib,try-retrieve" description="initialize classpath">
-        <property name="lib.default.dir" value="${lib.dir}/default"/>
-        <property name="lib.master.dir" value="${lib.dir}/master"/>
         <property name="lib.compile.dir" value="${lib.dir}/compile"/>
         <property name="lib.runtime.dir" value="${lib.dir}/runtime"/>
-        <echo level="verbose">lib.default.dir=${lib.default.dir}</echo>
-        <echo level="verbose">lib.master.dir=${lib.master.dir}</echo>
-        <echo level="verbose">lib.compile.dir=${lib.compile.dir}</echo>
-        <echo level="verbose">lib.runtime.dir=${lib.runtime.dir}</echo>
-        <!--<available property="exist.lib.default.dir" file="${lib.default.dir}" type="dir"/>-->
-        <available property="exist.lib.compile.dir" file="${lib.compile.dir}" type="dir"/>
-        <available property="exist.lib.runtime.dir" file="${lib.runtime.dir}" type="dir"/>
-        <!--<path id="real.default.classpath">-->
-        <!--<pathelement path="${classpath}" if:set="classpath"/>-->
-        <!--<pathelement path="${default.classpath}" if:set="default.classpath"/>-->
-        <!--<pathelement path="${master.classpath}" if:set="master.classpath"/>-->
-        <!--<pathelement path="${compile.classpath}" if:set="compile.classpath"/>-->
-        <!--<pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>-->
-        <!--<fileset dir="${lib.default.dir}" if:set="exist.lib.default.dir">-->
-        <!--<include name="*.jar"/>-->
-        <!--</fileset>-->
-        <!--</path>-->
-        <path id="real.compile.classpath.ref">
+        <resolve-classpath property="real.compile.classpath" dir="${lib.compile.dir}">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
-            <fileset dir="${lib.compile.dir}" if:set="exist.lib.compile.dir">
-                <include name="*.jar"/>
-            </fileset>
-        </path>
-        <path id="real.runtime.classpath.ref">
+        </resolve-classpath>
+        <resolve-classpath property="real.runtime.classpath" dir="${lib.runtime.dir}">
             <pathelement path="${classpath}" if:set="classpath"/>
             <pathelement path="${master.classpath}" if:set="master.classpath"/>
             <pathelement path="${compile.classpath}" if:set="compile.classpath"/>
             <pathelement path="${runtime.classpath}" if:set="runtime.classpath"/>
-            <fileset dir="${lib.runtime.dir}" if:set="exist.lib.runtime.dir">
-                <include name="*.jar"/>
-            </fileset>
-        </path>
-        <pathconvert property="real.compile.classpath" refid="real.compile.classpath.ref"/>
-        <pathconvert property="real.runtime.classpath" refid="real.runtime.classpath.ref"/>
-        <echo level="verbose">real.compile.classpath=${real.compile.classpath}</echo>
-        <echo level="verbose">real.runtime.classpath=${real.runtime.classpath}</echo>
+        </resolve-classpath>
     </target>
     <target name="init" depends="-init,-post-init" description="initialize task"/>
     <target name="-echo-classpath" depends="init-classpath">

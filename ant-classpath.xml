@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:if="ant:if">
+
+    <macrodef name="resolve-classpath">
+        <attribute name="property"/>
+        <attribute name="id" default="@{property}.ref"/>
+        <attribute name="dir"/>
+        <element name="pathelements" implicit="true" optional="true"/>
+        <sequential>
+            <available property="exist.lib.@{property}" file="@{dir}" type="dir"/>
+            <path id="@{id}">
+                <pathelements/>
+                <fileset dir="@{dir}" if:set="exist.lib.@{property}">
+                    <include name="*.jar"/>
+                </fileset>
+            </path>
+            <pathconvert property="@{property}" refid="@{id}"/>
+            <echo level="verbose">@{property}=${@{property}}</echo>
+        </sequential>
+    </macrodef>
+
+</project>
