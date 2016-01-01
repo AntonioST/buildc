@@ -33,6 +33,12 @@
     <extension-point name="-pre-test"/>
     <extension-point name="-post-test"/>
 
+    <target name="-help-test-property" extensionOf="-help-extend">
+        <echo>Test Command Property</echo>
+        <echo>class : </echo>
+        <echo>test.force : force do test</echo>
+    </target>
+
     <!--==============
     task define : init
     ===============-->
@@ -134,11 +140,12 @@
     task define : check tested
     =======================-->
     <target name="-test-last-pre" depends="compile-test">
-        <uptodate property="test.lasttest" targetfile="${build.test.dir}/.test">
+        <uptodate property="test.lasttest" unless:set="test.force">
             <srcresources>
                 <fileset dir="${src.dir}"/>
                 <fileset dir="${test.dir}"/>
             </srcresources>
+            <mapper type="merge" to="${build.test.dir}/.test"/>
         </uptodate>
     </target>
 
