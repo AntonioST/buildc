@@ -11,8 +11,8 @@
     │   └ testng.jar
     └ build         ${build.dir}
       ├ classes     ${build.classes.dir}
-      └ test
-        ├ classes   ${build.test.dir}
+      └ test        ${build.test.dir}
+        ├ classes   ${test.classes.dir}
         └ result    ${test.result.dir}
 
     ================-->
@@ -40,7 +40,7 @@
                  resource="testngtasks"
                  onerror="failall"/>
         <!--initial classpath for testing-->
-        <mkdir dir="${build.test.dir}"/>
+        <mkdir dir="${test.classes.dir}"/>
         <!--macro define-->
         <macrodef name="marco-test">
             <element name="customize" implicit="true"/>
@@ -50,7 +50,7 @@
                         failureProperty="test.fail">
                     <classpath refid="real.test.classpath.ref"/>
                     <classpath path="${build.classes.dir}"/>
-                    <classpath path="${build.test.dir}"/>
+                    <classpath path="${test.classes.dir}"/>
                     <customize/>
                 </testng>
             </sequential>
@@ -60,17 +60,17 @@
     <!--==============
     task define : test
     ===============-->
-    <target name="-test" depends="compile-test,-pre-test">
+    <target name="-test" depends="compile-test,-pre-test" unless="test.lasttest">
         <delete dir="${test.result.dir}" failonerror="false"/>
         <marco-test>
             <xmlfileset refid="testng.xml.fileset" if:set="testng.xml.fileset"/>
-            <classfileset dir="${build.test.dir}" includes="**/*.class" unless:set="testng.xml.fileset"/>
+            <classfileset dir="${test.classes.dir}" includes="**/*.class" unless:set="testng.xml.fileset"/>
         </marco-test>
     </target>
     <target name="-test-class" depends="compile-test-class,-pre-test">
         <fail unless="class">Must set 'class'</fail>
         <marco-test>
-            <classfileset dir="${build.test.dir}" includes="**/${class}.class"/>
+            <classfileset dir="${test.classes.dir}" includes="**/${class}.class"/>
         </marco-test>
     </target>
     <target name="-test-check">
@@ -80,7 +80,7 @@
     <!--=======
     task define
     ========-->
-    <target name="test" depends="-test,-post-test,-test-check"
+    <target name="test" depends="-test,-post-test,-test-check,-test-last-post"
             description="test project"/>
     <target name="test-class" depends="-test-class,-post-test,-test-check"
             description="test single class"/>

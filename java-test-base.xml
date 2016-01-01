@@ -10,7 +10,10 @@
     ├ lib           ${lib.dir}
     │ └ test        ${lib.test.dir}
     └ build         ${build.dir}
-      └ classes     ${build.classes.dir}
+      ├ classes     ${build.classes.dir}
+      └ test        ${build.test.dir}
+        ├ classes   ${test.classes.dir}
+        └ result    ${test.result.dir}
 
     ================-->
 
@@ -37,9 +40,11 @@
         <property name="test.dir" value="test"/>
         <available property="exist.test" file="${test.dir}" type="dir"/>
         <fail unless="exist.test">directory ${test.dir} doesn't exist</fail>
-        <property name="build.test.dir" value="${build.dir}/test/classes"/>
-        <property name="test.result.dir" value="${build.dir}/test/result"/>
+        <property name="build.test.dir" value="${build.dir}/test"/>
+        <property name="test.classes.dir" value="${build.test.dir}/classes"/>
+        <property name="test.result.dir" value="${build.test.dir}/result"/>
         <echo level="verbose">build.test.dir=${build.test.dir}</echo>
+        <echo level="verbose">test.classes.dir=${test.classes.dir}</echo>
         <echo level="verbose">test.result.dir=${test.result.dir}</echo>
     </target>
     <target name="-test-init-classpath" depends="init-classpath,-test-init-property">
@@ -72,7 +77,7 @@
     <target name="-compile-test-prepare" depends="-compile-prepare,-def-macro-javac,-test-init,-pre-compile-test"/>
     <target name="-compile-test" depends="compile,-compile-test-prepare">
         <macro-javac src="${test.dir}"
-                     dest="${build.test.dir}">
+                     dest="${test.classes.dir}">
             <classpath path="${build.classes.dir}"/>
             <classpath refid="real.test.classpath.ref"/>
         </macro-javac>
@@ -96,7 +101,7 @@
             <classpath refid="real.compile.classpath.ref"/>
         </macro-javac>
         <macro-javac src="${test.dir}"
-                     dest="${build.test.dir}"
+                     dest="${test.classes.dir}"
                      includes="${tmp.compile.test.class}">
             <classpath path="${build.classes.dir}"/>
             <classpath refid="real.test.classpath.ref"/>
@@ -118,12 +123,30 @@
               failonerror="flase">
             <classpath path="${real.test.classpath}"/>
             <classpath path="${build.classes.dir}"/>
-            <classpath path="${build.test.dir}"/>
+            <classpath path="${test.classes.dir}"/>
             <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
             <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>
 
+    <!--======================
+    task define : check tested
+    =======================-->
+    <target name="-test-last-pre" depends="compile-test">
+        <uptodate property="test.lasttest" targetfile="${build.test.dir}/.test">
+            <srcresources>
+                <fileset dir="${src.dir}"/>
+                <fileset dir="${test.dir}"/>
+            </srcresources>
+        </uptodate>
+    </target>
+
+    <target name="-test-last-post">
+        <tstamp>
+            <format property="test.time.stamp" pattern="yyyy/MM/dd-HH:mm:ss"/>
+        </tstamp>
+        <echo output="${build.test.dir}/.test">last test : ${test.time.stamp}</echo>
+    </target>
 
 </project>
