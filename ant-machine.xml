@@ -26,11 +26,11 @@
                 var p = self.getProject();
                 var os = p.getProperty('os.name');
                 if (os.contains('win')) {
-                    p.setProperty('@{windos}', '@{windows}');
+                    p.setProperty('@{property}', '@{windows}');
                 } else if (os.contains('nux') || os.contains('nix')) {
-                    p.setProperty('@{windos}', '@{linux}');
+                    p.setProperty('@{property}', '@{linux}');
                 } else if (os.contains('mac')) {
-                    p.setProperty('@{windos}', '@{macos}');
+                    p.setProperty('@{property}', '@{macos}');
                 }
             ]]></script>
         </sequential>
