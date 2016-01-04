@@ -45,16 +45,6 @@
     <property name="build.coverage.dir" value="${build.dir}/jacoco"/>
     <property name="coverage.report.type" value="html"/>
 
-    <!--=================
-    Help Document Section
-    ==================-->
-    <target name="-help-coverage" extensionOf="-help-extend">
-        <echo>coverage            : run program and profiling coverage</echo>
-        <echo>coverage-class      : run single main class and profiling coverage</echo>
-        <echo>coverage-test       : run test and profiling coverage</echo>
-        <echo>coverage-test-class : run single test and profiling coverage</echo>
-    </target>
-
     <!--==================
     task define : coverage
     ===================-->
@@ -160,8 +150,12 @@
     <!--=======
     task define
     ========-->
-    <target name="coverage" depends="-coverage-main,-post-run,-coverage-report" if="define.application"/>
-    <target name="coverage-class" depends="-coverage-class,-post-run,-coverage-report" if="define.application"/>
-    <target name="coverage-test" depends="-coverage-test,-post-test,-coverage-report" if="define.test"/>
-    <target name="coverage-test-class" depends="-coverage-test-class,-post-test,-coverage-report" if="define.test"/>
+    <target name="coverage" depends="-coverage-main,-post-run,-coverage-report" if="define.application"
+            description="run program and profiling coverage"/>
+    <target name="coverage-class" depends="-coverage-class,-post-run,-coverage-report" if="define.application"
+            description="run single main class and profiling coverage"/>
+    <target name="coverage-test" depends="-coverage-test,-post-test,-coverage-report" if="define.test"
+            description="run test and profiling coverage"/>
+    <target name="coverage-test-class" depends="-coverage-test-class,-post-test,-coverage-report" if="define.test"
+            description="run single test and profiling coverage"/>
 </project>
