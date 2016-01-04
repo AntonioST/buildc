@@ -15,6 +15,8 @@
         ├ classes   ${test.classes.dir}
         └ result    ${test.result.dir}
 
+    properties
+    test.force : force do test
     ================-->
 
     <!--===========
@@ -34,12 +36,6 @@
     <extension-point name="-post-compile-test"/>
     <extension-point name="-pre-test"/>
     <extension-point name="-post-test"/>
-
-    <target name="-help-test-property" extensionOf="-help-extend">
-        <echo>Test Command Property</echo>
-        <echo>class : </echo>
-        <echo>test.force : force do test</echo>
-    </target>
 
     <!--==============
     task define : init
