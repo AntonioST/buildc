@@ -84,38 +84,4 @@
             </ant>
         </sequential>
     </macrodef>
-
-    <!--=================
-    help document section
-    ===================-->
-    <target name="-help-general">
-        <echo>Usage : ant TASK</echo>
-        <echo/>
-    </target>
-    <target name="-help-task">
-        <script language="javascript"><![CDATA[
-            var p = self.getProject();
-            var targets = p.getTargets(); //HashTable String -> Target
-            var map = new java.util.HashMap();
-            print ('TARGETS');
-            for (var target in targets) {
-                if (target.isEmpty()) continue;
-                var name = target;
-                if (name.contains('.')) {
-                    name = name.substring(name.indexOf('.') + 1);
-                    if (name.startsWith('-')) continue;
-                    if (map.containsKey(name)) continue;
-                } else {
-                    if (name.startsWith('-')) continue;
-                }
-                map.put(name, targets[target].getDescription());
-            }
-            var list = new java.util.ArrayList(map.keySet());
-            list.sort(null);
-            for each (var name in list) print (name + ' \t: ' + map[name]);
-        ]]></script>
-    </target>
-    <extension-point name="-help-extend"/>
-    <target name="help" depends="-help-general,-help-task,-help-extend" description="list task and help document"/>
-
 </project>
