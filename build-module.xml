@@ -45,7 +45,14 @@
         <sequential>
             <echo>Build module @{name}</echo>
             <property name="module.@{name}.jar" value="${build.dir}/@{name}/jar/@{jarfile}"/>
+            <!--target-->
+            <property name="module.@{name}.target" value="@{target}"  unless:blank="@{target}"/>
+            <property name="module.@{name}.target" value="${target}" if:set="target"/>
+            <property name="module.@{name}.target" value=""/>
+            <!--log-->
+            <echo level="verbose">module.@{name}.target = ${module.@{name}.target}</echo>
             <echo level="verbose">module.@{name}.jar = ${module.@{name}.jar}</echo>
+            <!--classpath-->
             <script language="javascript"><![CDATA[
                 var p = self.getProject();
                 var target = self.getOwningTarget();
@@ -73,8 +80,9 @@
                 p.setProperty('module.@{name}.classpath', java.lang.String.join(':', set));
             ]]></script>
             <echo level="verbose">module.@{name}.classpath = ${module.@{name}.classpath}</echo>
+            <!--call ant-->
             <ant antfile="@{antfile}" dir="@{dir}">
-                <target name="@{target}" unless:blank="@{target}"/>
+                <target name="${module.@{name}.target}" unless:blank="${module.@{name}.target}"/>
                 <property name="ant.root" value="${basedir}/@{antroot}"/>
                 <property name="build.dir" value="${basedir}/${build.dir}/@{name}"/>
                 <property name="jar.file" value="@{jarfile}"/>
