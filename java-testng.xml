@@ -73,15 +73,13 @@
             <classfileset dir="${test.classes.dir}" includes="**/${class}.class"/>
         </marco-test>
     </target>
-    <target name="-test-check">
-        <fail if="test.fail">test fail</fail>
-    </target>
+
 
     <!--=======
     task define
     ========-->
-    <target name="test" depends="-test,-post-test,-test-check,-test-last-post"
+    <target name="test" depends="-test,-post-test,-test-last-post"
             description="test project"/>
-    <target name="test-class" depends="-test-class,-post-test,-test-check"
+    <target name="test-class" depends="-test-class,-post-test"
             description="test single class"/>
 </project>

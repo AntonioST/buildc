@@ -146,4 +146,8 @@
         <echo output="${build.test.dir}/.test">last test : ${test.time.stamp}</echo>
     </target>
 
+    <target name="-test-check" extensionOf="-post-test">
+        <fail if="test.fail">test fail</fail>
+    </target>
+
 </project>

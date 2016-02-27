@@ -84,6 +84,8 @@
         <mkdir dir="${build.coverage.dir}"/>
         <property name="coverage.result.file" value="${build.coverage.dir}/jacoco.exec"/>
         <property name="coverage.report.dir" value="${build.coverage.dir}/report"/>
+        <delete file="${coverage.result.file}"/>
+        <delete dir="${coverage.result.dir}"/>
     </target>
     <target name="-coverage-init" depends="-coverage-init-task,-coverage-init-property,-post-coverage-init"/>
 

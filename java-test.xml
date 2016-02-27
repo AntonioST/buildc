@@ -89,17 +89,14 @@
                   todir="${test.result.dir}"/>
         </marco-test>
     </target>
-    <target name="-test-check">
-        <fail if="test.fail">test failed</fail>
-    </target>
 
     <!--=======
     task define
     ========-->
-    <target name="test" depends="-test,-post-test,-test-check,-test-last-post"
+    <target name="test" depends="-test,-post-test,-test-last-post"
             description="test project"/>
-    <target name="test-class" depends="-test-class,-post-test,-test-check"
+    <target name="test-class" depends="-test-class,-post-test"
             description="test single class"/>
-    <target name="test-method" depends="-test-method,-post-test,-test-check"
+    <target name="test-method" depends="-test-method,-post-test"
             description="test method in a test claass"/>
 </project>

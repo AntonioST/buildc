@@ -67,7 +67,7 @@
     <!--=======
     task define
     ========-->
-    <target name="test-coverage" depends="-coverage-test,-post-test,coverage-report"
+    <target name="test-coverage" depends="-coverage-test,-post-test,-test-last-post,coverage-report"
             description="run test and profiling coverage"/>
     <target name="test-class-coverage" depends="-coverage-test-class,post-test,-coverage-report"
             description="run single test and profiling coverage"/>
