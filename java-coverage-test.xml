@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:jacoco="antlib:org.jacoco.ant">
+
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.test.junit">should import 'java-test.xml'</fail>
+    <import file="java-coverage-base.xml"/>
+    <property name="define.coverage.test" value=""/>
+
+    <!--==============
+    task define : init
+    ===============-->
+    <target name="-coverage-macro" extensionOf="-post-coverage-init">
+        <macrodef name="marco-coverage">
+            <element name="customize" implicit="true"/>
+            <sequential>
+                <mkdir dir="${test.result.dir}"/>
+                <jacoco:coverage destfile="${coverage.result.file}">
+                    <junit tempdir="/tmp"
+                           printsummary="off"
+                           haltonfailure="false"
+                           haltonerror="false"
+                           fork="true"
+                           failureproperty="test.fail">
+                        <formatter type="brief"/>
+                        <classpath refid="real.test.classpath.ref"/>
+                        <classpath path="${build.classes.dir}"/>
+                        <classpath path="${test.classes.dir}"/>
+                        <customize/>
+                    </junit>
+                </jacoco:coverage>
+            </sequential>
+        </macrodef>
+    </target>
+
+    <!--==================
+    task define : coverage
+    ===================-->
+    <target name="-coverage-test" depends="-coverage-init">
+        <marco-coverage>
+            <batchtest todir="${test.result.dir}">
+                <fileset dir="${test.dir}"/>
+            </batchtest>
+        </marco-coverage>
+    </target>
+    <target name="-coverage-test-class" depends="-coverage-init">
+        <fail unless="class">Must set 'class'</fail>
+        <marco-coverage>
+            <test name="${class}"
+                  todir="${test.result.dir}"/>
+        </marco-coverage>
+    </target>
+    <target name="-coverage-test-method" depends="-coverage-init">
+        <fail unless="class">Must set 'class'</fail>
+        <fail unless="method">Must set 'method'</fail>
+        <marco-coverage>
+            <test name="${class}"
+                  methods="${method}"
+                  todir="${test.result.dir}"/>
+        </marco-coverage>
+    </target>
+
+    <!--=======
+    task define
+    ========-->
+    <target name="test-coverage" depends="-coverage-test,-post-test,coverage-report"
+            description="run test and profiling coverage"/>
+    <target name="test-class-coverage" depends="-coverage-test-class,-post-test,coverage-report"
+            description="run single test class and profiling coverage"/>
+    <target name="test-method-coverage" depends="-coverage-test-method,-post-test,coverage-report"
+            description="run single test method and profiling coverage"/>
+</project>

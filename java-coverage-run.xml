@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2016 antonio
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns:jacoco="antlib:org.jacoco.ant"
+         xmlns:if="ant:if">
+
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.application">should import 'java-application.xml'</fail>
+    <import file="java-coverage-base.xml"/>
+    <property name="define.coverage.run" value=""/>
+
+    <!--==================
+    task define : coverage
+    ===================-->
+    <target name="-coverage-main" depends="-run-config,-run-init,-coverage-init">
+        <fail unless="main.class">Must set 'main.class'</fail>
+        <jacoco:coverage destfile="${coverage.result.file}">
+            <java classname="${main.class}"
+                  fork="true"
+                  failonerror="false">
+                <classpath refid="real.runtime.classpath.ref"/>
+                <classpath path="${build.classes.dir}"/>
+                <classpath path="${res.dir}"/>
+                <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+                <arg line="${program.args}" if:set="program.args"/>
+            </java>
+        </jacoco:coverage>
+    </target>
+    <target name="-coverage-class" depends="-run-init,-coverage-init">
+        <fail unless="class">Must set 'class'</fail>
+        <jacoco:coverage destfile="${coverage.result.file}">
+            <java classname="${class}"
+                  fork="true"
+                  failonerror="false">
+                <classpath refid="real.runtime.classpath.ref"/>
+                <classpath path="${build.classes.dir}"/>
+                <classpath path="${res.dir}"/>
+                <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+                <arg line="${program.args}" if:set="program.args"/>
+            </java>
+        </jacoco:coverage>
+    </target>
+
+    <!--=======
+    task define
+    ========-->
+    <target name="coverage" depends="-coverage-main,-post-run,coverage-report" if="define.application"
+            description="run program and profiling coverage"/>
+    <target name="coverage-class" depends="-coverage-class,-post-run,coverage-report" if="define.application"
+            description="run single main class and profiling coverage"/>
+</project>

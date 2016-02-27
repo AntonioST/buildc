@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2016 antonio
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns:jacoco="antlib:org.jacoco.ant"
+         xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.test.testng">should import 'java-testng.xml'</fail>
+    <import file="java-coverage-base.xml"/>
+    <property name="define.coverage.test" value=""/>
+
+    <!--==============
+    task define : init
+    ===============-->
+    <target name="-coverage-macro" extensionOf="-post-coverage-init">
+        <macrodef name="marco-coverage">
+            <element name="customize" implicit="true"/>
+            <sequential>
+                <mkdir dir="${test.result.dir}"/>
+                <jacoco:coverage destfile="${coverage.result.file}">
+                    <testng outputdir="${test.result.dir}"
+                            failureProperty="test.fail">
+                        <classpath refid="real.test.classpath.ref"/>
+                        <classpath path="${build.classes.dir}"/>
+                        <classpath path="${test.classes.dir}"/>
+                        <customize/>
+                    </testng>
+                </jacoco:coverage>
+            </sequential>
+        </macrodef>
+    </target>
+
+    <!--==================
+    task define : coverage
+    ===================-->
+    <target name="-coverage-test" depends="-test-init,-coverage-init">
+        <marco-coverage>
+            <xmlfileset refid="testng.xml.fileset" if:set="testng.xml.fileset"/>
+            <classfileset dir="${build.test.dir}" includes="**/*.class" unless:set="testng.xml.fileset"/>
+        </marco-coverage>
+    </target>
+    <target name="-coverage-test-class" depends="-test-init,-coverage-init">
+        <fail unless="class">Must set 'class'</fail>
+        <marco-coverage>
+            <classfileset dir="${build.test.dir}" includes="**/${class}.class"/>
+        </marco-coverage>
+    </target>
+
+    <!--=======
+    task define
+    ========-->
+    <target name="test-coverage" depends="-coverage-test,-post-test,coverage-report"
+            description="run test and profiling coverage"/>
+    <target name="test-class-coverage" depends="-coverage-test-class,post-test,-coverage-report"
+            description="run single test and profiling coverage"/>
+</project>

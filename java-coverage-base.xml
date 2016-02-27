@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2016 antonio
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns:jacoco="antlib:org.jacoco.ant"
+         xmlns:if="ant:if"
+         xmlns:unless="ant:unless">
+
+    <!--===============
+    Directory Structure
+    ===================
+    .
+    ├ src           ${src.dir}
+    ├ res           ${res.dir}
+    ├ lib           ${lib.dir}
+    │ ├ runtime     ${lib.runtime.dir}
+    │ └ test        ${lib.test.dir}
+    └ build         ${build.dir}
+      ├ jacoco      ${build.coverage.dir}
+      │ ├ jacoco.exec   ${coverage.result.file}
+      │ └ report    ${coverage.report.dir}
+      ├ classes     ${build.classes.dir}
+      └ test
+        ├ classes   ${build.test.dir}
+        └ result    ${test.result.dir}
+
+
+    ================-->
+
+    <!--==============
+    dependence library
+    ==================
+
+    ==org.jacoco.ant==
+    http://mvnrepository.com/artifact/org.jacoco/org.jacoco.ant
+
+    ===============-->
+
+    <!--===========
+    import checking
+    ============-->
+    <fail unless="define.java">should import 'build-java.xml'</fail>
+    <fail unless="define.test">should import 'java-test*.xml'</fail>
+    <property name="define.coverage" value="jacoco"/>
+
+    <!--===========
+    initial section
+    ============-->
+    <property name="build.coverage.dir" value="${build.dir}/jacoco"/>
+    <property name="coverage.report.type" value="html"/>
+
+    <!--====================
+    custom extension section
+    =====================-->
+    <extension-point name="-post-coverage-init"/>
+
+    <!--==============
+    task define : init
+    ===============-->
+    <target name="-coverage-init-task" depends="-test-init">
+        <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+            <classpath path="${lib.test.dir}/org.jacoco.ant.jar"/>
+            <classpath path="${lib.test.dir}/org.jacoco.core.jar"/>
+            <classpath path="${lib.test.dir}/org.jacoco.agent.jar"/>
+            <classpath path="${lib.test.dir}/org.jacoco.report.jar"/>
+            <classpath path="${lib.test.dir}/asm-debug-all.jar"/>
+        </taskdef>
+    </target>
+    <target name="-coverage-init-property">
+        <mkdir dir="${build.coverage.dir}"/>
+        <property name="coverage.result.file" value="${build.coverage.dir}/jacoco.exec"/>
+        <property name="coverage.report.dir" value="${build.coverage.dir}/report"/>
+    </target>
+    <target name="-coverage-init" depends="-coverage-init-task,-coverage-init-property,-post-coverage-init"/>
+
+    <!--================
+    task define : report
+    =================-->
+    <target name="coverage-report" depends="-coverage-init">
+        <!--check report type-->
+        <fail if="coverage.report.type.html">property 'coverage.report.type.html' is used</fail>
+        <fail if="coverage.report.type.xml">property 'coverage.report.type.xml' is used</fail>
+        <fail if="coverage.report.type.csv">property 'coverage.report.type.csv' is used</fail>
+        <condition property="coverage.report.type.html">
+            <equals arg1="${coverage.report.type}" arg2="html"/>
+        </condition>
+        <condition property="coverage.report.type.xml">
+            <equals arg1="${coverage.report.type}" arg2="xml"/>
+        </condition>
+        <condition property="coverage.report.type.csv">
+            <equals arg1="${coverage.report.type}" arg2="csv"/>
+        </condition>
+        <!--check report file-->
+        <available property="exist.coverage.result" file="${coverage.result.file}"/>
+        <fail unless="exist.coverage.result">Coverage Result File doesn't exist</fail>
+        <!--report-->
+        <mkdir dir="${coverage.report.dir}"/>
+        <jacoco:report>
+            <executiondata>
+                <file file="${coverage.result.file}"/>
+            </executiondata>
+            <structure name="Project">
+                <classfiles>
+                    <fileset dir="${build.classes.dir}"/>
+                </classfiles>
+                <sourcefiles encoding="UTF-8">
+                    <fileset dir="${src.dir}"/>
+                </sourcefiles>
+            </structure>
+            <html destdir="${coverage.report.dir}" if:set="coverage.report.type.html"/>
+            <xml destdir="${coverage.report.dir}" if:set="coverage.report.type.xml"/>
+            <csv destdir="${coverage.report.dir}" if:set="coverage.report.type.csv"/>
+        </jacoco:report>
+        <!--open browser-->
+        <condition property="coverage.report.browser">
+            <and>
+                <isset property="coverage.report.type.html"/>
+                <isset property="browser"/>
+            </and>
+        </condition>
+        <exec executable="${browser}" spawn="true" if:set="coverage.report.browser">
+            <arg file="${coverage.report.dir}/index.html"/>
+        </exec>
+    </target>
+</project>
