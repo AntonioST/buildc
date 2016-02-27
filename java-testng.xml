@@ -48,6 +48,7 @@
                 <mkdir dir="${test.result.dir}"/>
                 <testng outputdir="${test.result.dir}"
                         failureProperty="test.fail">
+                    <jvmarg value="${debug.jvmargs}" if:set="debug"/>
                     <classpath refid="real.test.classpath.ref"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${test.classes.dir}"/>

@@ -1,76 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:if="ant:if">
-    <!--===========
-    import checking
-    ============-->
-    <fail unless="define.java">should import 'build-java.xml'</fail>
-    <property name="define.debug" value=""/>
 
+    <property name="debug.mode" value="attach"/>
     <property name="debug.transport" value="dt_socket"/>
     <property name="debug.socket" value="5005"/>
+
     <!-- IDEA
+    attach mode
     -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+
+    listen mode
+    -agentlib:jdwp=transport=dt_socket,server=n,address=localhost.localdomain:5005,suspend=y,onthrow=<FQ exception class name>,onuncaught=<y/n>
     -->
-    <property name="debug.jvmargs" value="-agentlib:jdwp=transport=${debug.transport},server=y,suspend=y,address=${debug.socket}"/>
 
-    <!--====================
-    custom extension section
-    =====================-->
-    <extension-point name="-pre-debug"/>
-    <extension-point name="-post-debug"/>
 
-    <!--=======
-    task define
-    =========-->
-    <target name="-def-marco-debug">
-        <macrodef name="macro-debug">
-            <attribute name="classname" default="${main.class}"/>
-            <attribute name="failonerror" default="false"/>
-            <element name="custom" implicit="true"/>
-            <sequential>
-                <java classname="@{classname}"
-                      fork="true"
-                      failonerror="@{failonerror}">
-                    <classpath path="${real.runtime.classpath}"/>
-                    <classpath path="${build.classes.dir}"/>
-                    <classpath path="${res.dir}"/>
-                    <jvmarg value="${debug.jvmargs}}"/>
-                    <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
-                    <custom/>
-                </java>
-            </sequential>
-        </macrodef>
-    </target>
-    <target name="-debug-config">
-        <available property="exist.config.file" file="${config}" if:set="config"/>
-        <property file="${config}" if:set="exist.config.file"/>
-    </target>
-    <target name="-debug-init" depends="init,init-classpath,-def-marco-debug,-pre-debug"/>
-    <target name="-debug" depends="-debug-config,-debug-init">
-        <fail unless="main.class">Must set 'main.class'</fail>
-        <macro-debug>
-            <arg line="${program.args}" if:set="program.args"/>
-        </macro-debug>
-    </target>
-    <target name="-debug-class" depends="-debug-init">
-        <fail unless="class">Must set 'class'</fail>
-        <macro-debug classname="${class}">
-            <arg line="${program.args}" if:set="program.args"/>
-        </macro-debug>
-    </target>
-    <target name="-debug-jar" depends="jar,-debug-init">
-        <java jar="${build.jar.dir}/${jar.file}"
-              fork="true"
-              failonerror="false">
-            <jvmarg value="${debug.jvmargs}"/>
-            <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
-            <arg line="${program.args}" if:set="program.args"/>
-        </java>
-    </target>
-    <target name="debug" depends="-debug,-post-debug"
-            description="debug main class"/>
-    <target name="debug-class" depends="-debug-class,-post-debug"
-            description="debug class"/>
-    <target name="debug-jar" depends="-debug-jar,-post-debug"
-            description="debug jar file"/>
+    <condition property="debug.mode.attach">
+        <equals arg1="${debug.mode}" arg2="attach"/>
+    </condition>
+    <condition property="debug.mode.listen">
+        <equals arg1="${debug.mode}" arg2="listen"/>
+    </condition>
+
+    <property name="debug.jvmargs"
+              value="-agentlib:jdwp=transport=${debug.transport},server=y,suspend=y,address=${debug.socket}"
+              if:set="debug.mode.attach"/>
+    <property name="debug.jvmargs"
+              value="-agentlib:jdwp=transport=${debug.transport},server=n,suspend=y,address=localhost.localdomain:${debug.socket},onthrow=${class},onuncaught=y"
+              if:set="debug.mode.listen"/>
+
 </project>

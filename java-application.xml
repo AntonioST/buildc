@@ -38,6 +38,7 @@
             <classpath path="${build.classes.dir}"/>
             <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <jvmarg value="${debug.jvmargs}" if:set="debug"/>
             <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>
@@ -50,6 +51,7 @@
             <classpath path="${build.classes.dir}"/>
             <classpath path="${res.dir}"/>
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <jvmarg value="${debug.jvmargs}" if:set="debug"/>
             <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>
@@ -58,6 +60,7 @@
               fork="true"
               failonerror="false">
             <jvmarg line="${java.jvmargs}" if:set="java.jvmargs"/>
+            <jvmarg value="${debug.jvmargs}" if:set="debug"/>
             <arg line="${program.args}" if:set="program.args"/>
         </java>
     </target>

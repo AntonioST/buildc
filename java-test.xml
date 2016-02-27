@@ -51,6 +51,7 @@
                        fork="true"
                        failureproperty="test.fail">
                     <formatter type="brief"/>
+                    <jvmarg value="${debug.jvmargs}" if:set="debug"/>
                     <classpath refid="real.test.classpath.ref"/>
                     <classpath path="${build.classes.dir}"/>
                     <classpath path="${test.classes.dir}"/>
