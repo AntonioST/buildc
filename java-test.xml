@@ -71,7 +71,6 @@
                 <fileset dir="${test.dir}"/>
             </batchtest>
         </marco-test>
-        <macro-cat-dir srcdir="${test.result.dir}"/>
     </target>
     <target name="-test-class" depends="compile-test-class,-pre-test">
         <fail unless="class">Must set 'class'</fail>
