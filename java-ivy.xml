@@ -32,7 +32,7 @@
     <target name="retrieve" depends="-retrieve,-post-retrieve" description="retrieve lost library file"/>
     <target name="retrieve-all" if="exist.ivy" depends="clean-lib,-retrieve" description="retrieve all library file"/>
 
-    <target name="clean-lib" description="clean library directory">
+    <target name="clean-lib" depends="-init-lib" description="clean library directory">
         <delete dir="${lib.dir}"/>
     </target>
 </project>
