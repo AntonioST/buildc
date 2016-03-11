@@ -30,7 +30,6 @@
     import checking
     ============-->
     <import file="java-test-base.xml"/>
-    <include file="ant-echo.xml"/>
     <property name="define.test.junit" value=""/>
 
     <!--==============
@@ -78,7 +77,6 @@
             <test name="${class}"
                   todir="${test.result.dir}"/>
         </marco-test>
-        <macro-cat srcfile="${test.result.dir}/TEST-${class}.txt"/>
     </target>
     <target name="-test-method" depends="compile-test-class,-pre-test">
         <fail unless="class">Must set 'class'</fail>
